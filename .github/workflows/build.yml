@@ -64,9 +64,11 @@ jobs:
             version="${last_tag#v}"; channel="dev"
           fi
           commit="$(git rev-parse --short=7 HEAD)"
-          printf '{"version":"%s","commit":"%s","channel":"%s"}\n' "$version" "$commit" "$channel" > build_info.json
+          # Friendly, ever-growing build number shown to players (commit count on main).
+          build="$(git rev-list --count HEAD)"
+          printf '{"version":"%s","build":%s,"commit":"%s","channel":"%s"}\n' "$version" "$build" "$commit" "$channel" > build_info.json
           cat build_info.json
-          echo "build_id=${version}+${commit}" >> "$GITHUB_OUTPUT"
+          echo "build_id=${version} (sestavení ${build})" >> "$GITHUB_OUTPUT"
 
       - name: Export
         run: |
@@ -90,7 +92,7 @@ jobs:
       - name: Release notes
         run: |
           cat > notes.md <<EOF
-          **Build:** \`${{ steps.info.outputs.build_id }}\` (verze je vidět vlevo dole v menu – všichni hráči musí mít stejnou)
+          **Verze:** \`${{ steps.info.outputs.build_id }}\` (je vidět vlevo dole v menu – všichni hráči musí mít stejnou)
 
           ### Co stáhnout
           - **Windows:** \`${GAME_NAME}-windows.exe\` → stáhnout a spustit

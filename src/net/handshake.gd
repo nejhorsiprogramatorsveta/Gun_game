@@ -37,7 +37,7 @@ static func make_accept() -> PackedByteArray:
 
 
 static func make_reject(reason: String) -> PackedByteArray:
-	return var_to_bytes({"ok": false, "reason": reason, "build": BuildInfo.build_id()})
+	return var_to_bytes({"ok": false, "reason": reason, "build": BuildInfo.display_string()})
 
 
 ## Returns the message, or an empty dictionary if it is too big or not a dictionary.
@@ -73,7 +73,7 @@ static func rejection_text(reply: Dictionary) -> String:
 	if reason not in REJECT_REASONS:
 		reason = "ERROR_VERSION_MISMATCH"
 	var text := TranslationServer.translate(reason)
-	return text.format({"mine": BuildInfo.build_id(), "host": str(reply.get("build", "?"))})
+	return text.format({"mine": BuildInfo.display_string(), "host": str(reply.get("build", "?")).left(48)})
 
 
 ## Type-safe equality for values received from the network.

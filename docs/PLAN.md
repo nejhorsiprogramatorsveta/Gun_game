@@ -360,6 +360,12 @@ tools/
 - **Celá hra bude v detailním pixel-art stylu** podle referenčního obrázku od uživatele: postavy z japonského prostředí (samuraj v plné zbroji, róninka s maskou kitsune a katanou, ninjové s kusarigamou a s velkým šurikenem).
   - Postavy jsou vysoké ~90–110 px, mají tmavé obrysy, výrazné stínování, sytou omezenou paletu a měkký elipsovitý stín pod nohama.
 - Referenční obrázek je lokálně v `art_reference/` (gitignored). **Je to cizí dílo (@GEORGE_TTOWERS), slouží jen jako stylová reference a nesmí se kopírovat, commitovat ani distribuovat.** Postavy hry musí být vlastní originální návrhy v podobném stylu.
+- **MAPY (ZADÁNÍ 2026-11-03, druhá reference `art_reference/map_style_reference.png`):**
+  - Arény mají vypadat jako ručně malovaný „plovoucí ostrov“: masivní hlavní blok s rozeklaným, ledově/krystalicky zdobeným horním okrajem a detailní spodní částí (svítící prvky), na pozadí vesmír s planetami a mlhovinami.
+  - Navíc ale **víc pater (pater plošin) jako v aktuální demo aréně**: hlavní země + boční plošiny + horní plošina.
+  - Pozadí ve více vrstvách (parallax), plošiny čitelné na první pohled.
+  - Referenční obrázek je ze hry Brawlhalla (cizí dílo): **jen stylová reference**, nekopírovat, necommitovat.
+  - **Otevřená otázka pro uživatele:** postavy jsou plánované v pixel artu (reference 1), mapy v malovaném stylu (reference 2). Kombinace jde, ale musí působit jednotně. Buď (a) pixel-art postavy na malovaném pozadí s pixelovými plošinami, nebo (b) obojí malované, nebo (c) obojí pixel art inspirovaný malovanou kompozicí. Rozhodnout před tvorbou grafiky (M8 / grafika).
 - **Technicky, až přijdou první sprity:**
   - projektové nastavení `default_texture_filter = Nearest`, přichytávání 2D transformací a vrcholů k pixelům
   - celočíselné škálování okna (`window/stretch/scale_mode = integer`) a nízké základní rozlišení (např. 640×360, nebo aréna kreslená ve 2× pixelech)

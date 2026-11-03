@@ -13,7 +13,7 @@ ERROR_HOST_FAILED,"Nepodařilo se spustit hru na portu {port}. Možná na něm u
 ERROR_INVALID_ADDRESS,"Neplatná adresa. Vlož celou adresu od hostitele, např. 100.101.102.103:24642#K7Q2MX."
 ERROR_CONNECTION_FAILED,"Nepodařilo se připojit k {address}. Zkontroluj adresu, jestli hostitel hru opravdu hostuje a jestli ji povolil ve firewallu."
 ERROR_HOST_LEFT,Hostitel ukončil hru nebo se spojení přerušilo.
-ERROR_VERSION_MISMATCH,Máš jinou verzi hry ({mine}) než hostitel ({host}). Stáhněte si oba nejnovější verzi.
+ERROR_VERSION_MISMATCH,"Máš jinou verzi hry ({mine}) než hostitel ({host}). Stáhněte si všichni nejnovější verzi."
 ERROR_LOBBY_FULL,"Hra je plná (max. 4 hráči)."
 ERROR_MATCH_IN_PROGRESS,"Zápas už běží, počkej na jeho konec."
 MENU_NAME_PLACEHOLDER,Tvoje jméno
@@ -40,3 +40,5 @@ LOBBY_START,Začít zápas
 LOBBY_NEED_PLAYERS,"Na začátek zápasu jsou potřeba aspoň {min} hráči."
 LOBBY_WAITING_FOR_HOST,"Čekáme, až hostitel spustí zápas…"
 DEBUG_FAKE_LAG,"[TEST] Simulace sítě: +{lag} ms, {loss} % ztracených paketů"
+BUILD_DISPLAY,{version} (sestavení {build})
+BUILD_DISPLAY_DEV,"{version} (vývojová, {commit})"

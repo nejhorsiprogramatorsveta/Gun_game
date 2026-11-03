@@ -49,6 +49,11 @@
 - **Nefunguje zatím:** střelba, životy a konec zápasu (M3).
 
 ## Poslední změny
+- **2026-11-03, čitelné verze:**
+  - CI zapisuje číslo sestavení (počet commitů na main), menu ukazuje „Verze 0.0.0 (sestavení 31)“ místo kódu commitu. Commit zůstává uvnitř `build_info.json`.
+  - `build_id` = `verze+sestavení`, chybová hláška o verzi ukazuje čitelné verze
+  - `tests/test_build_info.gd`
+- **2026-11-03, styl map:** PLAN.md Q, reference `art_reference/map_style_reference.png` (gitignored, cizí dílo).
 - **2026-11-03, CI bez nových buildů pro dokumentaci:** `paths-ignore` (`docs/**`, `**/*.md`). Důvod: uživatel měl `d265616`, kamarádi `2cec77d` (liší se jen dokumentací), a kontrola verze je nepustila k sobě.
 - **2026-11-03, Windows bez ZIPu (přání uživatele):** CI publikuje `gun_game-windows.exe` přímo (~110 MB místo ZIPu ~39 MB) a starý `gun_game-windows.zip` z release `dev` maže. macOS zůstává ZIP (.app je složka), Linux ZIP (zachová oprávnění ke spuštění). README upraven.
 - **2026-11-03, M2 krok 5:**
@@ -147,6 +152,8 @@
   - síť mezi dvěma počítači a přes Tailscale
 
 ## Rozhodnutí
+- **Číslo sestavení místo kódu commitu** (uživatel nerozuměl kódům): hráči porovnávají „sestavení N“. Číslo jen roste, což se hodí i pro automatické aktualizace.
+- **Mapy:** malovaný „plovoucí ostrov“ s vesmírným pozadím (reference 2), ale s více patry plošin jako demo aréna. **Otevřená otázka:** pixel-art postavy vs. malované mapy (PLAN.md Q).
 - **Automatické aktualizace** (zadání 2026-11-03, PLAN.md I.8, milník M3U hned po M3): hra po spuštění porovná svůj `build_id` s `version.json` na GitHubu, nabídne aktualizaci, stáhne ji (ověření SHA-256, doporučený podpis) a restartuje se. Windows záměnou exe, macOS výměnou `.app` se záložní cestou.
 - **Lobby se po zápase vrací** (zadání 2026-11-03, PLAN.md T): výsledky → stejné lobby, žádné nové hostování. **V lobby se vybírá postava (každý) a mapa (hostitel).** Zatím jen v plánu: návrat v M3, postavy v M5, mapy v M6. Otevřená otázka: smí mít dva hráči stejnou postavu? (návrh: ano)
 - **Internet = Tailscale** (uživatel 2026-11-03): zdarma pro až 6 uživatelů, Windows, macOS i Linux.
