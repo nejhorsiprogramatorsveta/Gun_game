@@ -40,5 +40,5 @@ func test_address_kind() -> void:
 
 func test_cgnat_range_depends_on_interface() -> void:
 	check_eq(EnetDirectConnector.address_kind("100.101.102.103", "utun4"), &"tailscale", "macOS Tailscale")
-	check_eq(EnetDirectConnector.address_kind("100.101.102.103", "Tailscale"), &"tailscale", "Windows Tailscale")
+	check_eq(EnetDirectConnector.address_kind("100.101.102.103", "{5E1A-GUID} Tailscale"), &"tailscale", "Windows Tailscale (GUID name + friendly name)")
 	check_eq(EnetDirectConnector.address_kind("100.64.45.243", "en0"), &"lan", "public Wi-Fi using the 100.64/10 range")

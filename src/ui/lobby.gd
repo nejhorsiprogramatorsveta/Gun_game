@@ -3,17 +3,9 @@ extends Control
 ## Starting a match is added in M2 step 4.
 
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
-const INTERNET_STATUS_KEYS := {
-	&"checking": "LOBBY_UPNP_CHECKING",
-	&"open": "LOBBY_UPNP_OPEN",
-	&"failed": "LOBBY_UPNP_FAILED",
-	&"cgnat": "LOBBY_UPNP_CGNAT",
-}
 const ADDRESS_KIND_KEYS := {
-	&"public": "LOBBY_ADDRESS_PUBLIC",
 	&"tailscale": "LOBBY_ADDRESS_TAILSCALE",
 	&"lan": "LOBBY_ADDRESS_LAN",
-	&"ipv6": "LOBBY_ADDRESS_IPV6",
 }
 
 @onready var _players_title: Label = %PlayersTitle
@@ -31,7 +23,6 @@ func _ready() -> void:
 	_leave_button.pressed.connect(Session.leave)
 	_share_section.visible = Session.is_host()
 	if Session.is_host():
-		Session.share_info_changed.connect(_build_address_list)
 		_build_address_list()
 	_refresh_players()
 
@@ -65,8 +56,8 @@ func _build_address_list() -> void:
 		_address_list.add_child(copy_button)
 	if addresses.is_empty():
 		_address_list.add_child(_make_label(tr("LOBBY_NO_ADDRESS")))
-	var status := Session.internet_status()
-	_internet_hint.text = tr(INTERNET_STATUS_KEYS[status]).format({"port": Session.host_port}) if INTERNET_STATUS_KEYS.has(status) else ""
+	var has_tailscale := addresses.any(func(entry: Dictionary) -> bool: return entry.kind == &"tailscale")
+	_internet_hint.text = tr("LOBBY_HINT_TAILSCALE_ON" if has_tailscale else "LOBBY_HINT_TAILSCALE_OFF")
 
 
 func _copy(address: String, button: Button) -> void:

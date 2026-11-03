@@ -46,22 +46,40 @@ U každé nové verze se tento postup opakuje.
 
 ## Jak hrát s kamarády
 
-*Online hra zatím není hotová (milníky M2 a M3).* Postup bude takový:
-1. Všichni si stáhnou **stejnou verzi**. Číslo verze je vidět vlevo dole v menu.
-2. Jeden hráč klikne na *Hostovat*. Lobby ukáže adresy pro kamarády včetně kódu hry (např. `85.12.34.56:24642#K7Q2MX`). Tlačítkem *Kopírovat* je pošleš kamarádům.
-   - **„Internet“:** router otevřel port automaticky (UPnP), funguje odkudkoli.
-   - **„Stejná Wi-Fi / síť“:** jen pro hráče ve stejné síti.
-   - Pokud lobby napíše, že se port otevřít nepovedlo, přesměruj v routeru **UDP port 24642** na svůj počítač, nebo použijte Tailscale.
-3. Ostatní vloží celou adresu (i s částí za `#`) a kliknou na *Připojit*.
+*Společný zápas se teprve dodělává (milník M2). Zatím se umíte navzájem připojit do lobby.*
 
-## Bezpečnost hraní přes internet
+### Na stejné Wi-Fi
+1. Všichni si stáhnete **stejnou verzi** hry. Číslo verze je vlevo dole v menu.
+2. Jeden klikne na **Hostovat** a v lobby klikne na **Kopírovat** u adresy „Stejná Wi-Fi / síť“.
+3. Ostatní adresu vloží (celou, i s částí za `#`) a kliknou na **Připojit**.
 
-- **Co hra otevírá:** jen jeden UDP port (24642) na počítači **hostitele** a jen po dobu hostování. Pokud to router umí (UPnP), otevře se automaticky a po odchodu z lobby se zase zavře, nejpozději za 2 hodiny. Hra nedává přístup k souborům, jiným programům ani k jiným zařízením ve tvé Wi-Fi. Kdo se jen připojuje, žádný port neotevírá.
-- **Kód hry:** adresa obsahuje i náhodný kód (např. `85.12.34.56:24642#K7Q2MX`). Bez něj se nikdo cizí nepřipojí. Kód se mění při každém hostování.
-- **Adresu posílej jen kamarádům.** Obsahuje tvoji veřejnou IP. Kdo ji zná, mohl by tvoje připojení zahltit nebo zhruba určit, kde jsi.
-- **Nejbezpečnější varianta je [Tailscale](https://tailscale.com).** Nic se neotevírá do internetu a připojit se můžou jen pozvaní. Firewall nech zapnutý.
-- **Windows Firewall:** povol hru pro **soukromé sítě**. Na veřejné Wi-Fi (kavárna, knihovna) hostování nedoporučujeme.
+### Přes internet (Tailscale)
+[Tailscale](https://tailscale.com) je bezplatná aplikace pro Windows, Mac i Linux. Spojí vaše počítače do soukromé sítě, jako byste byli na stejné Wi-Fi. Nemusíte nic nastavovat v routeru a nikdo neuvidí tvoji skutečnou IP adresu.
+
+**Jednou na začátku:**
+1. **Všichni:** stáhněte a nainstalujte Tailscale z [tailscale.com/download](https://tailscale.com/download) a přihlaste se (stačí Google, Microsoft nebo Apple účet).
+2. **Hostitel:** otevři v prohlížeči [login.tailscale.com/admin/machines](https://login.tailscale.com/admin/machines). U svého počítače klikni na **⋯ → Share…** a pošli kamarádům odkaz.
+   - Kamarádi tak uvidí jen tento jeden počítač, ne tvoje ostatní zařízení. Je to bezpečnější než je zvát do celé sítě.
+3. **Kamarádi:** otevřou odkaz a přijmou sdílení.
+
+**Pokaždé, když chcete hrát:**
+1. Všichni mají Tailscale zapnutý (ikona u hodin, stav *Connected*).
+2. Hostitel klikne v hře na **Hostovat** a v lobby na **Kopírovat** u adresy „Přes internet (Tailscale)“. Adresa začíná `100.` a obsahuje kód hry za `#`.
+3. Kamarádi adresu vloží a kliknou na **Připojit**.
+
+**Když to nejde:**
+- Zkontroluj, že **všichni mají zapnutý Tailscale** a kamarád v aplikaci Tailscale vidí tvůj počítač.
+- **Windows:** když se po kliknutí na *Hostovat* objeví dotaz brány firewall, klikni na **Povolit přístup**. Tailscale síť může Windows brát jako veřejnou, proto zaškrtni i *Veřejné sítě*. Pokud jsi dotaz omylem zamítl: *Nastavení → Zabezpečení Windows → Brána firewall → Povolit aplikaci* → `gun_game`.
+- **Všichni musí mít stejnou verzi hry.** Hra jinak sama napíše, že se verze liší.
+- **Kód hry se mění při každém hostování.** Pošli vždy novou adresu.
+
+## Bezpečnost
+
+- **Hra neotevírá žádné porty v routeru** a nikde neukazuje tvoji skutečnou IP adresu. Pro hru přes internet slouží Tailscale, takže se k tvému počítači dostane jen ten, s kým ho sdílíš.
+- **Kód hry:** adresa obsahuje náhodný kód (např. `#K7Q2MX`). Bez něj se nikdo nepřipojí. Kód se mění při každém hostování.
+- **Sdílej počítač v Tailscale jen s kamarády,** kterým věříš, a nech zapnutý firewall. Sdílení můžeš kdykoli zrušit na stránce *Machines*.
 - **Hru stahuj jen z [GitHub Releases](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases)** tohoto projektu, nikdy ne jako exe poslané v chatu. Hra nikdy nepotřebuje práva správce.
+- Pro úplnost: Tailscale se snaží spojit počítače napřímo, takže technicky zdatný kamarád by v pokročilých údajích Tailscale tvoji IP dohledat mohl. Ve hře ani v běžném okně aplikace ale vidět není.
 
 ## Vývoj
 

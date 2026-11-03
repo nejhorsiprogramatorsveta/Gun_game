@@ -1,203 +1,124 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M2 krok 4a (rozdělení `session.gd`) je hotový, commitnutý a pushnutý.**
-- Handshake (zprávy, kód hry, validace) je v `src/net/handshake.gd` (81 ř.), `session.gd` se zmenšil z 292 na 262 ř.
+**Připojení přes internet je vyřešené přes Tailscale (rozhodnutí uživatele 2026-11-03), commitnuté a pushnuté.**
+- UPnP je odstraněné. Lobby sdílí jen Tailscale a LAN adresy, nikdy veřejnou IP.
+- README obsahuje návod pro Tailscale (sdílení počítače přes *Share*).
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**Pořadí podle přání uživatele (2026-11-03): co nejdřív hra přes internet.**
 1. **Opravit BUG s dvojskokem** (sekce níže, malý úkol).
-2. **M2 krok 5 (dříve M7): připojení přes internet bez nastavování routeru, kódem přes relay server noray.** Skryje i IP hostitele (řeší ODLOŽENÉ ROZHODNUTÍ níže).
-   - Nejdřív uživateli vysvětlit, co je potřeba: server s UDP, nejspíš Oracle Cloud Always Free (zdarma, při registraci se zadává karta), nebo levný VPS za ~4–6 €/měs. Ceny a podmínky ověřit.
-   - Připravit návod krok za krokem. Server zakládá a spouští uživatel, Claude to neumí za něj.
-   - V kódu `NorayConnector` (`src/net/connectors/`) a v menu pole „Kód hry“. IP a UPnP zůstávají jako záloha.
-   - Prověřit addon `netfox.noray` (MIT) vs. vlastní malý klient.
-   - **Bezpečnost (PLAN.md S):** kód hry dál povinný; ověřit, co relay vidí a co ne.
-3. **M2 krok 4b:** synchronizace pohybu (start zápasu, spawn, vstupy s `seq` a `aim`, snapshoty 30 Hz, interpolace).
-4. **M3:** souboj = MVP. Pak **M5:** 4 postavy, 2 zbraně na postavu, přepínání, schopnosti (PLAN.md G.0).
+2. **M2 krok 4b, synchronizace pohybu** (první společné hraní):
+   - tlačítko *Začít zápas* u hostitele (min. 2 hráči), RPC `match_started` → všichni načtou `match.tscn`
+   - spawn podle slotů
+   - `InputFrame` rozšířit o `seq`, `aim` (úhel ke kurzoru, u16) a aktivní slot zbraně (1 bit, PLAN.md G.0)
+   - vstupy 60 Hz (unreliable_ordered, poslední 3 kvůli ztrátám) → host
+   - snapshot 30 Hz → klienti (`src/net/snapshot.gd`)
+   - interpolace vzdálených hráčů (`src/player/remote_interpolator.gd`)
+   - RPC jen v `src/match/match_net.gd`, validace dle PLAN.md D.7 a sekce S
+   - Lze rozdělit na víc commitů.
+3. **M2 krok 5:** `LagSimulator`, test 2 počítačů v LAN a **test přes Tailscale s kamarádem**.
+4. **M3:** souboj = MVP (`v0.1.0`). Pak **M5:** 4 postavy, 2 zbraně na postavu, schopnosti (PLAN.md G.0).
 
 ## BUG K OPRAVĚ: dvojskok po sejití z plošiny (nahlásil uživatel 2026-11-03, potvrzeno simulací)
 - **Reprodukce:**
   1. Stát na plošině a vyjít přes hranu (bez skoku).
   2. Skok zmáčknout až po coyote time (> 0,08 s).
-  3. Skočí jen jednou, druhý stisk nic neudělá (scénář D, simulace v `match.tscn`).
+  3. Skočí jen jednou, druhý stisk nic neudělá.
   - Do 0,08 s po sejití fungují 2 skoky, po skoku ze země taky 2.
 - **Příčina:** `PlayerMotor` bere skok ze země jako dostupný jen v coyote time. Po něm zbývá jen `air_jumps` (1).
 - **Navržená oprava:**
   - Nahradit `air_jumps_left` + coyote za `jumps_left = 1 + air_jumps` (reset na zemi). Každý skok jeden spotřebuje, ve vzduchu jen nový stisk, buffer jen pro dopad.
-  - Odstranit `coyote_time` z `CharacterData` a `jiskra.tres` (nebude potřeba).
-  - Upravit testy v `tests/test_player_motor.gd` a přidat test „sejití z hrany + pozdní skok = 2 skoky“.
-  - Výsledek: po sejití i po odhození knockbackem má hráč vždy 2 skoky (lepší záchrana jako v žánru).
-- **Kdy:** hned po M2 kroku 4a (před synchronizací pohybu, protože motor sdílí host i predikce).
+  - Odstranit `coyote_time` z `CharacterData` a `jiskra.tres`.
+  - Upravit testy (`tests/test_player_motor.gd`) a přidat test „sejití z hrany + pozdní skok = 2 skoky“.
+  - Výsledek: po sejití i po odhození má hráč vždy 2 skoky (lepší záchrana jako v žánru).
 
-## ODLOŽENÉ ROZHODNUTÍ: připojení a skrytí IP (uživatel 2026-11-03: „vyřešíme v dalších krocích“)
-- Uživateli vadí, že je IP vidět v lobby. Chce rozumět, kdy jde hrát mimo stejnou Wi-Fi.
-- **Vysvětleno:**
-  - Dnes jde hrát přes internet jen při UPnP nebo ručním port forwardingu doma, nebo přes Tailscale. Z knihovny jde jen stejná Wi-Fi.
-  - Skrytí IP na obrazovce je jen kosmetika. Skutečné skrytí IP a připojení odkudkoli dá až relay (M7, noray), který potřebuje server: Oracle Free, nebo VPS za ~4–6 €/měs.
-- **Možnosti k rozhodnutí:**
-  - (a) relay hned (M7 dřív)
-  - (b) pozvánkový kód a skrytá IP v lobby teď, relay později
-  - (c) obojí
-- **Až se bude řešit M7 nebo internetový test (M2 krok 5), znovu nabídnout tyto možnosti.**
+## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
+**Neptat se na to v každé session.**
+- Ruční test staženého `gun_game-windows.zip` na Windows PC:
+  - SmartScreen
+  - menu s verzí
+  - trénink
+  - firewall při hostování
+  - Tailscale
+- Případně i `gun_game-macos.zip` stažený v prohlížeči (Gatekeeper).
+- Do té doby se hra na Macu spouští lokálně: `tools/godot --path .` z kořene projektu.
 
 ## Aktuální stav
-- **Milník:** M2, kroky 1–3 z 5 hotové. M1 je hotový včetně CI, chybí jen ruční test na Windows (viz ODLOŽENO).
+- **Milník:** M2, kroky 1–3 a 4a hotové. M1 je hotový včetně CI (chybí jen ruční test na Windows, viz ODLOŽENO).
 - **Funguje** (ověřeno lokálně na macOS arm64):
-  - hlavní menu s verzí a českými texty
-  - trénink v aréně: běh, skok, dvojskok, coyote time, buffer skoku, seskok z jednosměrné plošiny, respawn po pádu
-  - Esc vrací do menu
-  - export pro Windows, macOS a Linux
-- **Síť (zatím jen v kódu, bez UI):**
-  - hostování a připojení přes IP:port (IPv4, IPv6, hostname)
-  - kontrola verze a protokolu s českou hláškou
-  - seznam hráčů v lobby rozesílaný hostem (max. 4)
-  - odmítnutí při plném lobby nebo běžícím zápase
-  - hlášky při odchodu hostitele, nedostupném hostiteli (timeout 10 s), neplatné adrese a obsazeném portu
-- **Menu a lobby (M2 krok 2):**
-  - Menu: jméno, Hostovat, adresa + Připojit. Jméno a poslední adresa se pamatují.
-  - Lobby: seznam hráčů (hostitel, ty), u hostitele adresy ke zkopírování (LAN, Tailscale, IPv6), Odejít.
-  - Chyby se zobrazí červeně v menu.
-  - Zápas z lobby zatím spustit nejde (krok 4).
-- **Internet a bezpečnost (M2 krok 3):**
-  - Host zkouší UPnP (jeden UDP port, limit 2 h, zavírá se při odchodu i zavření okna) a v lobby ukáže stav: zkouším / otevřeno + adresa „Internet“ / nepovedlo se + návod / CGNAT + Tailscale.
-  - Adresa ke sdílení obsahuje **kód hry** (`ip:port#KÓD`). Bez správného kódu se nikdo nepřipojí.
-  - `server_relay` je vypnutý a zprávy handshaku jsou omezené na 512 B.
+  - menu s verzí, jménem a českými texty
+  - trénink: běh, skok, dvojskok, seskok z plošiny, respawn po pádu, Esc do menu
+  - hostování a připojení: kód hry, kontrola verze, seznam hráčů (max. 4), české chybové hlášky (jiná verze, špatný nebo chybějící kód, plné lobby, odchod hostitele, nedostupný host, obsazený port)
+  - lobby: hráči se štítky, adresy ke sdílení (Tailscale, stejná Wi-Fi) s kopírováním, nápověda, jestli je Tailscale zapnutý
+  - export a CI: ZIPy pro Windows, macOS a Linux na `releases/tag/dev`
+- **Nefunguje zatím:** společný zápas (žádný start z lobby, žádná synchronizace pohybu).
 
 ## Poslední změny
-- **2026-11-03, M2 krok 4a:**
-  - nový `src/net/handshake.gd` (`Handshake`: kód hry, rozdělení `adresa#KÓD`, sestavení a dekódování zpráv s limitem 4–512 B, `check_hello`, text odmítnutí)
-  - `session.gd` ho používá
-  - `tests/test_room_code.gd` → `tests/test_handshake.gd` (+ testy podvržených a nesmyslných zpráv)
-- **2026-11-03, M2 krok 3:**
-  - **`src/net/upnp_helper.gd`:** vlákno, mutex, neblokující zavření, `wait_for_all()`.
-  - **Connector:** `close()`, `internet_status()`, signál `share_info_changed`.
-  - **`EnetDirectConnector`:** UPnP při hostování, detekce CGNAT, veřejná adresa.
-  - **`Session`:** kód hry (`generate_room_code`, kontrola v handshaku, `ERROR_WRONG_CODE` a `ERROR_MISSING_CODE`), `server_relay = false`, limit 512 B, úklid při `WM_CLOSE_REQUEST`.
-  - **Lobby:** kód hry, stav UPnP, bezpečnostní upozornění.
-  - **README:** sekce Bezpečnost a aktualizovaný návod Jak hrát.
-  - **PLAN.md, sekce S** (bezpečnost); `tests/test_room_code.gd`.
-- **2026-11-03, M2 krok 2:**
-  - **`src/autoload/settings.gd`** (autoload `Settings`): jméno a poslední adresa v `user://settings.cfg`.
-  - **`src/ui/main_menu.*`:** pole jména a adresy, Hostovat a Připojit, stav „Připojuji se…“, chybové hlášky.
-  - **`src/ui/lobby.*`:** seznam hráčů, adresy ke sdílení s kopírováním, Odejít, při konci session návrat do menu.
-  - **`Connector.share_addresses()`** a **`EnetDirectConnector.address_kind()`:** rozsah 100.64/10 se rozlišuje podle rozhraní. Knihovní Wi-Fi ho používá jako LAN, Tailscale jako VPN.
-  - **`Session`:** `last_end_message`, `host_port`, `share_addresses()`.
-  - **Vstupy:** střelba = levé tlačítko myši, schopnost = pravé tlačítko nebo E (README).
-  - **Zadání uživatele:** míření ke kurzoru (PLAN.md C, D.3, D.5), pixel-art styl (PLAN.md Q, reference v gitignored `art_reference/`), testy na Windows až na konci (CLAUDE.md).
-- **2026-11-03, M2 krok 1:**
-  - **`src/autoload/session.gd`** (autoload `Session`): host/join/leave, fáze OFFLINE/CONNECTING/LOBBY, handshake přes autentizaci `SceneMultiplayer`, seznam hráčů (RPC jen host → klienti), signály `phase_changed`, `players_changed` a `ended(message)`.
-  - **`src/net/connectors/connector.gd`** a **`enet_direct_connector.gd`:** ENet, výchozí port 24642, rozbor adresy, timeouty 5–8 s.
-  - **`BuildInfo`:** debug přepínač `-- --fake-commit=xxx`.
-  - **Texty:** 8 nových (chyby připojení, výchozí jméno).
-  - **Testy:** `tests/test_address_parsing.gd`.
-  - **Dokumentace:** PLAN.md D.8 upřesněno (handshake přes autentizaci, ne RPC).
-- **2026-11-03, M1:**
-  - **Projekt:** `project.godot` (Compatibility renderer, 1280×720 canvas_items, 60 Hz, pojmenované kolizní vrstvy, vstupy, locale fallback `cs`, ETC2/ASTC pro macOS).
-  - **Základ:** `src/core/build_info.gd` a `content_db.gd`; `src/data_types/` (`CharacterData`, `MatchRules`); `data/characters/jiskra.tres`; `data/match_rules.tres`.
-  - **Pohyb:** `src/player/` (`InputFrame`, sdílený `PlayerMotor` s čistou `compute_velocity()`, `Player`).
-  - **Aréna:** `src/arenas/` (`Arena`, `@tool Platform`, `arena_rooftops.tscn`).
-  - **Zápas a menu:** `src/match/` (lokální trénink s respawnem); `src/ui/main_menu`.
-  - **Texty:** `localization/translations.csv`; font Noto Sans (OFL).
-  - **Kontroly:** `tests/` (vlastní runner + 8 testů pohybu); `tools/check_localization.gd`.
-  - **Build:** `export_presets.cfg` (Windows x86_64 s PCK v exe, macOS universal ad-hoc, Linux x86_64); `.github/workflows/build.yml`.
-  - **Dokumentace:** README (česky), LICENSE (MIT), CREDITS.md, `docs/ARCHITECTURE.md`, `.gitattributes`; doplněný `.gitignore`.
-- **2026-11-03, M0:** `docs/PLAN.md`, `tools/setup_env.sh` a `tools/godot`, `CLAUDE.md`, protokol „přečti si progress a pokračuj“.
-
-## Co je potřeba udělat
-1. Dokončit M1: ruční test Windows ZIPu (ODLOŽENO, viz výše).
-2. M2, zbývající kroky:
-   - **krok 3:** UPnP (`src/net/upnp_helper.gd` ve vlákně), veřejná IP v lobby, detekce CGNAT a doporučení Tailscale
-   - **krok 4:** synchronizace pohybu: start zápasu z lobby, spawn hráčů, vstupy 60 Hz → host (**včetně úhlu míření ke kurzoru**), snapshoty 30 Hz (včetně `aim`), interpolace (`snapshot.gd`, `match_net.gd`, `remote_interpolator.gd`)
-   - **krok 5:** `LagSimulator`, test na 2 počítačích v LAN a **první internetový test** (z domova nebo přes Tailscale)
-3. M3: souboj = MVP (`v0.1.0`).
-
-Ostatní milníky viz PLAN.md, sekce K.
+- **2026-11-03, Tailscale místo UPnP (rozhodnutí uživatele):**
+  - odstraněn `src/net/upnp_helper.gd` a UPnP z konektoru, `Session` a lobby
+  - `share_addresses()` vrací jen Tailscale a LAN, Tailscale se na Windows pozná podle „friendly“ názvu rozhraní
+  - README: návod Tailscale a sekce Bezpečnost
+  - PLAN.md: sekce S a M7 je volitelný
+- **2026-11-03, plán postav:** 4 postavy, 2 přepínatelné zbraně a schopnost (PLAN.md G.0).
+- **2026-11-03, M2 krok 4a:** handshake přesunut do `src/net/handshake.gd`, testy `tests/test_handshake.gd`.
+- **M0–M2 krok 3** (shrnutí, detaily v gitu):
+  - kostra, pohyb, CI
+  - `Session` + `EnetDirectConnector`
+  - menu a lobby + `Settings`
+  - kód hry a bezpečnostní opatření
 
 ## Známé problémy
-- **Internetové testy z knihovny:** uživatel je teď v knihovně. Veřejné Wi-Fi sítě skoro jistě neumožní hostovat (NAT nebo CGNAT, žádný přístup k routeru, často izolace klientů), někdy blokují i UDP.
-  - Pro internetový test v M2: hostovat **z domova**, nebo použít **Tailscale**.
-  - Typ připojení hostitele (veřejná IPv4 / CGNAT) se zjistí v M2 z výsledku UPnP.
-- **Velikost buildů:** Windows exe má ~110 MB (ZIP ~39 MB, změřeno lokálně), macOS ZIP ~62 MB. To je dáno šablonami Godotu 4.7.
-- Ikona hry a exe je výchozí ikona Godotu (vlastní přijde v M8).
-- **UPnP hledání routeru trvá 8–12 s** (sítě bez UPnP). Lobby mezitím ukazuje „Zkouším…“. Zavření hry v té době čeká až ~6 s.
-- **Grafika:** cílový pixel-art styl (PLAN.md, sekce Q) vyžaduje sprity. Zdroj zatím není rozhodnutý (vlastní kresba, objednávka, nebo CC0 assety), proto zatím placeholdery.
-- `EDITING_GUIDE.md` zatím neexistuje (plán: M5).
-- `ArenaData` resource zatím neexistuje, aréna je pevně v `match_controller.gd` (výběr arény přijde v M6).
-- Varování o „leaked RID/ObjectDB“ při exportu bylo opraveno v `platform.gd` (tvar se přidává v `_init`).
+- **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
+- **Knihovní Wi-Fi** (síť uživatele) používá rozsah 100.64.x.x a často blokuje provoz mezi zařízeními. Ověřovat raději doma nebo přes Tailscale.
+- **Velikost buildů:** Windows ZIP ~39 MB, macOS ZIP ~62 MB (dáno šablonami Godotu 4.7).
+- Ikona hry je výchozí ikona Godotu (vlastní přijde v M8).
+- **Grafika:** cílový pixel-art styl (PLAN.md, sekce Q) vyžaduje sprity. Zdroj zatím nerozhodnutý, proto placeholdery.
+- `EDITING_GUIDE.md` zatím neexistuje (M5). `ArenaData` zatím neexistuje, aréna je pevně v `match_controller.gd` (M6).
+- Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 19/19 OK (+ handshake: kód hry, rozdělení adresy, shoda buildu a kódu, příliš velké, nesmyslné a špatně typované zprávy).
-  - `PlayerMotor` (8): skok, držený skok, coyote, dvojskok, buffer, rozjezd, knockback se neruší, seskok
-  - adresy (6): rozbor IPv4, hostname, IPv6, neplatné vstupy, druh adresy, rozsah 100.64/10 podle rozhraní
-- **Síť, lokálně na jednom Macu** (headless procesy, 127.0.0.1 a `[::1]`, M2 krok 1):
-  - host a 3 klienti: všichni v lobby, správná jména (Hráč 2–4), seznam se rozešle všem
-  - 4. klient dostane „Hra je plná“
-  - klient s `--fake-commit` dostane českou hlášku o jiné verzi a je odpojen
-  - odchod klienta: host ho odebere a rozešle nový seznam
-  - odchod hostitele: klienti dostanou „Hostitel ukončil hru…“
-  - nedostupný host: po 10 s „Nepodařilo se připojit…“
-  - neplatná adresa a obsazený port: správné hlášky
-  - Poznámka: testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů (lambdy na autoloadu), ve hře neověřeno.
-- **UI s okny, lokálně na Macu** (M2 krok 2, skript mačká tlačítka, snímky obrazovky):
-  - host a klient: oba v lobby, správný seznam se štítky (hostitel) a (ty)
-  - host vidí adresu `100.64.45.243:24642` jako „Stejná Wi-Fi / síť“ (knihovna)
-  - klient s jinou verzí: červená česká hláška v menu
-  - hostitel klikne Odejít: klient se vrátí do menu s hláškou „Hostitel ukončil hru…“
-  - jméno a adresa se uloží do `settings.cfg`
-  - **Neotestováno:** tlačítko Kopírovat (schránka) a ruční ovládání myší
-- **M2 krok 3, lokálně v knihovně:**
-  - správný kód (i malými písmeny): klient je v lobby
-  - špatný kód: „Špatný kód hry…“
-  - chybějící kód: „Chybí kód hry…“
-  - UPnP v knihovně: po ~8–12 s stav „nepovedlo se“ a česká hláška v lobby (snímek)
-  - odchod během hledání routeru neblokuje (1 ms)
-  - zavření okna během hledání počká na vlákno (~6 s) bez varování
-  - **NETESTOVÁNO:** úspěšné UPnP, detekce CGNAT se skutečným routerem, hra přes internet. Ověřit doma.
-- **Kontrola lokalizace:** 42 klíčů, 0 chybí. Ověřeno, že při chybějícím klíči skončí s exit 1.
-- **Smoke test** (skript s `Input.action_press`, macOS):
-  - menu: snímek obrazovky, diakritika OK
-  - běh na 440 px/s, skok
-  - pád z arény → respawn po 1,5 s
-  - seskok z jednosměrné plošiny
-  - průskok plošiny zespodu
-- **Export lokálně** (macOS host): Windows, macOS i Linux bez chyb.
-  - `build_info.json` je v PCK, `tests/` a `tools/` ne.
-  - macOS .app je ad-hoc podepsaná a exportovaná binárka se spustí.
-- **CI na GitHubu** (commit `d234c5a`): import, testy, kontrola lokalizace, 3 exporty a publikace na `releases/tag/dev`, vše OK.
-  - Stažený `gun_game-macos.zip` (62 MB): verze `0.0.0+d234c5a (dev)`, ad-hoc podpis, binárka se spustí.
-  - Stažený `gun_game-windows.zip` (39 MB) obsahuje `gun_game.exe`.
+- **Unit testy:** 19/19 OK
+  - pohyb (8)
+  - adresy (6)
+  - handshake (5): kód hry, rozdělení adresy, shoda buildu a kódu, podvržené a nesmyslné zprávy
+- **Kontrola lokalizace:** 0 chybějících klíčů. Při chybě skončí s exit 1.
+- **Síť lokálně** (headless procesy a okna se snímky, macOS):
+  - host + 3 klienti
+  - plné lobby, jiná verze, špatný a chybějící kód
+  - odchod klienta i hostitele, nedostupný host, obsazený port
+  - lobby UI host i klient, hlášky v menu
+- **Pohyb:** smoke testy se simulovanými klávesami (běh, skok, respawn, seskok, průskok plošiny). Bug s dvojskokem potvrzen simulací.
+- **Export a CI:** 3 exporty lokálně i v CI OK. Stažený macOS build má správnou verzi, je podepsaný a spustí se.
 - **NETESTOVÁNO:**
-  - spuštění na Windows (exe ani SmartScreen)
-  - spuštění na Linuxu
-  - Gatekeeper postup se staženým ZIPem
-  - ruční hraní s klávesnicí (jen simulované vstupy)
-  - síť mezi dvěma různými počítači a přes internet (zatím jen localhost)
+  - Windows (exe, SmartScreen, firewall)
+  - Linux
+  - Gatekeeper se staženým ZIPem
+  - ruční hraní
+  - tlačítko Kopírovat
+  - síť mezi dvěma počítači a přes Tailscale
 
 ## Rozhodnutí
-- **Postavy a zbraně (zadání 2026-11-03, PLAN.md G.0):**
-  - první hratelná verze bude mít 4 postavy
-  - každá postava má 2 vlastní zbraně (od SMG přes útočnou pušku po sniperku) přepínatelné ve hře a 1 speciální schopnost (doladí se)
-  - bedny se zbraněmi jsou zrušené
-- **Připojení přes internet má prioritu:** relay (dříve M7) je přesunutý před synchronizaci pohybu.
-- **Godot 4.7.2 + GDScript:** nejmenší buildy, export všech platforem z Linuxu.
-- **Připnutý Godot v `.tools/` místo venv:** jedinou závislostí je engine. Stejný skript používá i CI.
-- **Host-autoritativní listen server, ENet:** jednoduché, bez serveru.
-- **Vlastní snapshot 30 Hz místo MultiplayerSynchronizer:** kontrola nad interpolací a velikostí zpráv.
-- **MVP připojení:** IP + UPnP, záloha Tailscale, později noray kódy.
-- **Rolling prerelease tag `dev`** (ne `latest`), protože /releases/latest ukazuje jen stabilní verze.
-- **Hlavní platforma Windows.** macOS build je v CI, testy jen podle možností.
-- **`PlayerMotor.compute_velocity()` bez vedlejších efektů:** testovatelné a připravené na predikci v M4.
-- **InputFrame nese jen držená tlačítka, hrany počítá motor:** host i predikce je vyhodnotí stejně.
-- **Knockback nad max. rychlostí brzdí jen tření:** držení směru knockback hned nezruší (pocit jako v žánru).
-- **Vlastní mini test runner místo addonu (GUT):** ~30 řádků, žádná závislost.
-- **Lokalizační klíče se hledají regexem** (citovaný `UPPER_SNAKE_CASE`): jednoduché, pokryje `.gd`, `.tscn` i `.tres`.
-- **Handshake přes autentizaci `SceneMultiplayer`, ne RPC:** RPC se párují podle indexu metody, takže mezi různými buildy by hello nemuselo jít přečíst. Bez dokončené autentizace peer nemůže posílat RPC.
-- **ENet `MAX_CLIENTS = 4`** (o 1 víc než hráčů): klient navíc dostane hlášku „Hra je plná“, ne tichý timeout.
-- **Míření ke kurzoru myši** (změna oproti Gun Mayhem, zadání uživatele): `aim` úhel se posílá ve vstupu klienta už od M2 kroku 4, aby se formát zprávy v M3 neměnil.
-- **Pixel-art styl** podle reference v `art_reference/` (cizí dílo, gitignored, jen reference). Zdroj vlastní grafiky zatím nevyřešen.
-- **Testy na Windows až na konci projektu**, pokud uživatel neřekne jinak. Kód musí zůstat multiplatformní.
-- **Bezpečnost online hry** (požadavek uživatele, PLAN.md S): kód hry, `server_relay` vypnutý, žádné objekty ze sítě, limity velikosti, UPnP jen 1 port s časovým limitem, Tailscale jako nejbezpečnější varianta.
-- **Kód hry se sdílí v adrese za `#`:** jedno kopírování obsahuje vše a nezávisí na konektoru (zpracuje ho `Session`).
-- **CI bez actions třetích stran** (kromě checkout a cache) a s vlastním `setup_env.sh`: méně křehké při nové verzi Godotu.
+- **Internet = Tailscale** (uživatel 2026-11-03): zdarma pro až 6 uživatelů, Windows, macOS i Linux.
+  - Hamachi zamítnuto: jen 5 členů a Linux jen v příkazové řádce.
+  - UPnP odstraněno kvůli bezpečnosti a skrytí IP.
+  - Relay (M7) je jen volitelný.
+- **Postavy a zbraně (PLAN.md G.0):** první verze 4 postavy, každá má 2 přepínatelné zbraně (SMG až sniper) a 1 schopnost. Bedny se zbraněmi zrušeny.
+- **Bezpečnost online hry (PLAN.md S):**
+  - kód hry
+  - `server_relay` vypnutý
+  - žádné objekty ze sítě
+  - limity velikosti zpráv
+  - žádné otevírání portů a žádná veřejná IP
+- **Míření ke kurzoru myši:** `aim` se posílá ve vstupu od M2 kroku 4.
+- **Pixel-art styl** podle reference v `art_reference/` (cizí dílo, gitignored, jen reference).
+- **Testy na Windows až na konci projektu.** Kód musí zůstat multiplatformní.
+- **Godot 4.7.2 + GDScript, připnutý v `.tools/`:** CI používá stejný `setup_env.sh`. CI je bez actions třetích stran (kromě checkout a cache).
+- **Host-autoritativní listen server, ENet.** Vlastní snapshot 30 Hz místo `MultiplayerSynchronizer`.
+- **Handshake přes autentizaci `SceneMultiplayer`, ne RPC:** RPC se párují podle indexu metody.
+- **Kód hry se sdílí v adrese za `#`:** jedno kopírování obsahuje vše a zpracuje ho `Session`.
+- **ENet `MAX_CLIENTS = 4`** (o 1 víc než hráčů): klient navíc dostane hlášku „Hra je plná“.
+- **`PlayerMotor.compute_velocity()` bez vedlejších efektů:** testovatelné, připravené na predikci. `InputFrame` nese jen držená tlačítka.
+- **Knockback nad max. rychlostí brzdí jen tření.**
+- **Vlastní mini test runner** místo GUT. **Lokalizační klíče se hledají regexem.**
+- **Rolling prerelease tag `dev`** (ne `latest`).

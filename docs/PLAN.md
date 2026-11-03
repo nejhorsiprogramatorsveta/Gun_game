@@ -374,12 +374,17 @@ tools/
 ## S. Bezpečnost online hry (POŽADAVEK UŽIVATELE 2026-11-03, platí pro každou síťovou změnu)
 Cíl: přes hru se nikdo nesmí jednoduše dostat do počítače hráče ani do jeho domácí sítě (Wi-Fi).
 
+**ROZHODNUTÍ UŽIVATELE (2026-11-03): připojení přes internet = Tailscale.**
+- Hra **neotevírá porty v routeru (UPnP odstraněno)** a **nikde nezobrazuje skutečnou veřejnou IP** (sdílí jen Tailscale a LAN adresy).
+- Kamarádi se k počítači hostitele dostanou přes sdílení zařízení v Tailscale (*Share*), ne pozvánkou do celé sítě.
+- Relay server (noray) je jen volitelný pozdější krok, pokud by instalace Tailscale vadila.
+
 **Pravidla v kódu:**
 1. **Žádné objekty ze sítě.** `SceneMultiplayer.allow_object_decoding` zůstává `false` (výchozí). Handshake používá `bytes_to_var()` (objekty nedekóduje) s limitem velikosti zprávy. Ze sítě nikdy nespouštět kód ani nenačítat soubory a cesty.
 2. **`server_relay = false`.** Klienti mluví jen s hostitelem a nemohou si posílat RPC navzájem.
 3. **Validace všeho od klienta na hostu:** identita z `get_remote_sender_id()`, typy, rozsahy, velikosti, rate-limit vstupů (sekce D.7). Neplatné zprávy se zahodí.
 4. **Kód hry (heslo místnosti).** Host vygeneruje náhodný šestiznakový kód (kryptograficky bezpečný generátor), který se sdílí spolu s adresou (`85.12.34.56:24642#K7Q2MX`). Bez kódu se cizí člověk, který náhodou najde otevřený port, do hry nepřipojí.
-5. **UPnP opatrně:** otevírá se jen jeden UDP port hry, jen když hráč hostuje, s časovým limitem (2 h). Při odchodu z lobby nebo zavření hry se port zase zavře.
+5. **Žádné UPnP ani jiné otevírání portů do internetu.** Odstraněno na přání uživatele, kód je v historii gitu (commit `48b5ac4`). Veřejné IPv4/IPv6 adresy hra nesdílí.
 6. **Hra nikdy nepotřebuje práva správce.** Nastavení se ukládají jen do `user://`.
 7. **Buildy jen z GitHub Actions** (oficiální release stránka), žádné ručně posílané exe.
 8. **Godot držet aktuální** (bezpečnostní opravy enginu) a při upgradu pročíst changelog.
@@ -637,7 +642,7 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Testy:** 4 hráči online (aspoň 2 přes internet); profilace výkonu na slabším notebooku a Macu.
 - **Akceptace:** 4 hráči hrají plynule, ~60 FPS. Vydat `v0.2.0`.
 
-### M7 – Připojení kódem (noray) *(střední–vysoká)* — **PŘESUNUTO DOPŘEDU (uživatel 2026-11-03): realizuje se hned po opravě skoku, jako „M2 krok 5“, před synchronizací pohybu**
+### M7 – Připojení kódem (noray) *(střední–vysoká)* — **VOLITELNÉ (uživatel 2026-11-03 zvolil Tailscale). Realizovat jen na požádání.**
 - **Funkce:** nasazení noray na VPS (návod v `docs/`), `NorayConnector`, pole „Kód hry“, přímá IP zůstává jako záloha.
 - **Testy:** host za CGNAT (mobilní hotspot) ↔ klient doma; relay fallback; výpadek serveru → srozumitelná hláška.
 - **Akceptace:** připojení bez nastavování routeru u hostitele pod CGNAT. Náklady jsou zapsané v PROGRESS.

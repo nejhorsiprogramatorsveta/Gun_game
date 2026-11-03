@@ -50,7 +50,7 @@ Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_fr
 src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
-src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,upnp_helper}.gd.
+src/net/connectors/{connector,enet_direct_connector}.gd, src/net/handshake.gd.
 Planned: src/net/{snapshot,lag_simulator}.gd, src/match/match_net.gd.
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
@@ -64,7 +64,7 @@ Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.j
 
 ## Rules
 SECURITY (user requirement): every network change must follow docs/PLAN.md section S (no object decoding,
-server_relay off, validate/size-limit all input, room code to join, UPnP single port + lease + removal on leave).
+server_relay off, validate/size-limit all input, room code to join, NO UPnP/port opening, never show/share the public IP; internet play = Tailscale).
 Code must run on Windows, macOS and Linux: no OS-specific APIs/paths in game code (use res:// and user://,
 Godot APIs only); shell scripts in tools/ are dev-only (Windows devs would use Git Bash/WSL).
 Host decides all gameplay. RPC only in session.gd / src/net/ / match_net.gd. Connection only via src/net/connectors/.

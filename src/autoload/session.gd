@@ -11,8 +11,6 @@ signal players_changed
 ## The session is over: failed to start, rejected, connection lost or left on purpose
 ## (message is then empty). The message is already translated for the UI.
 signal ended(message: String)
-## Host: shareable addresses or internet reachability changed (e.g. UPnP finished).
-signal share_info_changed
 
 enum Phase { OFFLINE, CONNECTING, LOBBY }
 
@@ -58,14 +56,12 @@ func _ready() -> void:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connection_failed.connect(_on_connection_lost)
 	multiplayer.server_disconnected.connect(_on_connection_lost)
-	_connector.share_info_changed.connect(share_info_changed.emit)
 
 
 func _notification(what: int) -> void:
-	# Closing the window must also close the router port opened by UPnP.
+	# Closing the window tells the other peers right away instead of after a timeout.
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		leave()
-		UpnpHelper.wait_for_all()
 
 
 func is_host() -> bool:
@@ -82,10 +78,6 @@ func share_addresses() -> Array[Dictionary]:
 		entry.address += "#" + room_code
 	return entries
 
-
-## See Connector.internet_status().
-func internet_status() -> StringName:
-	return _connector.internet_status() if is_host() else &""
 
 
 

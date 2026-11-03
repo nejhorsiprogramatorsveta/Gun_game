@@ -1,7 +1,9 @@
 class_name EnetDirectConnector
 extends Connector
-## Direct UDP connection by IP address and port (ENet). Needs a reachable host:
-## same LAN, port forwarding/UPnP, or a virtual network such as Tailscale.
+## Direct UDP connection by IP address and port (ENet). Friends reach the host either on
+## the same LAN or over the internet through Tailscale (a private virtual network).
+## Security (PLAN.md section S): the game never opens router ports and never shows the
+## host's real public IP; only LAN and Tailscale addresses are offered for sharing.
 
 const DEFAULT_PORT := 24642
 ## 3 clients + 1 spare slot, so a client over the player limit still gets the
@@ -11,52 +13,16 @@ const MAX_CLIENTS := 4
 const TIMEOUT_LIMIT := 32
 const TIMEOUT_MIN_MS := 5000
 const TIMEOUT_MAX_MS := 8000
-
-var _upnp: UpnpHelper
-var _internet_status := &""
-## "ip:port" reachable from the internet (router answered via UPnP), else empty.
-var _public_address := ""
+## Kinds offered for sharing, best first. Public IPv4/IPv6 are deliberately left out.
+const SHAREABLE_KINDS: Array[StringName] = [&"tailscale", &"lan"]
 
 
 func host(port: int) -> MultiplayerPeer:
-	close()
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_server(port, MAX_CLIENTS) != OK:
 		return null
 	peer.peer_connected.connect(func(id: int) -> void: _apply_timeout(peer, id))
-	_internet_status = &"checking"
-	_upnp = UpnpHelper.new()
-	_upnp.finished.connect(_on_upnp_finished.bind(_upnp, port))
-	_upnp.open_port(port)
 	return peer
-
-
-func close() -> void:
-	if _upnp:
-		_upnp.close_port()
-		_upnp = null
-	_internet_status = &""
-	_public_address = ""
-
-
-func internet_status() -> StringName:
-	return _internet_status
-
-
-func _on_upnp_finished(result: Dictionary, helper: UpnpHelper, port: int) -> void:
-	if helper != _upnp:
-		return  # hosting already ended
-	var external_ip: String = result.external_ip
-	if not result.mapped:
-		_internet_status = &"failed"
-	elif address_kind(external_ip) != &"public":
-		# The router itself sits behind the provider's NAT (CGNAT): forwarding is useless.
-		_internet_status = &"cgnat"
-		helper.close_port()
-	else:
-		_internet_status = &"open"
-		_public_address = "%s:%d" % [external_ip, port]
-	share_info_changed.emit()
 
 
 func join(join_info: String) -> MultiplayerPeer:
@@ -72,27 +38,22 @@ func join(join_info: String) -> MultiplayerPeer:
 
 func share_addresses(port: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	var has_ipv6 := false
 	for interface in IP.get_local_interfaces():
+		# Windows reports a GUID as "name" and "Tailscale" as the friendly name.
+		var interface_label := "%s %s" % [interface.get("name", ""), interface.get("friendly", "")]
 		for ip: String in interface.addresses:
-			var kind := address_kind(ip, interface.name)
-			if kind.is_empty() or (kind == &"ipv6" and has_ipv6):
-				continue
-			has_ipv6 = has_ipv6 or kind == &"ipv6"
-			var host_text := "[%s]" % ip if ip.contains(":") else ip
-			result.append({"kind": kind, "address": "%s:%d" % [host_text, port]})
-	if not _public_address.is_empty():
-		result.append({"kind": &"public", "address": _public_address})
-	var order: Array[StringName] = [&"public", &"tailscale", &"lan", &"ipv6"]
-	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return order.find(a.kind) < order.find(b.kind))
+			var kind := address_kind(ip, interface_label)
+			if kind in SHAREABLE_KINDS:
+				result.append({"kind": kind, "address": "%s:%d" % [ip, port]})
+	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return SHAREABLE_KINDS.find(a.kind) < SHAREABLE_KINDS.find(b.kind))
 	return result
 
 
-## Classifies a local interface address; empty = useless for friends (loopback, link-local...).
-static func address_kind(ip: String, interface_name: String = "") -> StringName:
+## Classifies a local interface address: &"tailscale", &"lan", &"public", &"ipv6",
+## or empty when useless for friends (loopback, link-local...).
+static func address_kind(ip: String, interface_label: String = "") -> StringName:
 	if ip.contains(":"):
 		var first := ip.get_slice(":", 0).to_lower()
-		# Global unicast IPv6 (2000::/3) is often reachable from the internet without NAT.
 		return &"ipv6" if first.length() == 4 and (first.begins_with("2") or first.begins_with("3")) else &""
 	var parts := ip.split(".")
 	if parts.size() != 4:
@@ -103,9 +64,9 @@ static func address_kind(ip: String, interface_name: String = "") -> StringName:
 		return &""
 	if a == 100 and b >= 64 and b <= 127:
 		# 100.64.0.0/10 is used by Tailscale but also by some ISPs/public Wi-Fi as a LAN range,
-		# so only the interface name tells them apart (utunX on macOS, "Tailscale"/tailscale0 elsewhere).
-		var iface := interface_name.to_lower()
-		return &"tailscale" if iface.contains("tailscale") or iface.begins_with("utun") else &"lan"
+		# so only the interface tells them apart (utunX on macOS, "Tailscale"/tailscale0 elsewhere).
+		var label := interface_label.to_lower()
+		return &"tailscale" if label.contains("tailscale") or label.begins_with("utun") else &"lan"
 	if a == 10 or (a == 172 and b >= 16 and b <= 31) or (a == 192 and b == 168):
 		return &"lan"
 	return &"public"

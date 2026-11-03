@@ -10,7 +10,7 @@ CHARACTER_JISKRA_NAME,Jiskra
 CHARACTER_JISKRA_DESCRIPTION,"Lehká a rychlá. Snadno ji odhodíš, ale těžko ji chytíš."
 LOBBY_DEFAULT_NAME,Hráč {number}
 ERROR_HOST_FAILED,"Nepodařilo se spustit hru na portu {port}. Možná na něm už běží jiný program (nebo druhá kopie hry)."
-ERROR_INVALID_ADDRESS,Neplatná adresa. Zadej ji ve tvaru 85.12.34.56:24642 nebo jen 85.12.34.56.
+ERROR_INVALID_ADDRESS,"Neplatná adresa. Vlož celou adresu od hostitele, např. 100.101.102.103:24642#K7Q2MX."
 ERROR_CONNECTION_FAILED,"Nepodařilo se připojit k {address}. Zkontroluj adresu, jestli hostitel hru opravdu hostuje a jestli ji povolil ve firewallu."
 ERROR_HOST_LEFT,Hostitel ukončil hru nebo se spojení přerušilo.
 ERROR_VERSION_MISMATCH,Máš jinou verzi hry ({mine}) než hostitel ({host}). Stáhněte si oba nejnovější verzi.
@@ -23,21 +23,17 @@ LOBBY_PLAYERS,Hráči ({count}/{max})
 LOBBY_HOST_TAG,(hostitel)
 LOBBY_YOU_TAG,(ty)
 LOBBY_SHARE_TITLE,Pošli kamarádům jednu z adres:
-LOBBY_ADDRESS_PUBLIC,Internet
-LOBBY_ADDRESS_TAILSCALE,Tailscale
+LOBBY_ADDRESS_TAILSCALE,Přes internet (Tailscale)
 LOBBY_ADDRESS_LAN,Stejná Wi-Fi / síť
-LOBBY_ADDRESS_IPV6,Internet (IPv6)
 LOBBY_NO_ADDRESS,Nenašel jsem žádnou síťovou adresu. Jsi připojený k síti?
 LOBBY_COPY,Kopírovat
 LOBBY_COPIED,Zkopírováno!
 LOBBY_LEAVE,Odejít
 LOBBY_MATCH_START_LATER,Spuštění zápasu přijde v další verzi – zatím si můžete ověřit připojení.
-MENU_ADDRESS_PLACEHOLDER,Adresa od hostitele (např. 85.12.34.56:24642#K7Q2MX)
-ERROR_MISSING_CODE,"Chybí kód hry. Zkopíruj od hostitele celou adresu, včetně části za # (např. 85.12.34.56:24642#K7Q2MX)."
+MENU_ADDRESS_PLACEHOLDER,Adresa od hostitele (např. 100.101.102.103:24642#K7Q2MX)
+ERROR_MISSING_CODE,"Chybí kód hry. Zkopíruj od hostitele celou adresu, včetně části za # (např. 100.101.102.103:24642#K7Q2MX)."
 ERROR_WRONG_CODE,Špatný kód hry. Zkopíruj od hostitele celou adresu znovu – kód se mění při každém hostování.
 LOBBY_ROOM_CODE,Kód hry: {code} (je součástí adresy za #)
-LOBBY_SHARE_SAFETY,"Adresu posílej jen kamarádům: obsahuje tvoji IP adresu a kód, bez kterého se nikdo cizí nepřipojí."
-LOBBY_UPNP_CHECKING,Zkouším v routeru automaticky otevřít port pro hru přes internet (UPnP)…
-LOBBY_UPNP_OPEN,"Router otevřel port automaticky. Kamarádům z internetu pošli adresu „Internet“. Port se zase zavře, až z lobby odejdeš."
-LOBBY_UPNP_FAILED,"Automatické otevření portu se nepovedlo (router UPnP nepodporuje, má ho vypnuté, nebo jsi na veřejné Wi-Fi). Pro hru přes internet přesměruj v routeru UDP port {port} na tento počítač, nebo použijte Tailscale."
-LOBBY_UPNP_CGNAT,"Tvoje připojení nemá vlastní veřejnou adresu (sdílená síť poskytovatele – CGNAT). Hostovat přes internet odsud nepůjde: použijte Tailscale, nebo ať hostuje někdo jiný."
+LOBBY_SHARE_SAFETY,"Adresu posílej jen kamarádům. Obsahuje kód, bez kterého se nikdo cizí nepřipojí. Tvoje skutečná IP adresa se nikde nezobrazuje."
+LOBBY_HINT_TAILSCALE_ON,"Kamarádi z internetu potřebují Tailscale a přístup k tvému počítači (návod v README, část Jak hrát s kamarády)."
+LOBBY_HINT_TAILSCALE_OFF,"Tailscale není zapnutý – připojit se můžou jen hráči na stejné Wi-Fi. Pro hru přes internet zapni Tailscale (návod v README) a vytvoř hru znovu."
