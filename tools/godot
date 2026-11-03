@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Runs the project-local pinned Godot from .tools/ (install it with tools/setup_env.sh).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+case "$(uname -s)" in
+  Darwin) BIN="${ROOT}/.tools/godot/Godot.app/Contents/MacOS/Godot" ;;
+  *)      BIN="$(ls "${ROOT}"/.tools/godot/Godot_v*_linux.x86_64 2>/dev/null | head -n1)" ;;
+esac
+if [[ ! -x "${BIN}" ]]; then
+  echo "Godot not found in .tools/. Run: tools/setup_env.sh" >&2
+  exit 1
+fi
+exec "${BIN}" "$@"
