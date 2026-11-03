@@ -69,7 +69,7 @@ Cílem je originální 2D platformová arénová střílečka s knockbackem, ins
 - **Zpětný ráz (recoil):** výstřel posune střelce **proti směru míření**. Výstřel dolů tak trochu nadzvedne, takže zbraně mají i pohybovou roli.
 - **Smrt:** pád pod `kill_y` nebo opuštění hranic arény (`kill_rect`).
 - **Životy:** výchozí 5 (nastaví se v `match_rules.tres`). Respawn po 1,5 s a 1,5 s nezranitelnosti.
-- **Zbraně:** v MVP jen pistole s nekonečnou municí. Později přibudou bedny se zbraněmi, které spawnuje host.
+- **Zbraně (ZADÁNÍ 2026-11-03):** každá postava má **2 vlastní zbraně** a během hry mezi nimi přepíná (kolečko myši, Q nebo 1/2). Škála od malých rychle střílejících SMG přes útočnou pušku (typ AK-47) po odstřelovací pušku. Původní nápad s bednami se zbraněmi je zrušený. MVP (M3) začne s jednou zbraní, systém dvou slotů přijde v M5.
 
 ### MVP (milníky M1–M3)
 1 aréna, pohyb a skok, 1 zbraň, projektily s kolizemi, knockback, pád z arény, životy a respawn, lobby (hostovat / připojit přes IP), jednoduchá obrazovka výsledků, verze v menu a ZIP build na GitHubu. Ověřuje se **mezi dvěma počítači přes internet**.
@@ -395,6 +395,22 @@ Cíl: přes hru se nikdo nesmí jednoduše dostat do počítače hráče ani do 
 
 ## G. Postavy a schopnosti
 
+### G.0 Zadání uživatele (2026-11-03), má přednost před G.3
+- Hra má **více postav**. **První hratelná verze nabídne 4 postavy.**
+- **Každá postava má 2 unikátní zbraně**, mezi kterými hráč ve hře přepíná, a **1 speciální schopnost**.
+- **Zbraně:** od malých rychle střílejících SMG přes útočnou pušku (typ AK-47) po odstřelovací pušku (sniper).
+  - Herní názvy budou vlastní nebo obecné (např. „Útočná puška“), ne obchodní značky.
+- **Speciální schopnosti se ještě doladí.** Návrhy v G.3 jsou jen výchozí bod.
+- **Vizuálně** (sekce Q) se nabízí 4 archetypy: samuraj, róninka s maskou kitsune, ninja s kusarigamou, ninja se šurikenem. Musí to ale být vlastní originální návrhy.
+- **Data:**
+  - `CharacterData.weapons: Array[WeaponData]` (přesně 2) + `ability: AbilityData`
+  - `WeaponData` (id, `name_key`, `fire_rate`, `projectile_speed`, `damage_knockback`, `recoil`, `spread`, `pellets`, případně zásobník a nabíjení) v `data/weapons/*.tres`
+- **Síť:**
+  - Přepnutí zbraně je vstup od klienta (aktivní slot ve vstupu, 1 bit). Host ho ověří (cooldown přepnutí) a pošle ve snapshotu (`weapon_slot`), aby ostatní viděli správnou zbraň.
+  - Střelba se řídí parametry aktivní zbraně jen na hostu.
+- **Rozšiřitelnost:** nová zbraň = nový `.tres` (+ sprite). Nová postava = `.tres` s odkazy na 2 zbraně a schopnost.
+
+
 ### G.1 Systém
 - `AbilityData extends Resource` obsahuje `id`, `name_key`, `description_key`, `cooldown` a metody:
   - `can_activate(player) -> bool`
@@ -621,7 +637,7 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Testy:** 4 hráči online (aspoň 2 přes internet); profilace výkonu na slabším notebooku a Macu.
 - **Akceptace:** 4 hráči hrají plynule, ~60 FPS. Vydat `v0.2.0`.
 
-### M7 – Připojení kódem (noray) *(střední–vysoká)*
+### M7 – Připojení kódem (noray) *(střední–vysoká)* — **PŘESUNUTO DOPŘEDU (uživatel 2026-11-03): realizuje se hned po opravě skoku, jako „M2 krok 5“, před synchronizací pohybu**
 - **Funkce:** nasazení noray na VPS (návod v `docs/`), `NorayConnector`, pole „Kód hry“, přímá IP zůstává jako záloha.
 - **Testy:** host za CGNAT (mobilní hotspot) ↔ klient doma; relay fallback; výpadek serveru → srozumitelná hláška.
 - **Akceptace:** připojení bez nastavování routeru u hostitele pod CGNAT. Náklady jsou zapsané v PROGRESS.

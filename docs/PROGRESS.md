@@ -6,15 +6,16 @@
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**Opravit BUG s dvojskokem po sejití z plošiny** (sekce níže, postup je popsaný). Potom **M2 krok 4b, synchronizace pohybu**:
-- tlačítko *Začít zápas* u hostitele (min. 2 hráči), RPC `match_started` → všichni načtou `match.tscn`
-- spawn podle slotů
-- `InputFrame` rozšířit o `seq` a `aim` (úhel ke kurzoru, u16)
-- vstupy 60 Hz (unreliable_ordered, poslední 3 kvůli ztrátám) → host
-- snapshot 30 Hz → klienti (`src/net/snapshot.gd`)
-- interpolace vzdálených hráčů (`src/player/remote_interpolator.gd`)
-- RPC jen v `src/match/match_net.gd`, validace dle PLAN.md D.7 a sekce S
-- Lze rozdělit na víc commitů.
+**Pořadí podle přání uživatele (2026-11-03): co nejdřív hra přes internet.**
+1. **Opravit BUG s dvojskokem** (sekce níže, malý úkol).
+2. **M2 krok 5 (dříve M7): připojení přes internet bez nastavování routeru, kódem přes relay server noray.** Skryje i IP hostitele (řeší ODLOŽENÉ ROZHODNUTÍ níže).
+   - Nejdřív uživateli vysvětlit, co je potřeba: server s UDP, nejspíš Oracle Cloud Always Free (zdarma, při registraci se zadává karta), nebo levný VPS za ~4–6 €/měs. Ceny a podmínky ověřit.
+   - Připravit návod krok za krokem. Server zakládá a spouští uživatel, Claude to neumí za něj.
+   - V kódu `NorayConnector` (`src/net/connectors/`) a v menu pole „Kód hry“. IP a UPnP zůstávají jako záloha.
+   - Prověřit addon `netfox.noray` (MIT) vs. vlastní malý klient.
+   - **Bezpečnost (PLAN.md S):** kód hry dál povinný; ověřit, co relay vidí a co ne.
+3. **M2 krok 4b:** synchronizace pohybu (start zápasu, spawn, vstupy s `seq` a `aim`, snapshoty 30 Hz, interpolace).
+4. **M3:** souboj = MVP. Pak **M5:** 4 postavy, 2 zbraně na postavu, přepínání, schopnosti (PLAN.md G.0).
 
 ## BUG K OPRAVĚ: dvojskok po sejití z plošiny (nahlásil uživatel 2026-11-03, potvrzeno simulací)
 - **Reprodukce:**
@@ -175,6 +176,11 @@ Ostatní milníky viz PLAN.md, sekce K.
   - síť mezi dvěma různými počítači a přes internet (zatím jen localhost)
 
 ## Rozhodnutí
+- **Postavy a zbraně (zadání 2026-11-03, PLAN.md G.0):**
+  - první hratelná verze bude mít 4 postavy
+  - každá postava má 2 vlastní zbraně (od SMG přes útočnou pušku po sniperku) přepínatelné ve hře a 1 speciální schopnost (doladí se)
+  - bedny se zbraněmi jsou zrušené
+- **Připojení přes internet má prioritu:** relay (dříve M7) je přesunutý před synchronizaci pohybu.
 - **Godot 4.7.2 + GDScript:** nejmenší buildy, export všech platforem z Linuxu.
 - **Připnutý Godot v `.tools/` místo venv:** jedinou závislostí je engine. Stejný skript používá i CI.
 - **Host-autoritativní listen server, ENet:** jednoduché, bez serveru.
