@@ -71,4 +71,6 @@ static func _horizontal(vx: float, on_floor: bool, move_x: int, stats: Character
 	# No input, or faster than running speed (knockback): only friction slows us down,
 	# so holding a direction cannot cancel knockback instantly.
 	var friction := stats.ground_friction if on_floor else stats.air_friction
+	if absf(vx) > stats.move_speed:
+		friction = minf(friction, stats.knockback_friction)
 	return move_toward(vx, target if move_x != 0 else 0.0, friction * delta)

@@ -16,6 +16,9 @@ extends Resource
 ## Slowdown without input (and above max speed, e.g. after knockback).
 @export var ground_friction: float = 3200.0
 @export var air_friction: float = 500.0
+## Slowdown while faster than running speed (after a hit), also on the ground, so a hit
+## slides the player far instead of being stopped by ground friction.
+@export var knockback_friction: float = 900.0
 @export var jump_velocity: float = 820.0
 ## Extra jumps in the air (1 = double jump).
 @export var air_jumps: int = 1
@@ -29,3 +32,5 @@ extends Resource
 @export_group("Combat")
 ## Knockback is divided by weight (heavier = harder to push).
 @export var weight: float = 1.0
+## The character's weapons (2 per character from M5, PLAN.md G.0); the first is used for now.
+@export var weapons: Array[WeaponData] = []

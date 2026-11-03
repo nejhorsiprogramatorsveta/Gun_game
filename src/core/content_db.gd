@@ -3,24 +3,37 @@ class_name ContentDB
 ## Adding a character = dropping a new .tres into data/characters/, no code change.
 
 const CHARACTERS_DIR := "res://data/characters/"
+const WEAPONS_DIR := "res://data/weapons/"
 const MATCH_RULES_PATH := "res://data/match_rules.tres"
 const DEFAULT_CHARACTER_ID := &"jiskra"
 
 static var _characters: Dictionary[StringName, CharacterData] = {}
+static var _weapons: Dictionary[StringName, WeaponData] = {}
 static var _match_rules: MatchRules
 
 
 static func _static_init() -> void:
+	for data in _load_all(WEAPONS_DIR):
+		if data is WeaponData:
+			_weapons[data.id] = data
+	for data in _load_all(CHARACTERS_DIR):
+		if data is CharacterData:
+			_characters[data.id] = data
+	_match_rules = load(MATCH_RULES_PATH) as MatchRules
+
+
+static func _load_all(directory: String) -> Array[Resource]:
+	var result: Array[Resource] = []
 	# list_directory() also sees resources renamed/remapped by export, unlike DirAccess.
-	for file_name in ResourceLoader.list_directory(CHARACTERS_DIR):
+	for file_name in ResourceLoader.list_directory(directory):
 		if not file_name.ends_with(".tres"):
 			continue
-		var data := load(CHARACTERS_DIR + file_name) as CharacterData
-		if data == null or data.id.is_empty():
-			push_error("Invalid character data: %s" % file_name)
+		var data := load(directory + file_name)
+		if data == null or str(data.get("id")).is_empty():
+			push_error("Invalid data file: %s%s" % [directory, file_name])
 			continue
-		_characters[data.id] = data
-	_match_rules = load(MATCH_RULES_PATH) as MatchRules
+		result.append(data)
+	return result
 
 
 static func get_character(id: StringName) -> CharacterData:
@@ -31,6 +44,10 @@ static func character_ids() -> Array[StringName]:
 	var ids: Array[StringName] = _characters.keys()
 	ids.sort()
 	return ids
+
+
+static func get_weapon(id: StringName) -> WeaponData:
+	return _weapons.get(id)
 
 
 static func default_character() -> CharacterData:

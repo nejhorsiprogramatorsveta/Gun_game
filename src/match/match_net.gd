@@ -7,6 +7,8 @@ extends Node
 
 signal input_received(peer_id: int, frames: Array[InputFrame])
 signal snapshot_received(snapshot: Dictionary)
+signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName)
+signal projectile_removed(id: int)
 
 ## A legit client sends 60/s; anything far above is dropped.
 const MAX_INPUT_PACKETS_PER_SECOND := 150
@@ -42,6 +44,19 @@ func broadcast_snapshot(data: PackedByteArray) -> void:
 			_receive_snapshot.rpc_id(peer_id, data))
 
 
+## Host: shot/removal events are reliable – a missing bullet would be confusing.
+func send_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName) -> void:
+	lag.run(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_projectile_spawned.rpc_id(peer_id, id, origin, direction, weapon_id), true)
+
+
+func send_projectile_removed(id: int) -> void:
+	lag.run(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_projectile_removed.rpc_id(peer_id, id), true)
+
+
 func _announce_loaded() -> void:
 	while not _got_snapshot and is_inside_tree():
 		_client_loaded.rpc_id(1)
@@ -71,6 +86,16 @@ func _receive_snapshot(data: PackedByteArray) -> void:
 	if not snapshot.is_empty():
 		_got_snapshot = true
 		lag.run(snapshot_received.emit.bind(snapshot))
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName) -> void:
+	lag.run(projectile_spawned.emit.bind(id, origin, direction, weapon_id), true)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_projectile_removed(id: int) -> void:
+	lag.run(projectile_removed.emit.bind(id), true)
 
 
 func _rate_exceeded(peer_id: int) -> bool:

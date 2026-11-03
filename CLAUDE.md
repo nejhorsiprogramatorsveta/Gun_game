@@ -53,7 +53,8 @@ src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby play
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
 src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,
 src/match/match_net.gd (only match RPCs), src/player/remote_interpolator.gd, src/net/lag_simulator.gd.
-Planned (M3): src/combat/{projectile,combat_rules}.gd, src/data_types/weapon_data.gd.
+src/combat/{combat_rules,projectile,weapon_system}.gd, src/data_types/weapon_data.gd, data/weapons/*.tres.
+Planned (M3 step 2): lives, results screen, return to lobby (PLAN.md T.1).
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Design decisions that override the original brief (details: docs/PLAN.md)

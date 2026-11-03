@@ -13,8 +13,8 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | Soubor | Odpovědnost |
 |---|---|
 | `src/core/build_info.gd` | verze a commit buildu (z `build_info.json`, který zapisuje CI), `PROTOCOL_VERSION` |
-| `src/core/content_db.gd` | načte `data/characters/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
-| `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `MatchRules`) |
+| `src/core/content_db.gd` | načte `data/characters/*.tres`, `data/weapons/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
+| `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `WeaponData`, `MatchRules`) |
 | `src/player/input_frame.gd` | vstup hráče za jeden tick: směr, tlačítka, úhel míření ke kurzoru (u16), pořadové číslo. Klienti ho posílají hostu. |
 | `src/player/remote_interpolator.gd` | plynulé zobrazení postav na klientovi: snapshoty se zpožděním 100 ms (vlastní postava 40 ms) a prolínáním |
 | `src/player/player_motor.gd` | pohyb: běh, skok + dvojskok (počítadlo skoků do dopadu), buffer skoku, seskok z plošiny |
@@ -22,7 +22,10 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/arenas/arena.gd` | základ arény: spawn body (`SpawnPoints/*`), `kill_rect`, kamera `Camera` (zoom 0,85 = velikost pohledu) |
 | `src/arenas/platform.gd` | obdélníková plošina (pevná nebo jednosměrná), nastavitelná v editoru |
 | `src/match/match_controller.gd` | průběh zápasu pro trénink i síť: host simuluje všechny ze vstupů a posílá snapshoty 30 Hz, klient posílá vstupy 60 Hz; respawn, odchod hráčů |
-| `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, „loaded“, rate-limit |
+| `src/combat/combat_rules.gd` | čisté vzorce: odhoz, zpětný ráz, rozptyl, kadence |
+| `src/combat/projectile.gd` | střela: přímý let, raycast každý tick (host: svět + hráči, klient: jen svět) |
+| `src/combat/weapon_system.gd` | střelba na hostu (kadence, zpětný ráz, odhoz) a zobrazení střel u klientů z událostí |
+| `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, události střel, „loaded“, rate-limit |
 | `src/net/lag_simulator.gd` | jen pro vývoj: simulace zpoždění a ztrát paketů (`-- --fake-lag=100 --fake-loss=5`) |
 | `src/net/net_codec.gd` | binární formát vstupů a snapshotů s kontrolou velikosti, `seq_newer()` |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, chybové hlášky (`Session.last_end_message`) |

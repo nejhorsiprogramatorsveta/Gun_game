@@ -17,6 +17,8 @@ var facing := 1
 var aim := 0
 ## Newest input applied on the host; sent in snapshots for client prediction (M4).
 var last_input_seq := 0
+## Authority: seconds until the current weapon may fire again.
+var fire_cooldown := 0.0
 
 ## Only on clients: smooths host snapshots.
 var _interpolator: RemoteInterpolator
@@ -42,6 +44,10 @@ func simulate(input: InputFrame, delta: float) -> void:
 	last_input_seq = input.seq
 	facing = motor_state.facing
 	queue_redraw()
+
+
+func current_weapon() -> WeaponData:
+	return character.weapons[0] if character and not character.weapons.is_empty() else null
 
 
 func snapshot_state() -> Dictionary:
@@ -74,6 +80,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	position = spawn_position
 	velocity = Vector2.ZERO
 	motor_state = PlayerMotor.State.new()
+	fire_cooldown = 0.0
 
 
 ## Inactive players are hidden and removed from physics (e.g. while waiting to respawn).

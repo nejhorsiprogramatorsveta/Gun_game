@@ -10,8 +10,11 @@ const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
 const SNAPSHOT_EVERY_TICKS := 2
 ## Caps the extra delay if a client's packets arrive in a burst.
 const MAX_PENDING_INPUTS := 6
+## Peer id of the practice dummy (real peer ids are always positive).
+const PRACTICE_DUMMY_ID := -1
 
 var _arena: Arena
+var _weapons := WeaponSystem.new()
 var _rules: MatchRules = ContentDB.match_rules()
 var _networked := false
 var _is_authority := true
@@ -35,6 +38,8 @@ func _ready() -> void:
 	_arena = ARENA_SCENE.instantiate()
 	add_child(_arena)
 	_networked = Session.phase == Session.Phase.IN_MATCH
+	add_child(_weapons)
+	_weapons.setup(_net if _networked else null)
 	_is_authority = not _networked or multiplayer.is_server()
 	if _networked:
 		for peer_id: int in Session.match_slots:
@@ -47,6 +52,8 @@ func _ready() -> void:
 			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
 	else:
 		_spawn(multiplayer.get_unique_id(), 0, Settings.player_name)
+		# A practice target: never sends input, so it just stands, falls and gets knocked back.
+		_spawn(PRACTICE_DUMMY_ID, 1, tr("PRACTICE_DUMMY"))
 
 
 func _spawn(peer_id: int, slot: int, display_name: String) -> void:
@@ -81,7 +88,9 @@ func _simulate_tick(delta: float) -> void:
 		var player := _players[peer_id]
 		if not player.visible:
 			continue
-		player.simulate(_input_for(peer_id, player), delta)
+		var input := _input_for(peer_id, player)
+		player.simulate(input, delta)
+		_weapons.try_fire(player, input, delta)
 		if _arena.is_out_of_bounds(player.position):
 			_respawn_later(player)
 	if _networked and _tick % SNAPSHOT_EVERY_TICKS == 0:

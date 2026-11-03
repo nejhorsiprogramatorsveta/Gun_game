@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"pistol"
+name_key = "WEAPON_PISTOL_NAME"
+shots_per_second = 3.0
+projectile_speed = 1500.0
+max_range = 1400.0
+spread_degrees = 1.5
+knockback = 550.0
+recoil = 120.0

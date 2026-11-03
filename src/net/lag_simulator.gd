@@ -39,11 +39,12 @@ func is_enabled() -> bool:
 
 
 ## Runs `action` (sending or handling one packet) now, later, or never.
-func run(action: Callable) -> void:
+## Reliable messages are only delayed, never dropped (the real channel resends them).
+func run(action: Callable, reliable: bool = false) -> void:
 	if not is_enabled():
 		action.call()
 		return
-	if randf() * 100.0 < loss_percent:
+	if not reliable and randf() * 100.0 < loss_percent:
 		return
 	var delivery := Time.get_ticks_msec() + rtt_ms / 2 + randi_range(-jitter_ms, jitter_ms)
 	# Never deliver before an earlier packet: the real channels are ordered.

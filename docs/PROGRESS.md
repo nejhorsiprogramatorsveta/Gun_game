@@ -1,23 +1,35 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M2 je hotový kromě testu na dvou skutečných počítačích** (ten uživatel odložil). M2 krok 5 (`LagSimulator` a měření) je commitnutý a pushnutý.
+**M3 krok 1 (střelba) je hotový, otestovaný lokálně, commitnutý a pushnutý.**
+- Pistole střílí ke kurzoru, zásah odhodí soupeře (i na zemi daleko), výstřel dá lehký zpětný ráz.
+- Online rozhoduje o zásazích jen host, klienti střely vidí.
+- V tréninku je cvičný panák.
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M3 krok 1: střelba.** Pořadí potom: M3 krok 2 (životy, výsledky, návrat do lobby, `v0.1.0`) → **M3U automatické aktualizace** (PLAN.md I.8, přání uživatele) → **M4 predikce** (viz měření v Stav testů).
-- `src/data_types/weapon_data.gd` + `data/weapons/pistol.tres`: `fire_rate`, `projectile_speed`, `knockback`, `recoil`, `spread`, `range`. Názvy přes lokalizační klíče.
-  - `CharacterData.weapons: Array[WeaponData]` (zatím 1 zbraň; 2 sloty a přepínání v M5, PLAN.md G.0)
-- **Střelba na hostu:** tlačítko FIRE + `aim` ze vstupu, cooldown podle `fire_rate`. Projektil letí ve směru míření.
-- **`src/combat/projectile.gd`:** lehký `Node2D`, pohyb a raycast každý tick jen na hostu (vrstvy world + players, ne vlastní střelec).
-  - Zásah → knockback ve směru letu, dělený `weight` (`src/combat/combat_rules.gd`, čisté funkce + testy).
-  - Recoil střelce proti směru míření.
+**M3 krok 2: životy, konec zápasu, výsledky a návrat do lobby → `v0.1.0`** (PLAN.md C, D.6, T.1).
+- **`MatchRules`:** `lives` (5), `respawn_delay`, `respawn_invulnerability`, `countdown_seconds` (data už existují)
+- **Host:**
+  - pád = −1 život, respawn s nezranitelností (zásahy neodhazují, postava bliká)
+  - při 0 životech hráč vypadává
+  - poslední hráč, který zbyl = vítěz
+  - odpočet 3-2-1 na začátku (vstupy se ignorují)
 - **Síť:**
-  - reliable události v `match_net.gd`: `projectile_spawned(id, pos, aim, weapon)` → klienti simulují jen vizuálně, `projectile_removed(id)` při zásahu nebo zdi
-  - knockback se projeví přes snapshot
-  - validace: střílet může jen host podle vstupu, žádné RPC „vystřel“ od klienta
-- Pozn.: M3 krok 2 musí podle PLAN.md T.1 vracet hráče po výsledcích do stejného lobby.
-- **Test:** unit testy `combat_rules`; dvě okna lokálně (zásah odhodí soupeře na obou obrazovkách); `--fake-lag=100`.
+  - životy a nezranitelnost ve snapshotu (bit ve `flags` + u8 lives; `PROTOCOL_VERSION` 3)
+  - reliable `countdown`, `player_eliminated`, `match_ended(results)`
+  - `Session` fáze `RESULTS` a `_return_to_lobby()`
+- **UI:**
+  - HUD se životy všech hráčů
+  - obrazovka výsledků (pořadí) s tlačítkem *Zpět do lobby* a automatickým návratem po ~8 s
+  - lobby se znovu načte ze `Session`, bez nového hostování
+  - Esc u hostitele = ukončit zápas pro všechny (návrat do lobby)
+- **Trénink:** nekonečné životy (panák i hráč).
+- **Na konci:**
+  - README „Jak hrát“ aktualizovat
+  - tag `v0.1.0` (stabilní release)
+  - čísla verzí: od tagu se verze ukazuje jako 0.1.0
+- **Pak:** M3U automatické aktualizace → M4 predikce.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -46,9 +58,21 @@
   - odchod hráče nebo hostitele uprostřed zápasu funguje
   - Esc v zápase = odejít
 - **Simulace sítě pro testy (M2 krok 5):** `-- --fake-lag=100 --fake-loss=5 [--fake-jitter=10]` (jen debug buildy, v zápase ukazuje [TEST] nápis).
-- **Nefunguje zatím:** střelba, životy a konec zápasu (M3).
+- **Střelba (M3 krok 1):**
+  - pistole (`data/weapons/pistol.tres`), drž levé tlačítko = 3 rány/s
+  - střela letí ke kurzoru a prolétá tenkými plošinami
+  - zásah odhodí soupeře, výstřel dá zpětný ráz
+  - online zásahy počítá jen host, klienti střely vidí (spolehlivé události)
+  - cvičný panák v tréninku
+- **Nefunguje zatím:** životy, konec zápasu a výsledky (M3 krok 2).
 
 ## Poslední změny
+- **2026-11-03, M3 krok 1 (střelba):**
+  - **Data:** `WeaponData` + `data/weapons/pistol.tres`; `CharacterData.weapons` a `knockback_friction` (odhoz klouže i po zemi)
+  - **Logika:** `src/combat/combat_rules.gd` (odhoz, zpětný ráz, rozptyl, kadence), `src/combat/projectile.gd` (raycast každý tick), `src/combat/weapon_system.gd` (střelba na hostu, události pro klienty)
+  - **Propojení:** `ContentDB.get_weapon()`, `match_net.gd` (reliable `projectile_spawned/removed`), `LagSimulator` neztrácí reliable zprávy
+  - **Trénink:** cvičný panák (peer −1)
+  - **Testy:** `tests/test_combat_rules.gd` (5) + test odhozu po zemi
 - **2026-11-03, čitelné verze:**
   - CI zapisuje číslo sestavení (počet commitů na main), menu ukazuje „Verze 0.0.0 (sestavení 31)“ místo kódu commitu. Commit zůstává uvnitř `build_info.json`.
   - `build_id` = `verze+sestavení`, chybová hláška o verzi ukazuje čitelné verze
@@ -111,7 +135,8 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 30/30 OK (+ LagSimulator)
+- **Unit testy:** 37/37 OK (+ souboj a odhoz po zemi)
+- **Dříve:** 30/30 OK (+ LagSimulator)
 - **Dříve:** 27/27 OK (+ kodek vstupů a snapshotů, podvržené pakety, přetečení seq, míření, interpolace)
 - **Dříve:** 19 testů
   - pohyb (8)
@@ -132,6 +157,10 @@
   - pád z arény a respawn synchronizovaný
   - odchod klienta (host pokračuje s 1 hráčem) i hostitele (klient do menu s hláškou)
   - trénink beze změny (scénáře skoků a seskoku)
+- **Střelba (M3 krok 1, okna na Macu):**
+  - trénink: 1 s palby do panáka ho posune 880 → 1207 px a shodí z okraje, střelec ucukne o 5 px
+  - síť: host střílí po klientovi, klient je odhozen 880 → 1272 na obou obrazovkách, klient vidí letící střely
+  - skoky beze změny
 - **Měření latence** (M2 krok 5, host + klient lokálně, klient s `--fake-lag`, vlastní postava s 40 ms interpolací):
 
   | Simulované připojení | Ostatní hráči | Reakce vlastní postavy klienta |

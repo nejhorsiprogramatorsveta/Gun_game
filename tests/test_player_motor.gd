@@ -81,3 +81,10 @@ func test_drop_through_starts_timer() -> void:
 	var state := PlayerMotor.State.new()
 	_step(state, Vector2.ZERO, true, 0, InputFrame.DOWN)
 	check(state.drop_timer > 0.0, "pressing down on the floor starts drop-through")
+
+
+func test_knockback_slides_on_the_ground() -> void:
+	var state := PlayerMotor.State.new()
+	var v := _step(state, Vector2(1000, 0), true)
+	check(v.x > 1000.0 - stats.ground_friction * DT, "fast sliding uses the weaker knockback friction")
+	check(absf(v.x - (1000.0 - stats.knockback_friction * DT)) < 0.01, "exactly knockback friction")

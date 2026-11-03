@@ -40,7 +40,7 @@ U každé nové verze se tento postup opakuje.
 | Skok (i dvojskok ve vzduchu) | W, mezerník nebo šipka nahoru |
 | Seskok z tenké plošiny | S nebo šipka dolů |
 | Míření | myš (střílí se tam, kde je kurzor) |
-| Střelba *(přijde v M3)* | levé tlačítko myši |
+| Střelba | levé tlačítko myši (drž pro opakovanou střelbu) |
 | Schopnost *(přijde v M5)* | pravé tlačítko myši nebo E |
 | Zpět do menu | Esc |
 

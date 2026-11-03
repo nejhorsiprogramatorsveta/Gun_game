@@ -5,7 +5,7 @@ MENU_HOST,Hostovat
 MENU_JOIN,Připojit
 MENU_QUIT,Konec
 MENU_VERSION,Verze {version}
-PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok z plošiny · myš: míření · Esc: odejít"
+PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · Esc: odejít"
 CHARACTER_JISKRA_NAME,Jiskra
 CHARACTER_JISKRA_DESCRIPTION,"Lehká a rychlá. Snadno ji odhodíš, ale těžko ji chytíš."
 LOBBY_DEFAULT_NAME,Hráč {number}
@@ -42,3 +42,5 @@ LOBBY_WAITING_FOR_HOST,"Čekáme, až hostitel spustí zápas…"
 DEBUG_FAKE_LAG,"[TEST] Simulace sítě: +{lag} ms, {loss} % ztracených paketů"
 BUILD_DISPLAY,{version} (sestavení {build})
 BUILD_DISPLAY_DEV,"{version} (vývojová, {commit})"
+WEAPON_PISTOL_NAME,Pistole
+PRACTICE_DUMMY,Cvičný panák
