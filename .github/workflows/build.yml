@@ -71,10 +71,12 @@ jobs:
           tools/godot --headless --path . --export-release "Linux" "build/linux/${GAME_NAME}.x86_64"
           test -f "build/windows/${GAME_NAME}.exe" && test -f "build/macos/${GAME_NAME}.zip" && test -f "build/linux/${GAME_NAME}.x86_64"
 
-      - name: Package ZIPs
+      - name: Package downloads
         run: |
           mkdir -p dist
-          (cd build/windows && zip -9 -r "../../dist/${GAME_NAME}-windows.zip" .)
+          # Windows: the .exe contains the whole game (PCK embedded), so it is shipped directly.
+          cp "build/windows/${GAME_NAME}.exe" "dist/${GAME_NAME}-windows.exe"
+          # macOS: a .app is a folder and must stay zipped; Linux: zip keeps the executable bit.
           cp "build/macos/${GAME_NAME}.zip" "dist/${GAME_NAME}-macos.zip" # Godot already zips the .app
           chmod +x "build/linux/${GAME_NAME}.x86_64"
           (cd build/linux && zip -9 -r "../../dist/${GAME_NAME}-linux.zip" .)
@@ -86,7 +88,7 @@ jobs:
           **Build:** \`${{ steps.info.outputs.build_id }}\` (verze je vidět vlevo dole v menu – všichni hráči musí mít stejnou)
 
           ### Co stáhnout
-          - **Windows:** \`${GAME_NAME}-windows.zip\` → rozbalit → spustit \`${GAME_NAME}.exe\`
+          - **Windows:** \`${GAME_NAME}-windows.exe\` → stáhnout a spustit
           - **macOS:** \`${GAME_NAME}-macos.zip\` → rozbalit → otevřít \`${GAME_NAME}.app\`
           - **Linux:** \`${GAME_NAME}-linux.zip\`
 
@@ -106,11 +108,13 @@ jobs:
             gh release create dev --prerelease --title "Nejnovější vývojová verze" --notes-file notes.md
           fi
           gh release edit dev --prerelease --title "Nejnovější vývojová verze" --notes-file notes.md
-          gh release upload dev dist/*.zip --clobber
+          gh release upload dev dist/* --clobber
+          # Older builds shipped Windows as a ZIP; remove it so nobody downloads a stale copy.
+          gh release delete-asset dev "${GAME_NAME}-windows.zip" --yes || true
 
       - name: Publish stable release
         if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.zip --title "${GAME_NAME} ${GITHUB_REF_NAME}" --notes-file notes.md --generate-notes
+          gh release create "$GITHUB_REF_NAME" dist/* --title "${GAME_NAME} ${GITHUB_REF_NAME}" --notes-file notes.md --generate-notes

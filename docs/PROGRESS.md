@@ -48,6 +48,7 @@
 - **Nefunguje zatím:** střelba, životy a konec zápasu (M3).
 
 ## Poslední změny
+- **2026-11-03, Windows bez ZIPu (přání uživatele):** CI publikuje `gun_game-windows.exe` přímo (~110 MB místo ZIPu ~39 MB) a starý `gun_game-windows.zip` z release `dev` maže. macOS zůstává ZIP (.app je složka), Linux ZIP (zachová oprávnění ke spuštění). README upraven.
 - **2026-11-03, M2 krok 5:**
   - **`src/net/lag_simulator.gd`:** zpoždění, jitter a ztráta paketů, zachovává pořadí. Jen debug buildy.
   - napojeno v `match_net.gd` na vstupy a snapshoty, [TEST] nápis v HUD
@@ -169,3 +170,4 @@
 - **Knockback nad max. rychlostí brzdí jen tření.**
 - **Vlastní mini test runner** místo GUT. **Lokalizační klíče se hledají regexem.**
 - **Rolling prerelease tag `dev`** (ne `latest`).
+- **Windows se stahuje jako `.exe` přímo** (jeden soubor, PCK uvnitř). Mac a Linux zůstávají jako ZIP.

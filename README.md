@@ -8,18 +8,18 @@ Rychlá 2D plošinovková střílečka pro 2–4 hráče. Zásahy soupeře neub�
 
 | Systém | Nejnovější vývojová verze |
 |---|---|
-| **Windows 10/11** | [gun_game-windows.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-windows.zip) |
+| **Windows 10/11** | [gun_game-windows.exe](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-windows.exe) |
 | macOS (Apple Silicon i Intel) | [gun_game-macos.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-macos.zip) |
 | Linux | [gun_game-linux.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-linux.zip) |
 
 - Všechny vývojové buildy: [releases/tag/dev](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/tag/dev). Tento build se aktualizuje po každé změně.
 - Stabilní verze: [releases/latest](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest). Zatím žádná neexistuje, první bude `v0.1.0`.
 
-> ⚠️ **Nestahuj** zelené tlačítko *Code → Download ZIP* ani *Source code (zip)*. To jsou zdrojové kódy a bez Godotu je nespustíš. Stahuj soubory `gun_game-<systém>.zip`.
+> ⚠️ **Nestahuj** zelené tlačítko *Code → Download ZIP* ani *Source code (zip)*. To jsou zdrojové kódy a bez Godotu je nespustíš. Stahuj soubor `gun_game-windows.exe` (Windows) nebo `gun_game-macos.zip` / `gun_game-linux.zip`.
 
 ### Windows
-1. Rozbal ZIP (pravým tlačítkem → *Extrahovat vše*).
-2. Spusť `gun_game.exe`.
+1. Stáhni `gun_game-windows.exe` (asi 110 MB) a spusť ho. Nic se neinstaluje ani nerozbaluje.
+2. Pokud prohlížeč napíše, že soubor „není běžně stahován“, zvol *Zachovat*.
 3. Pokud se objeví modré okno **„Systém Windows ochránil váš počítač“** (SmartScreen), klikni na *Další informace* a pak na *Přesto spustit*. Hra není podepsaná placeným certifikátem, proto ji Windows nezná.
 4. *(Až bude online hra)* Pokud se Windows zeptá na **bránu firewall**, klikni na *Povolit přístup*. Bez toho se k tobě kamarádi nepřipojí.
 
