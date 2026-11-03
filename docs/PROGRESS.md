@@ -30,6 +30,17 @@
 
 **Do té doby se hra na Macu spouští lokálně:** `tools/godot --path .` z kořene projektu, nebo lokálně exportovaný `build/macos/gun_game.zip` (vzniká jen lokálním exportem, není v gitu).
 
+## ODLOŽENÉ ROZHODNUTÍ: připojení a skrytí IP (uživatel 2026-11-03: „vyřešíme v dalších krocích“)
+- Uživateli vadí, že je IP vidět v lobby. Chce rozumět, kdy jde hrát mimo stejnou Wi-Fi.
+- **Vysvětleno:**
+  - Dnes jde hrát přes internet jen při UPnP nebo ručním port forwardingu doma, nebo přes Tailscale. Z knihovny jde jen stejná Wi-Fi.
+  - Skrytí IP na obrazovce je jen kosmetika. Skutečné skrytí IP a připojení odkudkoli dá až relay (M7, noray), který potřebuje server: Oracle Free, nebo VPS za ~4–6 €/měs.
+- **Možnosti k rozhodnutí:**
+  - (a) relay hned (M7 dřív)
+  - (b) pozvánkový kód a skrytá IP v lobby teď, relay později
+  - (c) obojí
+- **Až se bude řešit M7 nebo internetový test (M2 krok 5), znovu nabídnout tyto možnosti.**
+
 ## Aktuální stav
 - **Milník:** M2, kroky 1–3 z 5 hotové. M1 je hotový včetně CI, chybí jen ruční test na Windows (viz ODLOŽENO).
 - **Funguje** (ověřeno lokálně na macOS arm64):
