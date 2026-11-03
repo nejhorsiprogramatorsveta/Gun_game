@@ -9,13 +9,14 @@ const INPUT_HISTORY := 3
 const INPUT_FRAME_BYTES := 4  # s8 move_x, u8 buttons, u16 aim
 const INPUT_PACKET_BYTES := 2 + INPUT_HISTORY * INPUT_FRAME_BYTES
 
-const SNAPSHOT_HEADER_BYTES := 5  # u32 tick, u8 player count
-## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq
-const SNAPSHOT_PLAYER_BYTES := 18
+const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown seconds left
+## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives
+const SNAPSHOT_PLAYER_BYTES := 19
 const MAX_SNAPSHOT_PLAYERS := 4
 
 const FLAG_FACING_RIGHT := 1
 const FLAG_ACTIVE := 2
+const FLAG_INVULNERABLE := 4
 
 
 ## frames[0] is the newest; older frames must have seq = newest.seq - index.
@@ -46,18 +47,21 @@ static func decode_input(data: PackedByteArray) -> Array[InputFrame]:
 	return frames
 
 
-## states: [{slot, position, velocity, facing, active, aim, last_seq}], see Player.snapshot_state().
-static func encode_snapshot(tick: int, states: Array[Dictionary]) -> PackedByteArray:
+## states: [{slot, position, velocity, facing, active, invulnerable, aim, last_seq, lives}],
+## see Player.snapshot_state(). countdown = whole seconds left before the match starts.
+static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]) -> PackedByteArray:
 	var data := PackedByteArray()
 	data.resize(SNAPSHOT_HEADER_BYTES + states.size() * SNAPSHOT_PLAYER_BYTES)
 	data.encode_u32(0, tick)
 	data.encode_u8(4, states.size())
+	data.encode_u8(5, clampi(countdown, 0, 255))
 	for i in states.size():
 		var state := states[i]
 		var offset := SNAPSHOT_HEADER_BYTES + i * SNAPSHOT_PLAYER_BYTES
 		var position: Vector2 = state.position
 		var velocity: Vector2 = state.velocity
-		var flags := (FLAG_FACING_RIGHT if state.facing > 0 else 0) | (FLAG_ACTIVE if state.active else 0)
+		var flags := (FLAG_FACING_RIGHT if state.facing > 0 else 0) | (FLAG_ACTIVE if state.active else 0) \
+				| (FLAG_INVULNERABLE if state.invulnerable else 0)
 		data.encode_u8(offset, state.slot)
 		data.encode_float(offset + 1, position.x)
 		data.encode_float(offset + 5, position.y)
@@ -66,10 +70,11 @@ static func encode_snapshot(tick: int, states: Array[Dictionary]) -> PackedByteA
 		data.encode_u8(offset + 13, flags)
 		data.encode_u16(offset + 14, state.aim)
 		data.encode_u16(offset + 16, state.last_seq)
+		data.encode_u8(offset + 18, clampi(state.lives, 0, 255))
 	return data
 
 
-## Returns {tick, states: Array[Dictionary]} or an empty dictionary for a malformed packet.
+## Returns {tick, countdown, states: Array[Dictionary]} or {} for a malformed packet.
 static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 	if data.size() < SNAPSHOT_HEADER_BYTES:
 		return {}
@@ -86,10 +91,12 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"velocity": Vector2(data.decode_s16(offset + 9), data.decode_s16(offset + 11)),
 			"facing": 1 if flags & FLAG_FACING_RIGHT else -1,
 			"active": flags & FLAG_ACTIVE != 0,
+			"invulnerable": flags & FLAG_INVULNERABLE != 0,
 			"aim": data.decode_u16(offset + 14),
 			"last_seq": data.decode_u16(offset + 16),
+			"lives": data.decode_u8(offset + 18),
 		})
-	return {"tick": data.decode_u32(0), "states": states}
+	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "states": states}
 
 
 ## True if u16 sequence number `a` is newer than `b` (handles wrap-around at 65535).

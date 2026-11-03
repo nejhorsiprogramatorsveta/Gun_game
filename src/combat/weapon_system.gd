@@ -45,6 +45,8 @@ func _spawn(id: int, origin: Vector2, direction: Vector2, weapon: WeaponData, sh
 
 
 func _on_hit(projectile: Projectile, target: Player) -> void:
+	if target.invulnerable:
+		return  # respawn protection: the bullet is absorbed
 	target.velocity += CombatRules.knockback(projectile.direction, projectile.weapon, target.character.weight)
 
 

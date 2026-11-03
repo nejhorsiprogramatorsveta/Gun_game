@@ -2,7 +2,7 @@
 
 Rychlá 2D plošinovková střílečka pro 2–4 hráče. Zásahy soupeře neubírají životy, ale **odhazují** ho. Cílem je shodit ostatní z arény. Každý pád stojí život a vyhrává poslední, kdo v aréně zůstane.
 
-> **Stav vývoje:** zatím funguje jen **trénink pro jednoho hráče** (pohyb po aréně). Online hra s kamarády přijde v dalších verzích. Aktuální stav je v [docs/PROGRESS.md](docs/PROGRESS.md).
+> **Stav vývoje: verze 0.1.0 – první hratelná verze.** Hostování a připojení, zápas pro 2–4 hráče s pistolí, životy, výsledky a návrat do lobby. Trénink s cvičným panákem. Aktuální stav je v [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Stažení (hotová hra, bez instalace)
 
@@ -13,7 +13,7 @@ Rychlá 2D plošinovková střílečka pro 2–4 hráče. Zásahy soupeře neub�
 | Linux | [gun_game-linux.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-linux.zip) |
 
 - Všechny vývojové buildy: [releases/tag/dev](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/tag/dev). Tento build se aktualizuje po každé změně.
-- Stabilní verze: [releases/latest](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest). Zatím žádná neexistuje, první bude `v0.1.0`.
+- Stabilní verze: [releases/latest](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest) (od `v0.1.0`).
 
 > ⚠️ **Nestahuj** zelené tlačítko *Code → Download ZIP* ani *Source code (zip)*. To jsou zdrojové kódy a bez Godotu je nespustíš. Stahuj soubor `gun_game-windows.exe` (Windows) nebo `gun_game-macos.zip` / `gun_game-linux.zip`.
 
@@ -46,7 +46,7 @@ U každé nové verze se tento postup opakuje.
 
 ## Jak hrát s kamarády
 
-*Společný zápas se teprve dodělává (milník M2). Zatím se umíte navzájem připojit do lobby.*
+**Průběh hry:** lobby → hostitel klikne *Začít zápas* → odpočet 3-2-1 → každý má 5 životů, pád z arény = −1 život (po návratu chvíli blikáš a zásahy tě neodhodí) → poslední, komu zbydou životy, vyhrává → výsledky → **všichni zpět ve stejném lobby** a můžete hrát znovu. Esc: hostitel ukončí zápas pro všechny, ostatní odejdou.
 
 ### Na stejné Wi-Fi
 1. Všichni si stáhnete **stejnou verzi** hry. Číslo verze je vlevo dole v menu.

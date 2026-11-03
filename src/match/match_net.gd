@@ -35,26 +35,35 @@ func _process(_delta: float) -> void:
 
 
 func send_input(data: PackedByteArray) -> void:
-	lag.run(func() -> void: _receive_input.rpc_id(1, data))
+	_send(func() -> void: _receive_input.rpc_id(1, data))
 
 
 func broadcast_snapshot(data: PackedByteArray) -> void:
-	lag.run(func() -> void:
+	_send(func() -> void:
 		for peer_id in _loaded_peers:
 			_receive_snapshot.rpc_id(peer_id, data))
 
 
 ## Host: shot/removal events are reliable – a missing bullet would be confusing.
 func send_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName) -> void:
-	lag.run(func() -> void:
+	_send(func() -> void:
 		for peer_id in _loaded_peers:
 			_receive_projectile_spawned.rpc_id(peer_id, id, origin, direction, weapon_id), true)
 
 
 func send_projectile_removed(id: int) -> void:
-	lag.run(func() -> void:
+	_send(func() -> void:
 		for peer_id in _loaded_peers:
 			_receive_projectile_removed.rpc_id(peer_id, id), true)
+
+
+## Sends only while the match runs: once it has ended the other side may already have
+## left the match scene, and RPCs to the missing MatchNet node would only log errors.
+## Checked at send time, so packets delayed by the LagSimulator are covered too.
+func _send(action: Callable, reliable: bool = false) -> void:
+	lag.run(func() -> void:
+		if Session.phase == Session.Phase.IN_MATCH:
+			action.call(), reliable)
 
 
 func _announce_loaded() -> void:

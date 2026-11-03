@@ -2,10 +2,18 @@ extends Node2D
 ## Runs a match. Offline practice and network matches share one flow (PLAN.md D.1):
 ## the authority (host, or this computer in practice) simulates every player from inputs
 ## and sends snapshots; clients only send their input and display the snapshots.
+## Network matches: countdown, lives, elimination, winner -> results -> same lobby (T.1).
+## Practice: endless lives and no countdown.
 
 const ARENA_SCENE := preload("res://src/arenas/arena_rooftops.tscn")
 const PLAYER_SCENE := preload("res://src/player/player.tscn")
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
+const LOBBY_PATH := "res://src/ui/lobby.tscn"
+const RESULTS_PATH := "res://src/ui/results.tscn"
+## Pause between the deciding fall and the results screen.
+const RESULTS_DELAY := 1.5
+## Host waits this long before leaving the match scene (see _on_session_phase_changed).
+const SCENE_CHANGE_GRACE := 0.5
 ## 60 Hz physics -> 30 Hz snapshots.
 const SNAPSHOT_EVERY_TICKS := 2
 ## Caps the extra delay if a client's packets arrive in a burst.
@@ -21,6 +29,12 @@ var _is_authority := true
 ## peer_id -> Player
 var _players: Dictionary[int, Player] = {}
 var _tick := 0
+## Seconds before players may move (authority); whole seconds shown on clients.
+var _countdown := 0.0
+var _countdown_display := 0
+var _match_over := false
+## Authority: peer ids in the order they ran out of lives (for the ranking).
+var _elimination_order: Array[int] = []
 
 # Authority: inputs received from clients.
 var _pending_inputs: Dictionary[int, Array] = {}
@@ -32,6 +46,7 @@ var _input_seq := 0
 var _input_history: Array[InputFrame] = []
 
 @onready var _net: Node = $MatchNet
+@onready var _hud: MatchHud = $Hud/MatchHud
 
 
 func _ready() -> void:
@@ -44,7 +59,11 @@ func _ready() -> void:
 	if _networked:
 		for peer_id: int in Session.match_slots:
 			_spawn(peer_id, Session.match_slots[peer_id], Session.players.get(peer_id, {}).get("name", "?"))
+		for player in _players.values():
+			player.lives = _rules.lives
+		_countdown = _rules.countdown_seconds
 		Session.players_changed.connect(_remove_departed_players)
+		Session.phase_changed.connect(_on_session_phase_changed)
 		Session.ended.connect(func(_message: String) -> void: get_tree().change_scene_to_file.call_deferred(MAIN_MENU_PATH))
 		_net.input_received.connect(_on_input_received)
 		_net.snapshot_received.connect(_on_snapshot_received)
@@ -70,34 +89,54 @@ func _physics_process(delta: float) -> void:
 		_simulate_tick(delta)
 	else:
 		_send_local_input()
+	_hud.show_state(_players.values(), _countdown_display, _networked)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		if _networked:
-			Session.leave()  # Session.ended then returns to the menu
-		else:
-			get_tree().change_scene_to_file(MAIN_MENU_PATH)
+	if not event.is_action_pressed("ui_cancel"):
+		return
+	if not _networked:
+		get_tree().change_scene_to_file(MAIN_MENU_PATH)
+	elif Session.is_host():
+		Session.return_to_lobby()  # ends the match for everyone, the lobby stays
+	else:
+		Session.leave()  # Session.ended then returns to the menu
+
+
+func _on_session_phase_changed(phase: Session.Phase) -> void:
+	if phase != Session.Phase.RESULTS and phase != Session.Phase.LOBBY:
+		return
+	# Packets sent just before the other side learned the match ended may still be on
+	# their way; keep MatchNet alive a moment so they do not hit a missing node.
+	await get_tree().create_timer(SCENE_CHANGE_GRACE).timeout
+	get_tree().change_scene_to_file.call_deferred(RESULTS_PATH if phase == Session.Phase.RESULTS else LOBBY_PATH)
 
 
 # --- Authority ---------------------------------------------------------------
 
 func _simulate_tick(delta: float) -> void:
 	_tick += 1
+	_countdown = maxf(_countdown - delta, 0.0)
+	_countdown_display = ceili(_countdown)
+	var frozen := _countdown > 0.0
 	for peer_id in _players:
 		var player := _players[peer_id]
 		if not player.visible:
 			continue
 		var input := _input_for(peer_id, player)
+		if frozen:
+			input = InputFrame.create(0, 0, input.aim)  # players may only aim during the countdown
 		player.simulate(input, delta)
 		_weapons.try_fire(player, input, delta)
 		if _arena.is_out_of_bounds(player.position):
-			_respawn_later(player)
-	if _networked and _tick % SNAPSHOT_EVERY_TICKS == 0:
-		var states: Array[Dictionary] = []
-		for player in _players.values():
-			states.append(player.snapshot_state())
-		_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, states))
+			_on_player_fell(player)
+	if _networked:
+		_check_match_end()
+		if _tick % SNAPSHOT_EVERY_TICKS == 0:
+			var states: Array[Dictionary] = []
+			for player in _players.values():
+				states.append(player.snapshot_state())
+			_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, _countdown_display, states))
 
 
 ## One input per tick per player; if a client's packet is late, its last input repeats.
@@ -127,13 +166,43 @@ func _on_input_received(peer_id: int, frames: Array[InputFrame]) -> void:
 	_newest_seq[peer_id] = newest
 
 
-func _respawn_later(player: Player) -> void:
+func _on_player_fell(player: Player) -> void:
 	player.set_active(false)
+	if _networked:
+		player.lives -= 1
+		if player.lives <= 0:
+			_elimination_order.append(player.peer_id)
+			return
+	_respawn_later(player)
+
+
+func _respawn_later(player: Player) -> void:
 	await get_tree().create_timer(_rules.respawn_delay).timeout
-	if not is_instance_valid(player):
+	if not is_instance_valid(player) or _match_over:
 		return
 	player.reset_to(_arena.spawn_points().pick_random())
+	player.invulnerable_time = _rules.respawn_invulnerability
+	player.invulnerable = true
 	player.set_active(true)
+
+
+## The match ends when at most one player has lives left (also if the others left).
+func _check_match_end() -> void:
+	if _match_over:
+		return
+	var alive := _players.values().filter(func(player: Player) -> bool: return player.lives > 0)
+	if alive.size() > 1:
+		return
+	_match_over = true
+	var ranking: Array = alive
+	for i in range(_elimination_order.size() - 1, -1, -1):
+		if _players.has(_elimination_order[i]):
+			ranking.append(_players[_elimination_order[i]])
+	var results: Array = []
+	for i in ranking.size():
+		results.append({"name": ranking[i].display_name, "place": i + 1, "lives": ranking[i].lives})
+	await get_tree().create_timer(RESULTS_DELAY).timeout
+	Session.end_match(results)
 
 
 # --- Client --------------------------------------------------------------------
@@ -153,6 +222,7 @@ func _send_local_input() -> void:
 
 func _on_snapshot_received(snapshot: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
+	_countdown_display = snapshot.countdown
 	for state: Dictionary in snapshot.states:
 		for player in _players.values():
 			if player.slot == state.slot:

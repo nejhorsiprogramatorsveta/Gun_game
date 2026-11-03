@@ -29,6 +29,8 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/net/lag_simulator.gd` | jen pro vývoj: simulace zpoždění a ztrát paketů (`-- --fake-lag=100 --fake-loss=5`) |
 | `src/net/net_codec.gd` | binární formát vstupů a snapshotů s kontrolou velikosti, `seq_newer()` |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, chybové hlášky (`Session.last_end_message`) |
+| `src/ui/match_hud.gd` | HUD v zápase: životy hráčů a odpočet |
+| `src/ui/results.gd/.tscn` | výsledky po zápase, návrat do stejného lobby (tlačítko hostitele nebo za 8 s) |
 | `src/ui/lobby.gd/.tscn` | lobby: seznam hráčů, u hostitele adresy ke sdílení s tlačítkem Kopírovat, Odejít |
 | `src/autoload/settings.gd` | **autoload `Settings`**: jméno a poslední adresa v `user://settings.cfg` |
 | `src/autoload/session.gd` | **autoload `Session`**: hostování a připojení, handshake verze, seznam hráčů v lobby (rozesílá host), odpojení a timeouty, české chybové hlášky přes signál `ended(message)` |
@@ -55,7 +57,7 @@ RPC se v Godotu párují podle indexu metody, proto by RPC handshake mezi různ�
 ## Plánovaný průběh (PLAN.md, sekce T)
 - **Smyčka:** lobby → zápas → výsledky → **zpět do stejného lobby**. Session se nezavírá, nové hostování není potřeba.
 - **V lobby:** každý hráč si vybírá postavu (host ji ověří), hostitel vybírá mapu.
-- **Zatím neimplementováno:** návrat do lobby přijde v M3, výběr postavy v M5, výběr mapy v M6.
+- **Hotovo (M3):** výsledky a návrat do lobby. **Zatím neimplementováno:** výběr postavy (M5), výběr mapy (M6).
 
 ## Kolizní vrstvy
 1 `world` (pevné plošiny) · 2 `platform_oneway` · 3 `players` · 4 `projectiles` (od M3)

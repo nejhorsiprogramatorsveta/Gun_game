@@ -54,7 +54,8 @@ src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.g
 src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,
 src/match/match_net.gd (only match RPCs), src/player/remote_interpolator.gd, src/net/lag_simulator.gd.
 src/combat/{combat_rules,projectile,weapon_system}.gd, src/data_types/weapon_data.gd, data/weapons/*.tres.
-Planned (M3 step 2): lives, results screen, return to lobby (PLAN.md T.1).
+src/ui/{match_hud,results}.gd (lives/countdown HUD, results -> same lobby, PLAN.md T.1).
+Next (M3U): src/core/updater.gd auto-update (PLAN.md I.8).
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Design decisions that override the original brief (details: docs/PLAN.md)

@@ -1,35 +1,22 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M3 krok 1 (střelba) je hotový, otestovaný lokálně, commitnutý a pushnutý.**
-- Pistole střílí ke kurzoru, zásah odhodí soupeře (i na zemi daleko), výstřel dá lehký zpětný ráz.
-- Online rozhoduje o zásazích jen host, klienti střely vidí.
-- V tréninku je cvičný panák.
+**M3 je hotový a vydaný jako `v0.1.0`** (tag a stabilní release na GitHubu). První hratelná verze:
+- lobby → zápas (odpočet, 5 životů, nezranitelnost po respawnu, vypadávání) → výsledky → stejné lobby
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M3 krok 2: životy, konec zápasu, výsledky a návrat do lobby → `v0.1.0`** (PLAN.md C, D.6, T.1).
-- **`MatchRules`:** `lives` (5), `respawn_delay`, `respawn_invulnerability`, `countdown_seconds` (data už existují)
-- **Host:**
-  - pád = −1 život, respawn s nezranitelností (zásahy neodhazují, postava bliká)
-  - při 0 životech hráč vypadává
-  - poslední hráč, který zbyl = vítěz
-  - odpočet 3-2-1 na začátku (vstupy se ignorují)
-- **Síť:**
-  - životy a nezranitelnost ve snapshotu (bit ve `flags` + u8 lives; `PROTOCOL_VERSION` 3)
-  - reliable `countdown`, `player_eliminated`, `match_ended(results)`
-  - `Session` fáze `RESULTS` a `_return_to_lobby()`
-- **UI:**
-  - HUD se životy všech hráčů
-  - obrazovka výsledků (pořadí) s tlačítkem *Zpět do lobby* a automatickým návratem po ~8 s
-  - lobby se znovu načte ze `Session`, bez nového hostování
-  - Esc u hostitele = ukončit zápas pro všechny (návrat do lobby)
-- **Trénink:** nekonečné životy (panák i hráč).
-- **Na konci:**
-  - README „Jak hrát“ aktualizovat
-  - tag `v0.1.0` (stabilní release)
-  - čísla verzí: od tagu se verze ukazuje jako 0.1.0
-- **Pak:** M3U automatické aktualizace → M4 predikce.
+**M3U: automatické aktualizace** (PLAN.md I.8).
+- **CI:** `version.json` (`build_id`, `version`, `build`, `protocol`, URL a SHA-256 pro každý systém) do release `dev` i stabilních releasů.
+- **`src/core/updater.gd`:**
+  - v menu stáhne `version.json` (HTTPRequest)
+  - při jiném `build_id` nabídne aktualizaci
+  - stažení s průběhem a ověření SHA-256
+  - **Windows:** přejmenovat běžící exe na `.old`, nový na jeho místo, `OS.create_process`, ukončit se, při startu smazat `.old`
+  - **macOS:** ZIP → `ZIPReader` → výměna `.app`, jinak záložně otevřít stránku ke stažení
+- **Bezpečnost (PLAN.md S):** jen pevná HTTPS adresa repa, SHA-256. Zvážit podpis `version.json` (RSA, klíč v GitHub Secrets). Klíč musí vytvořit a vložit uživatel, nebo se to odloží.
+- **Testy:** lokální falešný `version.json`, špatný hash, bez internetu.
+- **Pak M4:** predikce vlastního pohybu.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -64,9 +51,23 @@
   - zásah odhodí soupeře, výstřel dá zpětný ráz
   - online zásahy počítá jen host, klienti střely vidí (spolehlivé události)
   - cvičný panák v tréninku
-- **Nefunguje zatím:** životy, konec zápasu a výsledky (M3 krok 2).
+- **Zápas (M3 krok 2):**
+  - odpočet 3-2-1 (jen míření)
+  - 5 životů, pád = −1, respawn s 1,5 s nezranitelností (bliká, zásahy pohltí)
+  - 0 životů = vypadává, poslední živý vyhrává
+  - výsledky (pořadí) a automatický návrat do **stejného lobby** za 8 s (hostitel i tlačítkem)
+  - HUD se životy
+  - Esc: hostitel ukončí zápas pro všechny, klient odejde
+  - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-03, M3 krok 2 + `v0.1.0`:**
+  - **Snapshot:** odpočet, životy, nezranitelnost (`PROTOCOL_VERSION` 3)
+  - **`Session`:** fáze `RESULTS`, `end_match()`, `return_to_lobby()`
+  - **`match_controller.gd`:** životy, vypadávání, odpočet, konec zápasu, pořadí
+  - **`src/ui/match_hud.gd`** (životy a odpočet), **`src/ui/results.*`**
+  - **`match_net.gd`:** po konci zápasu nic neposílá (žádné chyby „Node not found“), obě strany čekají 0,5 s před změnou scény
+  - **README:** průběh hry
 - **2026-11-03, úpravy podle uživatele:**
   - střely pomalejší (pistole 1500 → 1000 px/s) s delší stopou (40 px)
   - pohled zmenšen na 70 % (zoom 0,85 → 0,6), `kill_rect` rozšířen za okraj obrazovky
@@ -130,6 +131,7 @@
 
 ## Známé problémy
 - **Každá změna hry = nová verze:** všichni hráči si musí stáhnout stejný build (kontrola verze). Dokumentace už build nemění.
+- **`session.gd` má 306 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
 - **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
 - **Vlastní postava klienta reaguje se zpožděním** (cesta k hostu a zpět + 40 ms interpolace, změřeno viz Stav testů). Na LAN skoro nepoznatelné, přes internet znatelné. Predikce vlastního pohybu je naplánovaná v M4 (PLAN.md D.4), architektura je připravená (`last_seq` ve snapshotu, sdílený `PlayerMotor`).
 - **Hostitel nemá zpoždění** (výhoda hostitele, PLAN.md M).
@@ -142,7 +144,8 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 37/37 OK (+ souboj a odhoz po zemi)
+- **Unit testy:** 37/37 OK (+ snapshot s životy a odpočtem)
+- **Dříve:** 37/37 OK (+ souboj a odhoz po zemi)
 - **Dříve:** 30/30 OK (+ LagSimulator)
 - **Dříve:** 27/27 OK (+ kodek vstupů a snapshotů, podvržené pakety, přetečení seq, míření, interpolace)
 - **Dříve:** 19 testů
@@ -164,6 +167,13 @@
   - pád z arény a respawn synchronizovaný
   - odchod klienta (host pokračuje s 1 hráčem) i hostitele (klient do menu s hláškou)
   - trénink beze změny (scénáře skoků a seskoku)
+- **Celý zápas (M3 krok 2, 2 okna na Macu, i s `--fake-lag=100` u klienta):**
+  - odpočet: klient se nepohne (0 px)
+  - pád: 4 životy a nezranitelnost
+  - po 5. pádu výsledky u obou („Hostitel – vítěz“, „Kamarad“)
+  - za ~8 s oba zpět v lobby a hostitel může začít znovu
+  - žádné síťové chyby
+  - snímky HUD a výsledků
 - **Střelba (M3 krok 1, okna na Macu):**
   - trénink: 1 s palby do panáka ho posune 880 → 1207 px a shodí z okraje, střelec ucukne o 5 px
   - síť: host střílí po klientovi, klient je odhozen 880 → 1272 na obou obrazovkách, klient vidí letící střely

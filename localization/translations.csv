@@ -5,7 +5,7 @@ MENU_HOST,Hostovat
 MENU_JOIN,Připojit
 MENU_QUIT,Konec
 MENU_VERSION,Verze {version}
-PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · Esc: odejít"
+PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · Esc: odejít (hostitel: konec zápasu)"
 CHARACTER_JISKRA_NAME,Jiskra
 CHARACTER_JISKRA_DESCRIPTION,"Lehká a rychlá. Snadno ji odhodíš, ale těžko ji chytíš."
 LOBBY_DEFAULT_NAME,Hráč {number}
@@ -44,3 +44,11 @@ BUILD_DISPLAY,{version} (sestavení {build})
 BUILD_DISPLAY_DEV,"{version} (vývojová, {commit})"
 WEAPON_PISTOL_NAME,Pistole
 PRACTICE_DUMMY,Cvičný panák
+HUD_LIVES,{name} – životy: {lives}
+HUD_ELIMINATED,{name}: vypadl/a
+RESULTS_TITLE,Výsledky
+RESULTS_WINNER,{place}. {name} – vítěz
+RESULTS_PLACE,{place}. {name}
+RESULTS_BACK,Zpět do lobby
+RESULTS_AUTO_RETURN,Návrat do lobby za {seconds} s
+RESULTS_WAITING,"Hostitel vás za chvíli vrátí do lobby…"

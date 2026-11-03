@@ -13,24 +13,32 @@ var character: CharacterData
 var motor_state := PlayerMotor.State.new()
 var peer_id := 1
 var slot := 0
+var display_name := ""
+## Lives left in a network match (0 = eliminated). Set by the authority, shown in the HUD.
+var lives := 0
+## True right after a respawn: hits do not push the player (shown by blinking).
+var invulnerable := false
 var facing := 1
 var aim := 0
 ## Newest input applied on the host; sent in snapshots for client prediction (M4).
 var last_input_seq := 0
 ## Authority: seconds until the current weapon may fire again.
 var fire_cooldown := 0.0
+## Authority: seconds of respawn protection left.
+var invulnerable_time := 0.0
 
 ## Only on clients: smooths host snapshots.
 var _interpolator: RemoteInterpolator
 
 
-func setup(data: CharacterData, player_slot: int, player_peer_id: int, display_name: String) -> void:
+func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_name: String) -> void:
 	character = data
 	slot = player_slot
 	peer_id = player_peer_id
+	display_name = player_name
 	var name_label := Label.new()
 	name_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	name_label.text = display_name
+	name_label.text = player_name
 	# The arena camera is zoomed out, so world-space text needs a bigger font to stay readable.
 	name_label.add_theme_font_size_override("font_size", 26)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -42,6 +50,8 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, display_n
 ## Authority only: one physics tick of movement from `input`.
 func simulate(input: InputFrame, delta: float) -> void:
 	PlayerMotor.step(self, input, motor_state, character, delta)
+	invulnerable_time = maxf(invulnerable_time - delta, 0.0)
+	invulnerable = invulnerable_time > 0.0
 	aim = input.aim
 	last_input_seq = input.seq
 	facing = motor_state.facing
@@ -54,7 +64,7 @@ func current_weapon() -> WeaponData:
 
 func snapshot_state() -> Dictionary:
 	return {"slot": slot, "position": position, "velocity": velocity, "facing": facing,
-			"active": visible, "aim": aim, "last_seq": last_input_seq}
+			"active": visible, "invulnerable": invulnerable, "aim": aim, "last_seq": last_input_seq, "lives": lives}
 
 
 ## Client only: queue a host snapshot for smooth display.
@@ -66,15 +76,21 @@ func receive_state(state: Dictionary, time_ms: int) -> void:
 
 
 func _process(_delta: float) -> void:
-	if _interpolator == null:
-		return
-	var state := _interpolator.sample(Time.get_ticks_msec())
+	if _interpolator:
+		_apply_state(_interpolator.sample(Time.get_ticks_msec()))
+	var blink_off := invulnerable and (Time.get_ticks_msec() / 100) % 2 == 0
+	modulate.a = 0.35 if blink_off else 1.0
+
+
+func _apply_state(state: Dictionary) -> void:
 	if state.is_empty():
 		return
 	position = state.position
 	visible = state.active
 	facing = state.facing
 	aim = state.aim
+	lives = state.lives
+	invulnerable = state.invulnerable
 	queue_redraw()
 
 
@@ -83,6 +99,8 @@ func reset_to(spawn_position: Vector2) -> void:
 	velocity = Vector2.ZERO
 	motor_state = PlayerMotor.State.new()
 	fire_cooldown = 0.0
+	invulnerable_time = 0.0
+	invulnerable = false
 
 
 ## Inactive players are hidden and removed from physics (e.g. while waiting to respawn).

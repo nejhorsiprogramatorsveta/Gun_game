@@ -29,11 +29,13 @@ func test_input_rejects_and_sanitizes_bad_packets() -> void:
 
 func test_snapshot_roundtrip() -> void:
 	var states: Array[Dictionary] = [
-		{"slot": 0, "position": Vector2(400.5, -20.25), "velocity": Vector2(120, -820), "facing": -1, "active": true, "aim": 32768, "last_seq": 65535},
-		{"slot": 3, "position": Vector2(1, 2), "velocity": Vector2(99999, 0), "facing": 1, "active": false, "aim": 0, "last_seq": 7},
+		{"slot": 0, "position": Vector2(400.5, -20.25), "velocity": Vector2(120, -820), "facing": -1, "active": true, "invulnerable": true, "aim": 32768, "last_seq": 65535, "lives": 5},
+		{"slot": 3, "position": Vector2(1, 2), "velocity": Vector2(99999, 0), "facing": 1, "active": false, "invulnerable": false, "aim": 0, "last_seq": 7, "lives": 0},
 	]
-	var snapshot := NetCodec.decode_snapshot(NetCodec.encode_snapshot(1234, states))
+	var snapshot := NetCodec.decode_snapshot(NetCodec.encode_snapshot(1234, 3, states))
 	check_eq(snapshot.tick, 1234, "tick")
+	check_eq(snapshot.countdown, 3, "countdown")
+	check_eq([snapshot.states[0].invulnerable, snapshot.states[0].lives, snapshot.states[1].lives], [true, 5, 0], "invulnerability and lives")
 	var a: Dictionary = snapshot.states[0]
 	var b: Dictionary = snapshot.states[1]
 	check_eq([a.slot, a.position, a.velocity, a.facing, a.active, a.aim, a.last_seq], [0, Vector2(400.5, -20.25), Vector2(120, -820), -1, true, 32768, 65535], "first player")
@@ -41,10 +43,10 @@ func test_snapshot_roundtrip() -> void:
 
 
 func test_snapshot_rejects_malformed() -> void:
-	var data := NetCodec.encode_snapshot(1, [{"slot": 0, "position": Vector2.ZERO, "velocity": Vector2.ZERO, "facing": 1, "active": true, "aim": 0, "last_seq": 0}] as Array[Dictionary])
+	var data := NetCodec.encode_snapshot(1, 0, [{"slot": 0, "position": Vector2.ZERO, "velocity": Vector2.ZERO, "facing": 1, "active": true, "invulnerable": false, "aim": 0, "last_seq": 0, "lives": 1}] as Array[Dictionary])
 	data.resize(data.size() - 1)
 	check(NetCodec.decode_snapshot(data).is_empty(), "truncated snapshot ignored")
-	var too_many := PackedByteArray([0, 0, 0, 0, 200])
+	var too_many := PackedByteArray([0, 0, 0, 0, 200, 0])
 	check(NetCodec.decode_snapshot(too_many).is_empty(), "absurd player count ignored")
 
 

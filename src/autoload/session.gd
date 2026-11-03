@@ -12,7 +12,7 @@ signal players_changed
 ## (message is then empty). The message is already translated for the UI.
 signal ended(message: String)
 
-enum Phase { OFFLINE, CONNECTING, LOBBY, IN_MATCH }
+enum Phase { OFFLINE, CONNECTING, LOBBY, IN_MATCH, RESULTS }
 
 const MAX_PLAYERS := 4
 const MIN_PLAYERS_TO_START := 2
@@ -32,6 +32,8 @@ var last_end_message := ""
 var host_port := EnetDirectConnector.DEFAULT_PORT
 ## peer_id -> slot (0..3) of the running match; identical on all peers.
 var match_slots: Dictionary[int, int] = {}
+## Ranking of the last match: [{"name": String, "place": int, "lives": int}], best first.
+var match_results: Array = []
 ## Host: secret that friends need to join (sent along with the address as "ip:port#CODE").
 var room_code := ""
 
@@ -91,6 +93,30 @@ func start_match() -> void:
 func _begin_match(slots: Dictionary) -> void:
 	match_slots.assign(slots)
 	_set_phase(Phase.IN_MATCH)
+
+
+## Host: the match is decided; everyone sees the results (PLAN.md T.1).
+func end_match(results: Array) -> void:
+	if is_host() and phase == Phase.IN_MATCH:
+		_end_match.rpc(results)
+
+
+@rpc("authority", "call_local", "reliable")
+func _end_match(results: Array) -> void:
+	match_results = results
+	_set_phase(Phase.RESULTS)
+
+
+## Host: everyone goes back to the same lobby; the session (and room code) stays open.
+func return_to_lobby() -> void:
+	if is_host() and phase in [Phase.IN_MATCH, Phase.RESULTS]:
+		_return_to_lobby.rpc()
+
+
+@rpc("authority", "call_local", "reliable")
+func _return_to_lobby() -> void:
+	match_slots.clear()
+	_set_phase(Phase.LOBBY)
 
 
 ## Addresses the host can share with friends, each including the room code
