@@ -39,3 +39,4 @@ LOBBY_HINT_TAILSCALE_OFF,"Tailscale není zapnutý – připojit se můžou jen 
 LOBBY_START,Začít zápas
 LOBBY_NEED_PLAYERS,"Na začátek zápasu jsou potřeba aspoň {min} hráči."
 LOBBY_WAITING_FOR_HOST,"Čekáme, až hostitel spustí zápas…"
+DEBUG_FAKE_LAG,"[TEST] Simulace sítě: +{lag} ms, {loss} % ztracených paketů"

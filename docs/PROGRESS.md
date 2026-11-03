@@ -1,18 +1,22 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M2 krok 4b (start zápasu a synchronizace pohybu) je hotový, otestovaný lokálně, commitnutý a pushnutý.**
-- Poprvé jde hrát spolu: hostitel klikne v lobby *Začít zápas* a všichni vidí pohyb a míření ostatních.
-- Ještě se nestřílí (M3). Klientova postava reaguje se zpožděním (bez predikce, viz Známé problémy).
+**M2 je hotový kromě testu na dvou skutečných počítačích** (ten uživatel odložil). M2 krok 5 (`LagSimulator` a měření) je commitnutý a pushnutý.
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M2 krok 5: `LagSimulator`** (test se skutečným druhým hráčem uživatel odložil, viz ODLOŽENO).
-- `src/net/lag_simulator.gd`: debug zpoždění a ztráta paketů pro vstupy a snapshoty (PLAN.md D.11).
-  - Zapnutí parametrem `-- --fake-lag=100 --fake-loss=5`, jen v debug buildech.
-  - Napojit v `match_net.gd` (jediné místo, kudy jdou).
-- Ověřit lokálně se 100 ms a 5 % ztrát: plynulost interpolace vzdálených hráčů, reakce vlastní postavy. Podle výsledku doporučit, jestli predikci (M4) udělat hned po M3.
-- Pak **M3 souboj:** zbraň, střely ke kurzoru, knockback, životy, konec zápasu a výsledky → `v0.1.0`.
+**M3 krok 1: střelba.** Doporučené pořadí potom: M3 krok 2 → **M4 predikce hned po M3** (viz měření v Stav testů).
+- `src/data_types/weapon_data.gd` + `data/weapons/pistol.tres`: `fire_rate`, `projectile_speed`, `knockback`, `recoil`, `spread`, `range`. Názvy přes lokalizační klíče.
+  - `CharacterData.weapons: Array[WeaponData]` (zatím 1 zbraň; 2 sloty a přepínání v M5, PLAN.md G.0)
+- **Střelba na hostu:** tlačítko FIRE + `aim` ze vstupu, cooldown podle `fire_rate`. Projektil letí ve směru míření.
+- **`src/combat/projectile.gd`:** lehký `Node2D`, pohyb a raycast každý tick jen na hostu (vrstvy world + players, ne vlastní střelec).
+  - Zásah → knockback ve směru letu, dělený `weight` (`src/combat/combat_rules.gd`, čisté funkce + testy).
+  - Recoil střelce proti směru míření.
+- **Síť:**
+  - reliable události v `match_net.gd`: `projectile_spawned(id, pos, aim, weapon)` → klienti simulují jen vizuálně, `projectile_removed(id)` při zásahu nebo zdi
+  - knockback se projeví přes snapshot
+  - validace: střílet může jen host podle vstupu, žádné RPC „vystřel“ od klienta
+- **Test:** unit testy `combat_rules`; dvě okna lokálně (zásah odhodí soupeře na obou obrazovkách); `--fake-lag=100`.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -40,9 +44,15 @@
   - jména nad postavami, barva podle slotu
   - odchod hráče nebo hostitele uprostřed zápasu funguje
   - Esc v zápase = odejít
+- **Simulace sítě pro testy (M2 krok 5):** `-- --fake-lag=100 --fake-loss=5 [--fake-jitter=10]` (jen debug buildy, v zápase ukazuje [TEST] nápis).
 - **Nefunguje zatím:** střelba, životy a konec zápasu (M3).
 
 ## Poslední změny
+- **2026-11-03, M2 krok 5:**
+  - **`src/net/lag_simulator.gd`:** zpoždění, jitter a ztráta paketů, zachovává pořadí. Jen debug buildy.
+  - napojeno v `match_net.gd` na vstupy a snapshoty, [TEST] nápis v HUD
+  - **Vlastní postava klienta má kratší interpolační zpoždění** (40 ms místo 100 ms): reakce 138 → 96 ms bez lagu
+  - `tests/test_lag_simulator.gd`
 - **2026-11-03, M2 krok 4b:**
   - **`Session`:** fáze `IN_MATCH`, `start_match()` (host, min. 2 hráči), RPC `_begin_match` se sloty
   - **Lobby:** tlačítko *Začít zápas*, „Čekáme na hostitele“, přechod do zápasu
@@ -81,7 +91,7 @@
 
 ## Známé problémy
 - **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
-- **Vlastní postava klienta reaguje se zpožděním** (cesta k hostu a zpět + ~100 ms interpolace). Na LAN skoro nepoznatelné, přes internet znatelné. Predikce vlastního pohybu je naplánovaná v M4 (PLAN.md D.4), architektura je připravená (`last_seq` ve snapshotu, sdílený `PlayerMotor`).
+- **Vlastní postava klienta reaguje se zpožděním** (cesta k hostu a zpět + 40 ms interpolace, změřeno viz Stav testů). Na LAN skoro nepoznatelné, přes internet znatelné. Predikce vlastního pohybu je naplánovaná v M4 (PLAN.md D.4), architektura je připravená (`last_seq` ve snapshotu, sdílený `PlayerMotor`).
 - **Hostitel nemá zpoždění** (výhoda hostitele, PLAN.md M).
 - **Interpolace neextrapoluje:** při výpadku snapshotů postava stojí na poslední pozici.
 - **Knihovní Wi-Fi** (síť uživatele) používá rozsah 100.64.x.x a často blokuje provoz mezi zařízeními. Ověřovat raději doma nebo přes Tailscale.
@@ -92,7 +102,8 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 27/27 OK (+ kodek vstupů a snapshotů, podvržené pakety, přetečení seq, míření, interpolace)
+- **Unit testy:** 30/30 OK (+ LagSimulator)
+- **Dříve:** 27/27 OK (+ kodek vstupů a snapshotů, podvržené pakety, přetečení seq, míření, interpolace)
 - **Dříve:** 19 testů
   - pohyb (8)
   - adresy (6)
@@ -112,6 +123,16 @@
   - pád z arény a respawn synchronizovaný
   - odchod klienta (host pokračuje s 1 hráčem) i hostitele (klient do menu s hláškou)
   - trénink beze změny (scénáře skoků a seskoku)
+- **Měření latence** (M2 krok 5, host + klient lokálně, klient s `--fake-lag`, vlastní postava s 40 ms interpolací):
+
+  | Simulované připojení | Ostatní hráči | Reakce vlastní postavy klienta |
+  |---|---|---|
+  | bez lagu | 0 zaseknutí | 96 ms |
+  | +100 ms, 5 % ztrát | 0 zaseknutí | 172 ms |
+  | +200 ms, 10 % ztrát | 0 zaseknutí | 295 ms |
+
+  - Pohyb ostatních je plynulý i při ztrátách.
+  - **Doporučení:** při běžném internetu (30–80 ms) bude reakce kolem 130–180 ms, tedy znatelné u skákání. Proto **predikci vlastního pohybu (M4) udělat hned po M3.**
 - **Export a CI:** 3 exporty lokálně i v CI OK. Stažený macOS build má správnou verzi, je podepsaný a spustí se.
 - **NETESTOVÁNO:**
   - Windows (exe, SmartScreen, firewall)

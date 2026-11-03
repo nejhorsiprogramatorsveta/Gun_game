@@ -18,6 +18,8 @@ var _loaded_peers: Dictionary[int, bool] = {}
 var _packet_counts: Dictionary[int, int] = {}
 var _rate_window_start_ms := 0
 var _got_snapshot := false
+## Debug-only fake latency/packet loss (see LagSimulator); a no-op unless enabled.
+var lag := LagSimulator.from_command_line()
 
 
 func _ready() -> void:
@@ -26,13 +28,18 @@ func _ready() -> void:
 		_announce_loaded()
 
 
+func _process(_delta: float) -> void:
+	lag.flush()
+
+
 func send_input(data: PackedByteArray) -> void:
-	_receive_input.rpc_id(1, data)
+	lag.run(func() -> void: _receive_input.rpc_id(1, data))
 
 
 func broadcast_snapshot(data: PackedByteArray) -> void:
-	for peer_id in _loaded_peers:
-		_receive_snapshot.rpc_id(peer_id, data)
+	lag.run(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_snapshot.rpc_id(peer_id, data))
 
 
 func _announce_loaded() -> void:
@@ -55,7 +62,7 @@ func _receive_input(data: PackedByteArray) -> void:
 		return
 	var frames := NetCodec.decode_input(data)
 	if not frames.is_empty():
-		input_received.emit(sender, frames)
+		lag.run(input_received.emit.bind(sender, frames))
 
 
 @rpc("authority", "call_remote", "unreliable_ordered")
@@ -63,7 +70,7 @@ func _receive_snapshot(data: PackedByteArray) -> void:
 	var snapshot := NetCodec.decode_snapshot(data)
 	if not snapshot.is_empty():
 		_got_snapshot = true
-		snapshot_received.emit(snapshot)
+		lag.run(snapshot_received.emit.bind(snapshot))
 
 
 func _rate_exceeded(peer_id: int) -> bool:

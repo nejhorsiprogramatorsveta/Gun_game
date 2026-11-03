@@ -43,6 +43,8 @@ func _ready() -> void:
 		Session.ended.connect(func(_message: String) -> void: get_tree().change_scene_to_file.call_deferred(MAIN_MENU_PATH))
 		_net.input_received.connect(_on_input_received)
 		_net.snapshot_received.connect(_on_snapshot_received)
+		if _net.lag.is_enabled():
+			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
 	else:
 		_spawn(multiplayer.get_unique_id(), 0, Settings.player_name)
 

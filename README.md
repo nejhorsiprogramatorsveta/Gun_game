@@ -84,6 +84,7 @@ tools/godot --path .                                      # spustit hru
 tools/godot --path . --editor                             # otevřít editor
 tools/godot --headless --path . -s tests/run_tests.gd     # unit testy
 tools/godot --headless --path . -s tools/check_localization.gd   # kontrola překladů
+tools/godot --path . -- --fake-lag=100 --fake-loss=5            # test: simulace pomalého internetu
 ```
 
 - Plán projektu: [docs/PLAN.md](docs/PLAN.md)

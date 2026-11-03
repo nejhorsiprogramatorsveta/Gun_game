@@ -52,7 +52,8 @@ func snapshot_state() -> Dictionary:
 ## Client only: queue a host snapshot for smooth display.
 func receive_state(state: Dictionary, time_ms: int) -> void:
 	if _interpolator == null:
-		_interpolator = RemoteInterpolator.new()
+		var own := peer_id == multiplayer.get_unique_id()
+		_interpolator = RemoteInterpolator.new(RemoteInterpolator.OWN_PLAYER_DELAY_MS if own else RemoteInterpolator.INTERPOLATION_DELAY_MS)
 	_interpolator.push(time_ms, state)
 
 

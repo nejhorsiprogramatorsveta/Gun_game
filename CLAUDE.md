@@ -43,6 +43,7 @@ All verified in M1 on macOS arm64:
 - Network smoke test without UI: throwaway SceneTree scripts that call `root.get_node("Session").host_game()/join_game()`
   (autoloads ARE loaded with `-s`), run as separate background processes on 127.0.0.1, logs to files (not pipes).
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
+- Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> prerelease tag `dev`; tag v* -> stable release).
 
 ## Architecture (see docs/ARCHITECTURE.md for what exists, docs/PLAN.md section F for the target)
@@ -51,8 +52,8 @@ src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
 src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,
-src/match/match_net.gd (only match RPCs), src/player/remote_interpolator.gd.
-Planned: src/net/lag_simulator.gd.
+src/match/match_net.gd (only match RPCs), src/player/remote_interpolator.gd, src/net/lag_simulator.gd.
+Planned (M3): src/combat/{projectile,combat_rules}.gd, src/data_types/weapon_data.gd.
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Design decisions that override the original brief (details: docs/PLAN.md)

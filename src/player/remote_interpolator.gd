@@ -5,12 +5,20 @@ extends RefCounted
 ## is blended between the two surrounding snapshots (PLAN.md D.4).
 
 const INTERPOLATION_DELAY_MS := 100
+## The client's own player only needs to cover one snapshot interval (33 ms), not network
+## jitter of other players, so a shorter delay makes the controls feel much more direct.
+const OWN_PLAYER_DELAY_MS := 40
 const MAX_BUFFERED := 20
 ## Bigger jumps (e.g. a respawn) are shown instantly instead of sliding across the arena.
 const TELEPORT_DISTANCE := 200.0
 
 ## [{time: int (local ms), state: Dictionary}], oldest first.
 var _buffer: Array[Dictionary] = []
+var _delay_ms := INTERPOLATION_DELAY_MS
+
+
+func _init(delay_ms: int = INTERPOLATION_DELAY_MS) -> void:
+	_delay_ms = delay_ms
 
 
 func push(time_ms: int, state: Dictionary) -> void:
@@ -23,7 +31,7 @@ func push(time_ms: int, state: Dictionary) -> void:
 func sample(now_ms: int) -> Dictionary:
 	if _buffer.is_empty():
 		return {}
-	var render_time := now_ms - INTERPOLATION_DELAY_MS
+	var render_time := now_ms - _delay_ms
 	if render_time <= _buffer[0].time:
 		return _buffer[0].state
 	for i in range(_buffer.size() - 1):
