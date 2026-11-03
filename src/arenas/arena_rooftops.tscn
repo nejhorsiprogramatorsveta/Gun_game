@@ -7,6 +7,10 @@
 script = ExtResource("1")
 kill_rect = Rect2(-400, -600, 2080, 1500)
 
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+zoom = Vector2(0.85, 0.85)
+
 [node name="Ground" type="StaticBody2D" parent="."]
 position = Vector2(240, 560)
 script = ExtResource("2")

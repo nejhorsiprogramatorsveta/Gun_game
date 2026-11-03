@@ -22,29 +22,34 @@ func test_holding_jump_does_not_rejump() -> void:
 	check_eq(v.y, 0.0, "held jump is not a new press")
 
 
-func test_coyote_jump_after_leaving_ledge() -> void:
+func test_walking_off_ledge_keeps_both_jumps() -> void:
+	# Regression (bug reported 2026-11-03): walk off a ledge, wait, then jump twice.
 	var state := PlayerMotor.State.new()
 	_step(state, Vector2.ZERO, true)
-	var v := _step(state, Vector2.ZERO, false, 0, InputFrame.JUMP)
-	check_eq(v.y, -stats.jump_velocity, "jump right after leaving ground uses coyote time")
-	check_eq(state.air_jumps_left, stats.air_jumps, "coyote jump does not consume an air jump")
+	for i in 20:  # fall for a third of a second without jumping
+		_step(state, Vector2(0, 300), false)
+	var v := _step(state, Vector2(0, 300), false, 0, InputFrame.JUMP)
+	check_eq(v.y, -stats.jump_velocity, "first jump after walking off works")
+	_step(state, v, false)
+	v = _step(state, v, false, 0, InputFrame.JUMP)
+	check_eq(v.y, -stats.jump_velocity, "second jump after walking off works too")
 
 
 func test_double_jump_then_no_more() -> void:
 	var state := PlayerMotor.State.new()
-	_step(state, Vector2.ZERO, true)
-	for i in 10:  # fall long enough for coyote time to expire
-		_step(state, Vector2.ZERO, false)
-	var v := _step(state, Vector2.ZERO, false, 0, InputFrame.JUMP)
-	check_eq(v.y, -stats.jump_velocity, "first air jump works")
-	_step(state, Vector2.ZERO, false)
+	var v := _step(state, Vector2.ZERO, true, 0, InputFrame.JUMP)
+	check_eq(v.y, -stats.jump_velocity, "ground jump")
+	_step(state, v, false)
+	v = _step(state, v, false, 0, InputFrame.JUMP)
+	check_eq(v.y, -stats.jump_velocity, "air jump")
+	_step(state, v, false)
 	v = _step(state, Vector2(0, 100), false, 0, InputFrame.JUMP)
-	check(v.y > 0.0, "no jump when air jumps are used up")
+	check(v.y > 0.0, "no third jump before landing")
 
 
 func test_jump_buffer_on_landing() -> void:
 	var state := PlayerMotor.State.new()
-	state.air_jumps_left = 0
+	state.jumps_left = 0
 	_step(state, Vector2(0, 300), false, 0, InputFrame.JUMP)
 	var v := _step(state, Vector2.ZERO, true, 0, InputFrame.JUMP)
 	check_eq(v.y, -stats.jump_velocity, "jump pressed just before landing triggers on landing")

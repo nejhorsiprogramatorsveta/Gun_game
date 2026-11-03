@@ -1,14 +1,11 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Připojení přes internet je vyřešené přes Tailscale (rozhodnutí uživatele 2026-11-03), commitnuté a pushnuté.**
-- UPnP je odstraněné. Lobby sdílí jen Tailscale a LAN adresy, nikdy veřejnou IP.
-- README obsahuje návod pro Tailscale (sdílení počítače přes *Share*).
+**Opravený bug s dvojskokem a pohled zmenšený na 85 % (přání uživatele), commitnuté a pushnuté.**
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-1. **Opravit BUG s dvojskokem** (sekce níže, malý úkol).
-2. **M2 krok 4b, synchronizace pohybu** (první společné hraní):
+1. **M2 krok 4b, synchronizace pohybu** (první společné hraní):
    - tlačítko *Začít zápas* u hostitele (min. 2 hráči), RPC `match_started` → všichni načtou `match.tscn`
    - spawn podle slotů
    - `InputFrame` rozšířit o `seq`, `aim` (úhel ke kurzoru, u16) a aktivní slot zbraně (1 bit, PLAN.md G.0)
@@ -17,21 +14,8 @@
    - interpolace vzdálených hráčů (`src/player/remote_interpolator.gd`)
    - RPC jen v `src/match/match_net.gd`, validace dle PLAN.md D.7 a sekce S
    - Lze rozdělit na víc commitů.
-3. **M2 krok 5:** `LagSimulator`, test 2 počítačů v LAN a **test přes Tailscale s kamarádem**.
-4. **M3:** souboj = MVP (`v0.1.0`). Pak **M5:** 4 postavy, 2 zbraně na postavu, schopnosti (PLAN.md G.0).
-
-## BUG K OPRAVĚ: dvojskok po sejití z plošiny (nahlásil uživatel 2026-11-03, potvrzeno simulací)
-- **Reprodukce:**
-  1. Stát na plošině a vyjít přes hranu (bez skoku).
-  2. Skok zmáčknout až po coyote time (> 0,08 s).
-  3. Skočí jen jednou, druhý stisk nic neudělá.
-  - Do 0,08 s po sejití fungují 2 skoky, po skoku ze země taky 2.
-- **Příčina:** `PlayerMotor` bere skok ze země jako dostupný jen v coyote time. Po něm zbývá jen `air_jumps` (1).
-- **Navržená oprava:**
-  - Nahradit `air_jumps_left` + coyote za `jumps_left = 1 + air_jumps` (reset na zemi). Každý skok jeden spotřebuje, ve vzduchu jen nový stisk, buffer jen pro dopad.
-  - Odstranit `coyote_time` z `CharacterData` a `jiskra.tres`.
-  - Upravit testy (`tests/test_player_motor.gd`) a přidat test „sejití z hrany + pozdní skok = 2 skoky“.
-  - Výsledek: po sejití i po odhození má hráč vždy 2 skoky (lepší záchrana jako v žánru).
+2. **M2 krok 5:** `LagSimulator`, test 2 počítačů v LAN a **test přes Tailscale s kamarádem**.
+3. **M3:** souboj = MVP (`v0.1.0`). Pak **M5:** 4 postavy, 2 zbraně na postavu, schopnosti (PLAN.md G.0).
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -55,6 +39,11 @@
 - **Nefunguje zatím:** společný zápas (žádný start z lobby, žádná synchronizace pohybu).
 
 ## Poslední změny
+- **2026-11-03, oprava skoku a zoom:**
+  - `PlayerMotor`: místo coyote time počítadlo `jumps_left = 1 + air_jumps` (reset na zemi). Po sejití z hrany i po odhození jsou vždy 2 skoky, ve vzduchu jen nový stisk, buffer jen pro dopad.
+  - Odstraněno `coyote_time` z `CharacterData` a `jiskra.tres`.
+  - Test regrese `test_walking_off_ledge_keeps_both_jumps`.
+  - Aréna má `Camera2D` se zoomem 0,85 (vše na 85 %, uprostřed). Mění se v `arena_rooftops.tscn` → uzel Camera → Zoom.
 - **2026-11-03, Tailscale místo UPnP (rozhodnutí uživatele):**
   - odstraněn `src/net/upnp_helper.gd` a UPnP z konektoru, `Session` a lobby
   - `share_addresses()` vrací jen Tailscale a LAN, Tailscale se na Windows pozná podle „friendly“ názvu rozhraní
@@ -88,7 +77,9 @@
   - plné lobby, jiná verze, špatný a chybějící kód
   - odchod klienta i hostitele, nedostupný host, obsazený port
   - lobby UI host i klient, hlášky v menu
-- **Pohyb:** smoke testy se simulovanými klávesami (běh, skok, respawn, seskok, průskok plošiny). Bug s dvojskokem potvrzen simulací.
+- **Pohyb:** smoke testy se simulovanými klávesami (běh, skok, respawn, seskok, průskok plošiny).
+  - Bug s dvojskokem: po opravě simulace v aréně dává 2 skoky ve všech scénářích (skok ze země, sejití a hned skok, sejití a skok po 10 snímcích).
+  - Zoom 0,85 ověřen snímkem obrazovky.
 - **Export a CI:** 3 exporty lokálně i v CI OK. Stažený macOS build má správnou verzi, je podepsaný a spustí se.
 - **NETESTOVÁNO:**
   - Windows (exe, SmartScreen, firewall)
@@ -119,6 +110,8 @@
 - **Kód hry se sdílí v adrese za `#`:** jedno kopírování obsahuje vše a zpracuje ho `Session`.
 - **ENet `MAX_CLIENTS = 4`** (o 1 víc než hráčů): klient navíc dostane hlášku „Hra je plná“.
 - **`PlayerMotor.compute_velocity()` bez vedlejších efektů:** testovatelné, připravené na predikci. `InputFrame` nese jen držená tlačítka.
+- **Skoky jako počítadlo (2 skoky do dopadu) místo coyote time:** po sejití i po odhození má hráč vždy oba skoky. Oprava bugu nahlášeného uživatelem.
+- **Velikost pohledu = zoom `Camera2D` v aréně** (0,85): každá aréna si může nastavit vlastní.
 - **Knockback nad max. rychlostí brzdí jen tření.**
 - **Vlastní mini test runner** místo GUT. **Lokalizační klíče se hledají regexem.**
 - **Rolling prerelease tag `dev`** (ne `latest`).

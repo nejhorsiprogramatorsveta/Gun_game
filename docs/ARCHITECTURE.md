@@ -16,9 +16,9 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/core/content_db.gd` | načte `data/characters/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
 | `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `MatchRules`) |
 | `src/player/input_frame.gd` | vstup hráče za jeden tick (směr a bitmaska tlačítek). Od M2 se posílá hostu. |
-| `src/player/player_motor.gd` | pohyb: běh, skok, dvojskok, coyote time, buffer skoku, seskok z plošiny |
+| `src/player/player_motor.gd` | pohyb: běh, skok + dvojskok (počítadlo skoků do dopadu), buffer skoku, seskok z plošiny |
 | `src/player/player.gd/.tscn` | uzel postavy: propojuje vstup, data, pohyb a placeholder grafiku |
-| `src/arenas/arena.gd` | základ arény: spawn body (`SpawnPoints/*`), `kill_rect` |
+| `src/arenas/arena.gd` | základ arény: spawn body (`SpawnPoints/*`), `kill_rect`, kamera `Camera` (zoom 0,85 = velikost pohledu) |
 | `src/arenas/platform.gd` | obdélníková plošina (pevná nebo jednosměrná), nastavitelná v editoru |
 | `src/match/match_controller.gd` | průběh zápasu; v M1 lokální trénink s respawnem po pádu |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, chybové hlášky (`Session.last_end_message`) |

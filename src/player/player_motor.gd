@@ -10,8 +10,9 @@ const ONE_WAY_LAYER := 2
 ## Per-player movement memory that is not part of the body itself.
 class State:
 	var prev_buttons: int = 0
-	var air_jumps_left: int = 0
-	var coyote_timer: float = 0.0
+	## Jumps left before landing again: 1 ground jump + air jumps. Walking off a ledge
+	## or being knocked off keeps all of them, so recovery never depends on timing.
+	var jumps_left: int = 0
 	var jump_buffer_timer: float = 0.0
 	var drop_timer: float = 0.0
 	## 1 = right, -1 = left. Also the shooting direction.
@@ -36,15 +37,12 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	if not on_floor:
 		velocity.y = minf(velocity.y + stats.gravity * delta, stats.max_fall_speed)
 
-	if state.jump_buffer_timer > 0.0 and state.coyote_timer > 0.0:
+	# On the ground a recent (buffered) press is enough, so a press just before landing
+	# still jumps. In the air only a fresh press jumps, so holding the key does nothing.
+	var wants_jump := state.jump_buffer_timer > 0.0 if on_floor else bool(just_pressed & InputFrame.JUMP)
+	if wants_jump and state.jumps_left > 0:
 		velocity.y = -stats.jump_velocity
-		state.coyote_timer = 0.0
-		state.jump_buffer_timer = 0.0
-	elif just_pressed & InputFrame.JUMP and state.coyote_timer <= 0.0 and state.air_jumps_left > 0:
-		# Air jumps need a fresh press; a buffered press only counts for ground jumps,
-		# otherwise pressing jump just before landing would waste the double jump.
-		velocity.y = -stats.jump_velocity
-		state.air_jumps_left -= 1
+		state.jumps_left -= 1
 		state.jump_buffer_timer = 0.0
 
 	if on_floor and just_pressed & InputFrame.DOWN:
@@ -54,10 +52,7 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 
 static func _update_timers(on_floor: bool, just_pressed: int, state: State, stats: CharacterData, delta: float) -> void:
 	if on_floor:
-		state.coyote_timer = stats.coyote_time
-		state.air_jumps_left = stats.air_jumps
-	else:
-		state.coyote_timer = maxf(state.coyote_timer - delta, 0.0)
+		state.jumps_left = 1 + stats.air_jumps
 	if just_pressed & InputFrame.JUMP:
 		state.jump_buffer_timer = stats.jump_buffer_time
 	else:

@@ -21,8 +21,6 @@ extends Resource
 @export var air_jumps: int = 1
 @export var gravity: float = 2400.0
 @export var max_fall_speed: float = 1400.0
-## Seconds after leaving a ledge during which a ground jump is still allowed.
-@export var coyote_time: float = 0.08
 ## Seconds a jump press is remembered before landing.
 @export var jump_buffer_time: float = 0.1
 ## Seconds one-way platforms are ignored after pressing Down.

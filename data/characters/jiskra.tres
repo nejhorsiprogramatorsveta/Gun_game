@@ -17,7 +17,6 @@ jump_velocity = 820.0
 air_jumps = 1
 gravity = 2400.0
 max_fall_speed = 1400.0
-coyote_time = 0.08
 jump_buffer_time = 0.1
 drop_through_time = 0.25
 weight = 0.9

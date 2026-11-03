@@ -1,7 +1,9 @@
 class_name Arena
 extends Node2D
 ## Base script of every arena scene. An arena provides platforms (Platform nodes),
-## spawn points (Marker2D children of "SpawnPoints") and the area outside which players die.
+## spawn points (Marker2D children of "SpawnPoints"), the area outside which players die
+## and a Camera2D "Camera" that frames it (its zoom sets how big everything looks;
+## 0.85 = everything at 85 %).
 
 ## Leaving this rectangle (e.g. falling below it) costs a life.
 @export var kill_rect := Rect2(-400, -600, 2080, 1500)
