@@ -12,13 +12,51 @@ const TIMEOUT_LIMIT := 32
 const TIMEOUT_MIN_MS := 5000
 const TIMEOUT_MAX_MS := 8000
 
+var _upnp: UpnpHelper
+var _internet_status := &""
+## "ip:port" reachable from the internet (router answered via UPnP), else empty.
+var _public_address := ""
+
 
 func host(port: int) -> MultiplayerPeer:
+	close()
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_server(port, MAX_CLIENTS) != OK:
 		return null
 	peer.peer_connected.connect(func(id: int) -> void: _apply_timeout(peer, id))
+	_internet_status = &"checking"
+	_upnp = UpnpHelper.new()
+	_upnp.finished.connect(_on_upnp_finished.bind(_upnp, port))
+	_upnp.open_port(port)
 	return peer
+
+
+func close() -> void:
+	if _upnp:
+		_upnp.close_port()
+		_upnp = null
+	_internet_status = &""
+	_public_address = ""
+
+
+func internet_status() -> StringName:
+	return _internet_status
+
+
+func _on_upnp_finished(result: Dictionary, helper: UpnpHelper, port: int) -> void:
+	if helper != _upnp:
+		return  # hosting already ended
+	var external_ip: String = result.external_ip
+	if not result.mapped:
+		_internet_status = &"failed"
+	elif address_kind(external_ip) != &"public":
+		# The router itself sits behind the provider's NAT (CGNAT): forwarding is useless.
+		_internet_status = &"cgnat"
+		helper.close_port()
+	else:
+		_internet_status = &"open"
+		_public_address = "%s:%d" % [external_ip, port]
+	share_info_changed.emit()
 
 
 func join(join_info: String) -> MultiplayerPeer:
@@ -43,6 +81,8 @@ func share_addresses(port: int) -> Array[Dictionary]:
 			has_ipv6 = has_ipv6 or kind == &"ipv6"
 			var host_text := "[%s]" % ip if ip.contains(":") else ip
 			result.append({"kind": kind, "address": "%s:%d" % [host_text, port]})
+	if not _public_address.is_empty():
+		result.append({"kind": &"public", "address": _public_address})
 	var order: Array[StringName] = [&"public", &"tailscale", &"lan", &"ipv6"]
 	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return order.find(a.kind) < order.find(b.kind))
 	return result

@@ -63,6 +63,8 @@ Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.j
   otherwise. Do not ask about them each session; just keep them listed in PROGRESS.md.
 
 ## Rules
+SECURITY (user requirement): every network change must follow docs/PLAN.md section S (no object decoding,
+server_relay off, validate/size-limit all input, room code to join, UPnP single port + lease + removal on leave).
 Code must run on Windows, macOS and Linux: no OS-specific APIs/paths in game code (use res:// and user://,
 Godot APIs only); shell scripts in tools/ are dev-only (Windows devs would use Git Bash/WSL).
 Host decides all gameplay. RPC only in session.gd / src/net/ / match_net.gd. Connection only via src/net/connectors/.

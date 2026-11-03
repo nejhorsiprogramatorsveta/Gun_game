@@ -371,6 +371,28 @@ tools/
   - ninja s kusarigamou ↔ Vichr (tlaková vlna), případně nová schopnost „přitáhnutí řetězem“
   - ninja se šurikenem ↔ 4. postava později
 
+## S. Bezpečnost online hry (POŽADAVEK UŽIVATELE 2026-11-03, platí pro každou síťovou změnu)
+Cíl: přes hru se nikdo nesmí jednoduše dostat do počítače hráče ani do jeho domácí sítě (Wi-Fi).
+
+**Pravidla v kódu:**
+1. **Žádné objekty ze sítě.** `SceneMultiplayer.allow_object_decoding` zůstává `false` (výchozí). Handshake používá `bytes_to_var()` (objekty nedekóduje) s limitem velikosti zprávy. Ze sítě nikdy nespouštět kód ani nenačítat soubory a cesty.
+2. **`server_relay = false`.** Klienti mluví jen s hostitelem a nemohou si posílat RPC navzájem.
+3. **Validace všeho od klienta na hostu:** identita z `get_remote_sender_id()`, typy, rozsahy, velikosti, rate-limit vstupů (sekce D.7). Neplatné zprávy se zahodí.
+4. **Kód hry (heslo místnosti).** Host vygeneruje náhodný šestiznakový kód (kryptograficky bezpečný generátor), který se sdílí spolu s adresou (`85.12.34.56:24642#K7Q2MX`). Bez kódu se cizí člověk, který náhodou najde otevřený port, do hry nepřipojí.
+5. **UPnP opatrně:** otevírá se jen jeden UDP port hry, jen když hráč hostuje, s časovým limitem (2 h). Při odchodu z lobby nebo zavření hry se port zase zavře.
+6. **Hra nikdy nepotřebuje práva správce.** Nastavení se ukládají jen do `user://`.
+7. **Buildy jen z GitHub Actions** (oficiální release stránka), žádné ručně posílané exe.
+8. **Godot držet aktuální** (bezpečnostní opravy enginu) a při upgradu pročíst changelog.
+
+**Upřímně o rizicích (pro README a hráče):**
+- **Co hra otevírá:** jen jeden UDP port na počítači hostitele, jen po dobu hostování. Nedává přístup k souborům, ostatním programům ani k jiným zařízením ve Wi-Fi. Klienti port neotevírají vůbec, jen se připojují ven.
+- **Zbytkové riziko A, chyba v enginu:** případná chyba v síťovém kódu Godotu nebo ENetu. Je nízké, snižuje ho aktualizace Godotu.
+- **Zbytkové riziko B, sdílení IP adresy:** kdo zná veřejnou IP hostitele, může jeho připojení zahltit (DoS, „shození internetu“) a zhruba určit jeho lokalitu. Proto sdílet adresu jen s kamarády.
+- **UPnP na routeru:** obecně usnadňuje otevírání portů i jiným programům v síti. Pokud ho má hráč vypnuté, je to bezpečnější. Hra pak nabídne ruční port forwarding nebo Tailscale.
+- **Nejbezpečnější varianta je Tailscale:** nic se neotevírá do internetu a připojit se mohou jen pozvaní lidé. Pozor: sdílený počítač je pro pozvané dostupný na všech portech, které nechrání firewall. Doporučit nechat zapnutý firewall a sdílet jen s důvěryhodnými lidmi.
+- **Windows Firewall:** při dotazu povolit hru pro **soukromé sítě**. Veřejné sítě (kavárna, knihovna) povolovat nedoporučujeme.
+- **Připojení kódem přes relay (M7):** skryje IP hostitele před ostatními hráči. Další bezpečnostní přínos tohoto kroku.
+
 ## G. Postavy a schopnosti
 
 ### G.1 Systém

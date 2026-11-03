@@ -12,6 +12,8 @@ signal players_changed
 ## The session is over: failed to start, rejected, connection lost or left on purpose
 ## (message is then empty). The message is already translated for the UI.
 signal ended(message: String)
+## Host: shareable addresses or internet reachability changed (e.g. UPnP finished).
+signal share_info_changed
 
 enum Phase { OFFLINE, CONNECTING, LOBBY }
 
@@ -22,7 +24,12 @@ const CONNECT_TIMEOUT := 10.0
 const AUTH_TIMEOUT := 5.0
 ## Gives a rejection message time to arrive before the host drops the peer.
 const REJECT_DISCONNECT_DELAY := 0.5
-const REJECT_REASONS: PackedStringArray = ["ERROR_VERSION_MISMATCH", "ERROR_LOBBY_FULL", "ERROR_MATCH_IN_PROGRESS"]
+const REJECT_REASONS: PackedStringArray = ["ERROR_VERSION_MISMATCH", "ERROR_WRONG_CODE", "ERROR_LOBBY_FULL", "ERROR_MATCH_IN_PROGRESS"]
+## Handshake messages are tiny; anything bigger is ignored unparsed (security, PLAN.md S).
+const MAX_AUTH_MESSAGE_BYTES := 512
+## Room code: 6 characters from 32 unambiguous symbols (no 0/O, 1/I) = ~1 billion combinations.
+const ROOM_CODE_LENGTH := 6
+const ROOM_CODE_ALPHABET := "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 var phase := Phase.OFFLINE
 ## peer_id -> {"name": String}. Identical on all peers (host broadcasts it).
@@ -31,10 +38,13 @@ var players: Dictionary[int, Dictionary] = {}
 ## scene change. The menu clears it once shown.
 var last_end_message := ""
 var host_port := EnetDirectConnector.DEFAULT_PORT
+## Host: secret that friends need to join (sent along with the address as "ip:port#CODE").
+var room_code := ""
 
 var _connector: Connector = EnetDirectConnector.new()
 var _local_name := ""
 var _join_address := ""
+var _join_code := ""
 ## Host: names of peers that passed the handshake but are not connected yet.
 var _pending_names: Dictionary[int, String] = {}
 ## Host: rejected peers waiting to be dropped (they may also leave on their own).
@@ -45,6 +55,8 @@ var _rejection_message := ""
 
 func _ready() -> void:
 	var api := multiplayer as SceneMultiplayer
+	# Clients may only talk to the host, never relay RPCs to each other (PLAN.md S).
+	api.server_relay = false
 	api.auth_callback = _on_auth_message
 	api.auth_timeout = AUTH_TIMEOUT
 	api.peer_authenticating.connect(_on_peer_authenticating)
@@ -53,15 +65,42 @@ func _ready() -> void:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connection_failed.connect(_on_connection_lost)
 	multiplayer.server_disconnected.connect(_on_connection_lost)
+	_connector.share_info_changed.connect(share_info_changed.emit)
+
+
+func _notification(what: int) -> void:
+	# Closing the window must also close the router port opened by UPnP.
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		leave()
+		UpnpHelper.wait_for_all()
 
 
 func is_host() -> bool:
 	return phase != Phase.OFFLINE and multiplayer.is_server()
 
 
-## Addresses the host can share with friends (see Connector.share_addresses).
+## Addresses the host can share with friends, each including the room code
+## ("ip:port#CODE"), see Connector.share_addresses.
 func share_addresses() -> Array[Dictionary]:
-	return _connector.share_addresses(host_port) if is_host() else []
+	if not is_host():
+		return []
+	var entries := _connector.share_addresses(host_port)
+	for entry in entries:
+		entry.address += "#" + room_code
+	return entries
+
+
+## See Connector.internet_status().
+func internet_status() -> StringName:
+	return _connector.internet_status() if is_host() else &""
+
+
+## Cryptographically secure, so the code cannot be predicted.
+static func generate_room_code() -> String:
+	var code := ""
+	for byte in Crypto.new().generate_random_bytes(ROOM_CODE_LENGTH):
+		code += ROOM_CODE_ALPHABET[byte % ROOM_CODE_ALPHABET.length()]  # 256 % 32 == 0: unbiased
+	return code
 
 
 func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT) -> void:
@@ -72,19 +111,27 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 		return
 	multiplayer.multiplayer_peer = peer
 	host_port = port
+	room_code = generate_room_code()
 	players = {1: {"name": _clean_name(player_name)}}
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
 
 
-func join_game(address: String, player_name: String) -> void:
+## join_text is what the host shared: "address#CODE".
+func join_game(join_text: String, player_name: String) -> void:
 	leave()
+	var parts := join_text.strip_edges().split("#", true, 1)
+	var address := parts[0].strip_edges()
+	_join_code = parts[1].strip_edges().to_upper() if parts.size() > 1 else ""
+	if _join_code.is_empty():
+		_emit_ended(tr("ERROR_MISSING_CODE"))
+		return
 	var peer := _connector.join(address)
 	if peer == null:
 		_emit_ended(tr("ERROR_INVALID_ADDRESS"))
 		return
 	_local_name = player_name
-	_join_address = address.strip_edges()
+	_join_address = address
 	_rejection_message = ""
 	multiplayer.multiplayer_peer = peer
 	_set_phase(Phase.CONNECTING)
@@ -101,6 +148,8 @@ func _close(message: String) -> void:
 	_set_phase(Phase.OFFLINE)
 	multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	_connector.close()
+	room_code = ""
 	players.clear()
 	_pending_names.clear()
 	_rejected_peers.clear()
@@ -129,11 +178,13 @@ func _clean_name(raw_name: String) -> String:
 
 func _on_peer_authenticating(id: int) -> void:
 	if not multiplayer.is_server():
-		var hello := {"protocol": BuildInfo.PROTOCOL_VERSION, "build": BuildInfo.build_id(), "name": _local_name}
+		var hello := {"protocol": BuildInfo.PROTOCOL_VERSION, "build": BuildInfo.build_id(), "code": _join_code, "name": _local_name}
 		(multiplayer as SceneMultiplayer).send_auth(id, var_to_bytes(hello))
 
 
 func _on_auth_message(id: int, data: PackedByteArray) -> void:
+	if data.size() > MAX_AUTH_MESSAGE_BYTES:
+		return
 	# bytes_to_var() never decodes objects, so untrusted data cannot create code.
 	var message: Variant = bytes_to_var(data)
 	if not message is Dictionary:
@@ -149,6 +200,8 @@ func _handle_hello(id: int, hello: Dictionary) -> void:
 	var reason := ""
 	if not (_value_is(hello, "protocol", BuildInfo.PROTOCOL_VERSION) and _value_is(hello, "build", BuildInfo.build_id())):
 		reason = "ERROR_VERSION_MISMATCH"
+	elif not _value_is(hello, "code", room_code):
+		reason = "ERROR_WRONG_CODE"
 	elif phase != Phase.LOBBY:
 		reason = "ERROR_MATCH_IN_PROGRESS"
 	elif players.size() + _pending_names.size() >= MAX_PLAYERS:

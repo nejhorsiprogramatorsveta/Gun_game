@@ -48,9 +48,20 @@ U každé nové verze se tento postup opakuje.
 
 *Online hra zatím není hotová (milníky M2 a M3).* Postup bude takový:
 1. Všichni si stáhnou **stejnou verzi**. Číslo verze je vidět vlevo dole v menu.
-2. Jeden hráč klikne na *Hostovat* a pošle ostatním adresu z lobby (tlačítko *Kopírovat*).
-3. Ostatní kliknou na *Připojit* a adresu vloží.
-4. Pokud se nedaří připojit, poradí návod, který tu přibude. Hostitel bude pravděpodobně muset otevřít port v routeru, nebo použijete Tailscale.
+2. Jeden hráč klikne na *Hostovat*. Lobby ukáže adresy pro kamarády včetně kódu hry (např. `85.12.34.56:24642#K7Q2MX`). Tlačítkem *Kopírovat* je pošleš kamarádům.
+   - **„Internet“:** router otevřel port automaticky (UPnP), funguje odkudkoli.
+   - **„Stejná Wi-Fi / síť“:** jen pro hráče ve stejné síti.
+   - Pokud lobby napíše, že se port otevřít nepovedlo, přesměruj v routeru **UDP port 24642** na svůj počítač, nebo použijte Tailscale.
+3. Ostatní vloží celou adresu (i s částí za `#`) a kliknou na *Připojit*.
+
+## Bezpečnost hraní přes internet
+
+- **Co hra otevírá:** jen jeden UDP port (24642) na počítači **hostitele** a jen po dobu hostování. Pokud to router umí (UPnP), otevře se automaticky a po odchodu z lobby se zase zavře, nejpozději za 2 hodiny. Hra nedává přístup k souborům, jiným programům ani k jiným zařízením ve tvé Wi-Fi. Kdo se jen připojuje, žádný port neotevírá.
+- **Kód hry:** adresa obsahuje i náhodný kód (např. `85.12.34.56:24642#K7Q2MX`). Bez něj se nikdo cizí nepřipojí. Kód se mění při každém hostování.
+- **Adresu posílej jen kamarádům.** Obsahuje tvoji veřejnou IP. Kdo ji zná, mohl by tvoje připojení zahltit nebo zhruba určit, kde jsi.
+- **Nejbezpečnější varianta je [Tailscale](https://tailscale.com).** Nic se neotevírá do internetu a připojit se můžou jen pozvaní. Firewall nech zapnutý.
+- **Windows Firewall:** povol hru pro **soukromé sítě**. Na veřejné Wi-Fi (kavárna, knihovna) hostování nedoporučujeme.
+- **Hru stahuj jen z [GitHub Releases](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases)** tohoto projektu, nikdy ne jako exe poslané v chatu. Hra nikdy nepotřebuje práva správce.
 
 ## Vývoj
 

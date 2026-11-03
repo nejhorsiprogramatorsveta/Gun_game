@@ -17,7 +17,6 @@ ERROR_VERSION_MISMATCH,Máš jinou verzi hry ({mine}) než hostitel ({host}). St
 ERROR_LOBBY_FULL,"Hra je plná (max. 4 hráči)."
 ERROR_MATCH_IN_PROGRESS,"Zápas už běží, počkej na jeho konec."
 MENU_NAME_PLACEHOLDER,Tvoje jméno
-MENU_ADDRESS_PLACEHOLDER,Adresa hostitele (např. 85.12.34.56:24642)
 MENU_CONNECTING,Připojuji se…
 LOBBY_TITLE,Lobby
 LOBBY_PLAYERS,Hráči ({count}/{max})
@@ -29,8 +28,16 @@ LOBBY_ADDRESS_TAILSCALE,Tailscale
 LOBBY_ADDRESS_LAN,Stejná Wi-Fi / síť
 LOBBY_ADDRESS_IPV6,Internet (IPv6)
 LOBBY_NO_ADDRESS,Nenašel jsem žádnou síťovou adresu. Jsi připojený k síti?
-LOBBY_INTERNET_HINT,"Hra přes internet: automatické zjištění veřejné adresy přijde v další verzi. Zatím přesměruj v routeru UDP port {port} na tento počítač, nebo použijte Tailscale."
 LOBBY_COPY,Kopírovat
 LOBBY_COPIED,Zkopírováno!
 LOBBY_LEAVE,Odejít
 LOBBY_MATCH_START_LATER,Spuštění zápasu přijde v další verzi – zatím si můžete ověřit připojení.
+MENU_ADDRESS_PLACEHOLDER,Adresa od hostitele (např. 85.12.34.56:24642#K7Q2MX)
+ERROR_MISSING_CODE,"Chybí kód hry. Zkopíruj od hostitele celou adresu, včetně části za # (např. 85.12.34.56:24642#K7Q2MX)."
+ERROR_WRONG_CODE,Špatný kód hry. Zkopíruj od hostitele celou adresu znovu – kód se mění při každém hostování.
+LOBBY_ROOM_CODE,Kód hry: {code} (je součástí adresy za #)
+LOBBY_SHARE_SAFETY,"Adresu posílej jen kamarádům: obsahuje tvoji IP adresu a kód, bez kterého se nikdo cizí nepřipojí."
+LOBBY_UPNP_CHECKING,Zkouším v routeru automaticky otevřít port pro hru přes internet (UPnP)…
+LOBBY_UPNP_OPEN,"Router otevřel port automaticky. Kamarádům z internetu pošli adresu „Internet“. Port se zase zavře, až z lobby odejdeš."
+LOBBY_UPNP_FAILED,"Automatické otevření portu se nepovedlo (router UPnP nepodporuje, má ho vypnuté, nebo jsi na veřejné Wi-Fi). Pro hru přes internet přesměruj v routeru UDP port {port} na tento počítač, nebo použijte Tailscale."
+LOBBY_UPNP_CGNAT,"Tvoje připojení nemá vlastní veřejnou adresu (sdílená síť poskytovatele – CGNAT). Hostovat přes internet odsud nepůjde: použijte Tailscale, nebo ať hostuje někdo jiný."

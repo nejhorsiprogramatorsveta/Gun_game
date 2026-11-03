@@ -1,27 +1,23 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M2 krok 2 (lobby UI + `Settings`) je hotový, otestovaný lokálně, commitnutý a pushnutý.** Od 2026-11-03 commituje a pushuje Claude sám (CLAUDE.md).
-- **Zadání 2026-11-03** (zapsáno v PLAN.md C, D.3, D.5, Q a v CLAUDE.md):
-  - střelba míří ke kurzoru myši
-  - celá hra v pixel-art stylu
-  - testy na Windows až na konci projektu
+**M2 krok 3 (UPnP, veřejná adresa, kód hry a bezpečnostní opatření) je hotový, commitnutý a pushnutý.**
+- Nový trvalý požadavek uživatele: **bezpečnost online hry** (PLAN.md, sekce S; CLAUDE.md; paměť).
+- Úspěšnou cestu UPnP (router port otevře) nešlo otestovat, uživatel je v knihovně. Ověřit doma.
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M2 krok 3: UPnP a veřejná adresa v lobby.**
-- `src/net/upnp_helper.gd`: Godot třída `UPNP` v samostatném vlákně (`Thread`), aby se UI nezaseklo.
-  - `discover()`, `add_port_mapping(port, 0, "gun_game", "UDP")`, `query_external_address()`
-  - Při odchodu nebo zavření hry `delete_port_mapping`.
-- Napojit přes konektor: `EnetDirectConnector` po hostování spustí UPnP a výsledek pošle signálem. `Session` ho předá lobby, které přidá řádek „Internet“ s veřejnou IP a tlačítkem *Kopírovat*.
-- Stav UPnP v lobby česky:
-  - „Zjišťuji…“
-  - „Router otevřel port automaticky“
-  - „Automatické otevření portu se nepovedlo → návod: port forwarding UDP 24642 nebo Tailscale“
-- **Detekce CGNAT:** pokud UPnP vrátí veřejnou adresu v rozsahu 100.64.0.0/10 nebo privátní, napsat, že hostování přes internet z této sítě nepůjde, a doporučit Tailscale.
-- **Test:**
-  - V knihovně UPnP skoro jistě selže, což otestuje chybovou cestu.
-  - Úspěšnou cestu ověří uživatel doma. Pokud to nepůjde, zapsat jako netestované.
+**M2 krok 4a: rozdělit `session.gd` (292 řádků) a připravit start zápasu.**
+1. Přesunout handshake (hello, reply, kód hry, validace) z `session.gd` do `src/net/handshake.gd` (statické funkce pro sestavení a ověření zpráv). `Session` si nechá jen stav a události.
+2. Pak **M2 krok 4b, synchronizace pohybu** (PLAN.md D.2–D.4):
+   - tlačítko *Začít zápas* u hostitele (min. 2 hráči), RPC `match_started` → všichni načtou `match.tscn`
+   - spawn podle slotů
+   - `InputFrame` rozšířit o `seq` a `aim` (úhel ke kurzoru, u16)
+   - vstupy 60 Hz (unreliable_ordered, poslední 3 kvůli ztrátám) → host
+   - snapshot 30 Hz → klienti (`src/net/snapshot.gd`)
+   - interpolace vzdálených hráčů (`src/player/remote_interpolator.gd`)
+   - RPC jen v `src/match/match_net.gd`, validace dle D.7 a sekce S (velikosti, rate-limit, sender ID)
+   - Lze rozdělit na víc commitů.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -35,7 +31,7 @@
 **Do té doby se hra na Macu spouští lokálně:** `tools/godot --path .` z kořene projektu, nebo lokálně exportovaný `build/macos/gun_game.zip` (vzniká jen lokálním exportem, není v gitu).
 
 ## Aktuální stav
-- **Milník:** M2, kroky 1–2 z 5 hotové. M1 je hotový včetně CI, chybí jen ruční test na Windows (viz ODLOŽENO).
+- **Milník:** M2, kroky 1–3 z 5 hotové. M1 je hotový včetně CI, chybí jen ruční test na Windows (viz ODLOŽENO).
 - **Funguje** (ověřeno lokálně na macOS arm64):
   - hlavní menu s verzí a českými texty
   - trénink v aréně: běh, skok, dvojskok, coyote time, buffer skoku, seskok z jednosměrné plošiny, respawn po pádu
@@ -52,8 +48,20 @@
   - Lobby: seznam hráčů (hostitel, ty), u hostitele adresy ke zkopírování (LAN, Tailscale, IPv6), Odejít.
   - Chyby se zobrazí červeně v menu.
   - Zápas z lobby zatím spustit nejde (krok 4).
+- **Internet a bezpečnost (M2 krok 3):**
+  - Host zkouší UPnP (jeden UDP port, limit 2 h, zavírá se při odchodu i zavření okna) a v lobby ukáže stav: zkouším / otevřeno + adresa „Internet“ / nepovedlo se + návod / CGNAT + Tailscale.
+  - Adresa ke sdílení obsahuje **kód hry** (`ip:port#KÓD`). Bez správného kódu se nikdo nepřipojí.
+  - `server_relay` je vypnutý a zprávy handshaku jsou omezené na 512 B.
 
 ## Poslední změny
+- **2026-11-03, M2 krok 3:**
+  - **`src/net/upnp_helper.gd`:** vlákno, mutex, neblokující zavření, `wait_for_all()`.
+  - **Connector:** `close()`, `internet_status()`, signál `share_info_changed`.
+  - **`EnetDirectConnector`:** UPnP při hostování, detekce CGNAT, veřejná adresa.
+  - **`Session`:** kód hry (`generate_room_code`, kontrola v handshaku, `ERROR_WRONG_CODE` a `ERROR_MISSING_CODE`), `server_relay = false`, limit 512 B, úklid při `WM_CLOSE_REQUEST`.
+  - **Lobby:** kód hry, stav UPnP, bezpečnostní upozornění.
+  - **README:** sekce Bezpečnost a aktualizovaný návod Jak hrát.
+  - **PLAN.md, sekce S** (bezpečnost); `tests/test_room_code.gd`.
 - **2026-11-03, M2 krok 2:**
   - **`src/autoload/settings.gd`** (autoload `Settings`): jméno a poslední adresa v `user://settings.cfg`.
   - **`src/ui/main_menu.*`:** pole jména a adresy, Hostovat a Připojit, stav „Připojuji se…“, chybové hlášky.
@@ -97,13 +105,15 @@ Ostatní milníky viz PLAN.md, sekce K.
   - Typ připojení hostitele (veřejná IPv4 / CGNAT) se zjistí v M2 z výsledku UPnP.
 - **Velikost buildů:** Windows exe má ~110 MB (ZIP ~39 MB, změřeno lokálně), macOS ZIP ~62 MB. To je dáno šablonami Godotu 4.7.
 - Ikona hry a exe je výchozí ikona Godotu (vlastní přijde v M8).
+- **`session.gd` má 292 řádků** (limit ~300). Před dalším rozšiřováním rozdělit (Další krok 4a).
+- **UPnP hledání routeru trvá 8–12 s** (sítě bez UPnP). Lobby mezitím ukazuje „Zkouším…“. Zavření hry v té době čeká až ~6 s.
 - **Grafika:** cílový pixel-art styl (PLAN.md, sekce Q) vyžaduje sprity. Zdroj zatím není rozhodnutý (vlastní kresba, objednávka, nebo CC0 assety), proto zatím placeholdery.
 - `EDITING_GUIDE.md` zatím neexistuje (plán: M5).
 - `ArenaData` resource zatím neexistuje, aréna je pevně v `match_controller.gd` (výběr arény přijde v M6).
 - Varování o „leaked RID/ObjectDB“ při exportu bylo opraveno v `platform.gd` (tvar se přidává v `_init`).
 
 ## Stav testů
-- **Unit testy:** 14/14 OK.
+- **Unit testy:** 16/16 OK (+ kód hry: formát a náhodnost).
   - `PlayerMotor` (8): skok, držený skok, coyote, dvojskok, buffer, rozjezd, knockback se neruší, seskok
   - adresy (6): rozbor IPv4, hostname, IPv6, neplatné vstupy, druh adresy, rozsah 100.64/10 podle rozhraní
 - **Síť, lokálně na jednom Macu** (headless procesy, 127.0.0.1 a `[::1]`, M2 krok 1):
@@ -122,7 +132,15 @@ Ostatní milníky viz PLAN.md, sekce K.
   - hostitel klikne Odejít: klient se vrátí do menu s hláškou „Hostitel ukončil hru…“
   - jméno a adresa se uloží do `settings.cfg`
   - **Neotestováno:** tlačítko Kopírovat (schránka) a ruční ovládání myší
-- **Kontrola lokalizace:** 35 klíčů, 0 chybí. Ověřeno, že při chybějícím klíči skončí s exit 1.
+- **M2 krok 3, lokálně v knihovně:**
+  - správný kód (i malými písmeny): klient je v lobby
+  - špatný kód: „Špatný kód hry…“
+  - chybějící kód: „Chybí kód hry…“
+  - UPnP v knihovně: po ~8–12 s stav „nepovedlo se“ a česká hláška v lobby (snímek)
+  - odchod během hledání routeru neblokuje (1 ms)
+  - zavření okna během hledání počká na vlákno (~6 s) bez varování
+  - **NETESTOVÁNO:** úspěšné UPnP, detekce CGNAT se skutečným routerem, hra přes internet. Ověřit doma.
+- **Kontrola lokalizace:** 42 klíčů, 0 chybí. Ověřeno, že při chybějícím klíči skončí s exit 1.
 - **Smoke test** (skript s `Input.action_press`, macOS):
   - menu: snímek obrazovky, diakritika OK
   - běh na 440 px/s, skok
@@ -160,4 +178,6 @@ Ostatní milníky viz PLAN.md, sekce K.
 - **Míření ke kurzoru myši** (změna oproti Gun Mayhem, zadání uživatele): `aim` úhel se posílá ve vstupu klienta už od M2 kroku 4, aby se formát zprávy v M3 neměnil.
 - **Pixel-art styl** podle reference v `art_reference/` (cizí dílo, gitignored, jen reference). Zdroj vlastní grafiky zatím nevyřešen.
 - **Testy na Windows až na konci projektu**, pokud uživatel neřekne jinak. Kód musí zůstat multiplatformní.
+- **Bezpečnost online hry** (požadavek uživatele, PLAN.md S): kód hry, `server_relay` vypnutý, žádné objekty ze sítě, limity velikosti, UPnP jen 1 port s časovým limitem, Tailscale jako nejbezpečnější varianta.
+- **Kód hry se sdílí v adrese za `#`:** jedno kopírování obsahuje vše a nezávisí na konektoru (zpracuje ho `Session`).
 - **CI bez actions třetích stran** (kromě checkout a cache) a s vlastním `setup_env.sh`: méně křehké při nové verzi Godotu.
