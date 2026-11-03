@@ -26,6 +26,8 @@ var last_input_seq := 0
 var fire_cooldown := 0.0
 ## Authority: seconds of respawn protection left.
 var invulnerable_time := 0.0
+## Authority: how long the player has been outside the arena (see out_of_bounds_grace).
+var out_of_bounds_time := 0.0
 
 ## Only on clients: smooths host snapshots.
 var _interpolator: RemoteInterpolator
@@ -101,6 +103,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	fire_cooldown = 0.0
 	invulnerable_time = 0.0
 	invulnerable = false
+	out_of_bounds_time = 0.0
 
 
 ## Inactive players are hidden and removed from physics (e.g. while waiting to respawn).

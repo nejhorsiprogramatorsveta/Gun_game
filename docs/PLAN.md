@@ -733,7 +733,19 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Akceptace:** připojení bez nastavování routeru u hostitele pod CGNAT. Náklady jsou zapsané v PROGRESS.
 
 ### M8 – Polish a 1.0 *(střední)*
-- **Funkce:** zvuky a hudba (licence), efekty (částice, třesení kamery, volitelně), menu nastavení (hlasitost, jméno, fullscreen), kontrola nové verze, ikony.
+- **Funkce (ZADÁNÍ UŽIVATELE 2026-11-03: až na konci vývoje):**
+  - **Zvuk:**
+    - **hudba** (menu, zápas)
+    - **zvuky postav** (skok, dopad, zásah, vypadnutí, schopnost)
+    - **zvuky zbraní** (každá zbraň vlastní výstřel)
+    - Licence všech zvuků zapsat do `CREDITS.md`.
+  - **Menu Nastavení:**
+    - **hlasitost** (hudba / efekty zvlášť)
+    - **omezení FPS** (např. 30/60/120/bez limitu) a V-Sync
+    - **celá obrazovka / okno / maximalizované okno**
+    - **ovládání s přenastavením kláves** (rebinding, uložení do `user://settings.cfg`)
+    - jméno
+  - efekty (částice, třesení kamery, volitelně), ikony
 - **Testy:** čistý stroj Windows i macOS; kompletní regresní test online.
 - **Akceptace:** vydat `v1.0.0`.
 

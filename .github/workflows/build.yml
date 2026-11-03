@@ -13,6 +13,8 @@ on:
       - "docs/**"
       - "**/*.md"
       - "LICENSE"
+      - ".gitignore"
+      - ".gitattributes"
   workflow_dispatch:
 
 concurrency:

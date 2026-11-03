@@ -57,6 +57,14 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-03, opravy a úpravy podle uživatele:**
+  - **Hráč na hlavě jiného hráče z ní sklouzne do strany** (`PlayerMotor._slide_off_heads`). Řeší zaseknutí po respawnu na hráči.
+  - **Respawn na nejvolnějším místě** (`Arena.free_spawn_point`)
+  - **Horní okraj arény je otevřený** (vyletět nahoru nezabíjí). Život se ubere až po 0,5 s mimo arénu (`MatchRules.out_of_bounds_grace`), prostor pro budoucí létání.
+  - **Hra startuje v maximalizovaném okně** (`window/size/mode=2`)
+  - CI nevytváří nový build ani pro `.gitignore` a `.gitattributes`
+  - **Plán M8:** hudba, zvuky postav a zbraní, menu Nastavení (hlasitost, FPS, celá obrazovka, přenastavení kláves) až na konci
+  - `tests/test_arena.gd`
 - **2026-11-03, M3U automatické aktualizace:**
   - **`src/core/updater.gd`:**
     - po spuštění menu stáhne `version.json` (dev → `releases/download/dev`, stable → `releases/latest/download`)
@@ -152,7 +160,8 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 42/42 OK (+ updater: manifest, výměna souboru, obnova při chybě, Linux ZIP, Mac `.app` a ochrana proti `..` v ZIPu)
+- **Unit testy:** 44/44 OK (+ aréna: otevřený horní okraj, volný spawn)
+- **Dříve:** 42/42 OK (+ updater: manifest, výměna souboru, obnova při chybě, Linux ZIP, Mac `.app` a ochrana proti `..` v ZIPu)
 - **Dříve:** 37/37 OK (+ snapshot s životy a odpočtem)
 - **Dříve:** 37/37 OK (+ souboj a odhoz po zemi)
 - **Dříve:** 30/30 OK (+ LagSimulator)
@@ -176,6 +185,12 @@
   - pád z arény a respawn synchronizovaný
   - odchod klienta (host pokračuje s 1 hráčem) i hostitele (klient do menu s hláškou)
   - trénink beze změny (scénáře skoků a seskoku)
+- **Opravy 2026-11-03** (scéna, headless):
+  - panák položený na hlavu sklouzne a stojí vedle (40 px)
+  - totéž obráceně
+  - vyhození na `y=-910` nezabije
+  - pod arénou: po 0,3 s ještě ve hře, po 0,7 s vypadl
+  - celý síťový zápas beze změny
 - **Aktualizace end-to-end na Macu** (export debug „sestavení 1“ + lokální server s „sestavením 2“):
   - stažení, ověření a výměna `.app`
   - restart spustí novou verzi ze stejného místa (opravena chyba: Mac po přejmenování hlásil cestu ke staré kopii)
@@ -213,6 +228,8 @@
   - síť mezi dvěma počítači a přes Tailscale
 
 ## Rozhodnutí
+- **Build jen při změně hry:** `paths-ignore` pro `docs/**`, `**/*.md`, `LICENSE`, `.gitignore` a `.gitattributes`. README a dokumentace tedy nemění verzi a nenutí hráče aktualizovat.
+- **Nikdo nestojí na hlavě jiného hráče** (sklouznutí), **horní okraj arény je otevřený** a **život se ubírá až po 0,5 s mimo arénu.**
 - **Aktualizace jen na vyšší číslo sestavení a jen ze stejného kanálu** (dev/stable). Manifest se nahrává poslední. Restart používá cestu zapamatovanou před výměnou.
 - **Podpis `version.json` zatím není:** vyžaduje klíč v GitHub Secrets od uživatele. Integritu zajišťuje SHA-256 a HTTPS z GitHubu tohoto repa.
 - **Licence PolyForm Noncommercial 1.0.0** místo MIT (uživatel 2026-11-03): stahovat, hrát a upravovat smí každý, prodávat ani vydělávat nesmí nikdo. Pull requesty slučuje jen uživatel.

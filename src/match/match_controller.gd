@@ -129,7 +129,11 @@ func _simulate_tick(delta: float) -> void:
 		player.simulate(input, delta)
 		_weapons.try_fire(player, input, delta)
 		if _arena.is_out_of_bounds(player.position):
-			_on_player_fell(player)
+			player.out_of_bounds_time += delta
+			if player.out_of_bounds_time >= _rules.out_of_bounds_grace:
+				_on_player_fell(player)
+		else:
+			player.out_of_bounds_time = 0.0
 	if _networked:
 		_check_match_end()
 		if _tick % SNAPSHOT_EVERY_TICKS == 0:
@@ -180,7 +184,11 @@ func _respawn_later(player: Player) -> void:
 	await get_tree().create_timer(_rules.respawn_delay).timeout
 	if not is_instance_valid(player) or _match_over:
 		return
-	player.reset_to(_arena.spawn_points().pick_random())
+	var occupied: Array[Vector2] = []
+	for other: Player in _players.values():
+		if other.visible:
+			occupied.append(other.position)
+	player.reset_to(_arena.free_spawn_point(occupied))
 	player.invulnerable_time = _rules.respawn_invulnerability
 	player.invulnerable = true
 	player.set_active(true)

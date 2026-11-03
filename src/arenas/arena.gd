@@ -5,7 +5,9 @@ extends Node2D
 ## and a Camera2D "Camera" that frames it (its zoom sets how big everything looks;
 ## 0.6 = everything at 60 % of the original size).
 
-## Leaving this rectangle (e.g. falling below it) costs a life.
+## Falling below this rectangle or leaving it sideways costs a life (after
+## MatchRules.out_of_bounds_grace). The top is open, so knockback or a future flying
+## ability can send players high up without killing them.
 @export var kill_rect := Rect2(-700, -800, 2680, 1900)
 
 
@@ -17,4 +19,19 @@ func spawn_points() -> Array[Vector2]:
 
 
 func is_out_of_bounds(world_position: Vector2) -> bool:
-	return not kill_rect.has_point(world_position)
+	return world_position.y > kill_rect.end.y or world_position.x < kill_rect.position.x \
+			or world_position.x > kill_rect.end.x
+
+
+## The spawn point farthest from everyone in `occupied`, so nobody respawns onto a player.
+func free_spawn_point(occupied: Array[Vector2]) -> Vector2:
+	var best := Vector2.ZERO
+	var best_distance := -1.0
+	for point in spawn_points():
+		var nearest := INF
+		for position in occupied:
+			nearest = minf(nearest, point.distance_to(position))
+		if nearest > best_distance:
+			best_distance = nearest
+			best = point
+	return best

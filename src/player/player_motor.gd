@@ -6,6 +6,8 @@ class_name PlayerMotor
 ## Physics layer number of one-way platforms (see project.godot layer names).
 ## Players also collide with the "players" layer, so they can touch but never overlap.
 const ONE_WAY_LAYER := 2
+## Sideways speed (px/s) of a player sliding off another player's head.
+const HEAD_SLIDE_SPEED := 300.0
 
 
 ## Per-player movement memory that is not part of the body itself.
@@ -24,6 +26,22 @@ static func step(body: CharacterBody2D, input: InputFrame, state: State, stats: 
 	body.velocity = compute_velocity(body.velocity, body.is_on_floor(), input, state, stats, delta)
 	body.set_collision_mask_value(ONE_WAY_LAYER, state.drop_timer <= 0.0)
 	body.move_and_slide()
+	_slide_off_heads(body, delta)
+
+
+## Players may touch but never stand on each other: whoever lands on (or respawns onto)
+## another player's head slides off sideways, so nobody gets stuck under someone.
+static func _slide_off_heads(body: CharacterBody2D, delta: float) -> void:
+	for i in body.get_slide_collision_count():
+		var collision := body.get_slide_collision(i)
+		var other := collision.get_collider() as CharacterBody2D
+		if other == null or collision.get_normal().y > -0.7:
+			continue
+		var side := signf(body.global_position.x - other.global_position.x)
+		if side == 0.0:
+			side = 1.0 if body.get_instance_id() > other.get_instance_id() else -1.0
+		body.move_and_collide(Vector2(side * HEAD_SLIDE_SPEED * delta, 0.0))
+		return
 
 
 static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFrame, state: State, stats: CharacterData, delta: float) -> Vector2:
