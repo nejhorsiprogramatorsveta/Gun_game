@@ -49,6 +49,7 @@
 - **Nefunguje zatím:** střelba, životy a konec zápasu (M3).
 
 ## Poslední změny
+- **2026-11-03, CI bez nových buildů pro dokumentaci:** `paths-ignore` (`docs/**`, `**/*.md`). Důvod: uživatel měl `d265616`, kamarádi `2cec77d` (liší se jen dokumentací), a kontrola verze je nepustila k sobě.
 - **2026-11-03, Windows bez ZIPu (přání uživatele):** CI publikuje `gun_game-windows.exe` přímo (~110 MB místo ZIPu ~39 MB) a starý `gun_game-windows.zip` z release `dev` maže. macOS zůstává ZIP (.app je složka), Linux ZIP (zachová oprávnění ke spuštění). README upraven.
 - **2026-11-03, M2 krok 5:**
   - **`src/net/lag_simulator.gd`:** zpoždění, jitter a ztráta paketů, zachovává pořadí. Jen debug buildy.
@@ -92,6 +93,7 @@
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
+- **Každá změna hry = nová verze:** všichni hráči si musí stáhnout stejný build (kontrola verze). Dokumentace už build nemění.
 - **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
 - **Vlastní postava klienta reaguje se zpožděním** (cesta k hostu a zpět + 40 ms interpolace, změřeno viz Stav testů). Na LAN skoro nepoznatelné, přes internet znatelné. Predikce vlastního pohybu je naplánovaná v M4 (PLAN.md D.4), architektura je připravená (`last_seq` ve snapshotu, sdílený `PlayerMotor`).
 - **Hostitel nemá zpoždění** (výhoda hostitele, PLAN.md M).
@@ -172,4 +174,5 @@
 - **Knockback nad max. rychlostí brzdí jen tření.**
 - **Vlastní mini test runner** místo GUT. **Lokalizační klíče se hledají regexem.**
 - **Rolling prerelease tag `dev`** (ne `latest`).
+- **Commity jen s dokumentací nevytvářejí nový build**, aby se zbytečně neměnila verze, se kterou se hráči spojují.
 - **Windows se stahuje jako `.exe` přímo** (jeden soubor, PCK uvnitř). Mac a Linux zůstávají jako ZIP.

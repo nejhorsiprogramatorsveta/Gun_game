@@ -7,6 +7,11 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
+    # Docs-only commits must not publish a new build: every build has its own version and
+    # players on different versions cannot play together. (Ignored for tag pushes.)
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
   workflow_dispatch:
 
 concurrency:
