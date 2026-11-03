@@ -19,42 +19,65 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Buttons" type="VBoxContainer" parent="Center"]
-custom_minimum_size = Vector2(320, 0)
+[node name="Column" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(420, 0)
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="Center/Buttons"]
+[node name="Title" type="Label" parent="Center/Column"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "GAME_TITLE"
 horizontal_alignment = 1
 
-[node name="PracticeButton" type="Button" parent="Center/Buttons"]
+[node name="NameEdit" type="LineEdit" parent="Center/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+placeholder_text = "MENU_NAME_PLACEHOLDER"
+
+[node name="PracticeButton" type="Button" parent="Center/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "MENU_PRACTICE"
 
-[node name="HostButton" type="Button" parent="Center/Buttons"]
+[node name="HostButton" type="Button" parent="Center/Column"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-tooltip_text = "MENU_COMING_SOON"
-disabled = true
 text = "MENU_HOST"
 
-[node name="JoinButton" type="Button" parent="Center/Buttons"]
+[node name="JoinRow" type="HBoxContainer" parent="Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AddressEdit" type="LineEdit" parent="Center/Column/JoinRow"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-tooltip_text = "MENU_COMING_SOON"
-disabled = true
+size_flags_horizontal = 3
+placeholder_text = "MENU_ADDRESS_PLACEHOLDER"
+
+[node name="JoinButton" type="Button" parent="Center/Column/JoinRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 48)
+layout_mode = 2
 text = "MENU_JOIN"
 
-[node name="QuitButton" type="Button" parent="Center/Buttons"]
+[node name="QuitButton" type="Button" parent="Center/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "MENU_QUIT"
+
+[node name="StatusLabel" type="Label" parent="Center/Column"]
+unique_name_in_owner = true
+auto_translate_mode = 2
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="VersionLabel" type="Label" parent="."]
 unique_name_in_owner = true

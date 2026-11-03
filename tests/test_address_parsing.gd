@@ -25,3 +25,20 @@ func test_ipv6() -> void:
 func test_invalid() -> void:
 	for text in ["", "   ", "1.2.3.4:", "1.2.3.4:abc", "1.2.3.4:70000", "1.2.3.4:0", "[::1", "[::1]x", "a b:5000"]:
 		check(_parse(text).is_empty(), "'%s' must be rejected" % text)
+
+
+func test_address_kind() -> void:
+	var cases := {
+		"192.168.1.20": &"lan", "10.0.0.5": &"lan", "172.20.1.1": &"lan",
+		"85.12.34.56": &"public",
+		"127.0.0.1": &"", "169.254.3.4": &"",
+		"2a00:1028:1:2::5": &"ipv6", "fe80::1": &"", "::1": &"", "fd7a:115c:a1e0::1": &"",
+	}
+	for ip: String in cases:
+		check_eq(EnetDirectConnector.address_kind(ip), cases[ip], "kind of " + ip)
+
+
+func test_cgnat_range_depends_on_interface() -> void:
+	check_eq(EnetDirectConnector.address_kind("100.101.102.103", "utun4"), &"tailscale", "macOS Tailscale")
+	check_eq(EnetDirectConnector.address_kind("100.101.102.103", "Tailscale"), &"tailscale", "Windows Tailscale")
+	check_eq(EnetDirectConnector.address_kind("100.64.45.243", "en0"), &"lan", "public Wi-Fi using the 100.64/10 range")

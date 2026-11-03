@@ -65,7 +65,8 @@ Cílem je originální 2D platformová arénová střílečka s knockbackem, ins
 ### Mechaniky
 - **Pohyb:** `CharacterBody2D` s během, skokem, dvojskokem, „coyote time“, bufferem skoku a seskokem dolů přes jednosměrné plošiny.
 - **Knockback:** zásah přičte impulz k rychlosti. Ve vzduchu se rychlost tlumí odporem vzduchu. Každá postava má `weight`, které knockback zmenšuje.
-- **Zpětný ráz (recoil):** výstřel posune střelce dozadu, takže zbraně mají i pohybovou roli.
+- **Míření myší (ZMĚNA ZADÁNÍ 2026-11-03):** na rozdíl od Gun Mayhem se nestřílí jen vodorovně. Střela letí **směrem ke kurzoru myši**, střílí se levým tlačítkem myši. Postava se otáčí podle kurzoru, ne podle směru pohybu. Knockback zasaženého jde ve směru letu střely.
+- **Zpětný ráz (recoil):** výstřel posune střelce **proti směru míření**. Výstřel dolů tak trochu nadzvedne, takže zbraně mají i pohybovou roli.
 - **Smrt:** pád pod `kill_y` nebo opuštění hranic arény (`kill_rect`).
 - **Životy:** výchozí 5 (nastaví se v `match_rules.tres`). Respawn po 1,5 s a 1,5 s nezranitelnosti.
 - **Zbraně:** v MVP jen pistole s nekonečnou municí. Později přibudou bedny se zbraněmi, které spawnuje host.
@@ -113,6 +114,7 @@ Důvody:
 - `seq` (u16)
 - `move_x` (i8)
 - `buttons` (bitmaska u8: skok, střelba, schopnost, dolů)
+- `aim` (u16, úhel míření kvantovaný na 65536 kroků, ~0,005°): směr od postavy ke kurzoru. Host podle něj střílí a ve snapshotu ho posílá ostatním, aby viděli, kam kdo míří (zbraň v ruce).
 
 Zpráva navíc nese **poslední 3 vstupy** jako redundanci proti ztrátě paketů, celkem ~12 B. Host použije nejnovější ještě nezpracované vstupy. Stisk tlačítka (hrana) se odvozuje na hostu z posloupnosti `seq`, takže krátký stisk skoku se neztratí.
 
@@ -148,7 +150,7 @@ Architektura s tím počítá od začátku: pohyb je **jedna sdílená funkce** 
 **Lag compensation (zpětné přetáčení zásahů):** neplánuje se. Host má malou výhodu, což je u přátelské hry přijatelné. Zapíšeme to do rizik.
 
 ### D.5 Střelba a projektily
-- Klient pošle jen tlačítko „střelba“ ve vstupu. **Host** rozhoduje podle `fire_rate` (cooldown) a směru postavy.
+- Klient pošle ve vstupu tlačítko „střelba“ a **úhel míření** (ke kurzoru). **Host** rozhoduje podle `fire_rate` (cooldown) a střílí pod posledním přijatým úhlem. Úhel jen normalizuje, žádná jiná validace není potřeba, protože libovolný směr je legální.
 - Host vytvoří projektil a pošle **reliable event** `projectile_spawned(id, pos, dir, weapon_id, tick)`. Klienti si projektil simulují **jen vizuálně** stejnou přímočarou funkcí.
 - Zásahy počítá **jen host**: raycast z předchozí na novou pozici každý tick, aby rychlé střely neprošly skrz.
 - Při zásahu host pošle `projectile_hit(id, pos)` kvůli efektu a smazání. Knockback se projeví ve snapshotu (rychlost a pozice zasaženého).
@@ -353,6 +355,21 @@ tools/
 - Kolizní vrstvy pojmenované v `project.godot`: `world`, `platform_oneway`, `players`, `projectiles`.
 
 ---
+
+## Q. Vizuální styl (ZADÁNÍ 2026-11-03)
+- **Celá hra bude v detailním pixel-art stylu** podle referenčního obrázku od uživatele: postavy z japonského prostředí (samuraj v plné zbroji, róninka s maskou kitsune a katanou, ninjové s kusarigamou a s velkým šurikenem).
+  - Postavy jsou vysoké ~90–110 px, mají tmavé obrysy, výrazné stínování, sytou omezenou paletu a měkký elipsovitý stín pod nohama.
+- Referenční obrázek je lokálně v `art_reference/` (gitignored). **Je to cizí dílo (@GEORGE_TTOWERS), slouží jen jako stylová reference a nesmí se kopírovat, commitovat ani distribuovat.** Postavy hry musí být vlastní originální návrhy v podobném stylu.
+- **Technicky, až přijdou první sprity:**
+  - projektové nastavení `default_texture_filter = Nearest`, přichytávání 2D transformací a vrcholů k pixelům
+  - celočíselné škálování okna (`window/stretch/scale_mode = integer`) a nízké základní rozlišení (např. 640×360, nebo aréna kreslená ve 2× pixelech)
+  - `AnimatedSprite2D` se `SpriteFrames` (idle, běh, skok, pád, výstřel); zbraň jako samostatný sprite otáčený podle míření
+- **Zdroj grafiky není vyřešený** (otevřená otázka): vlastní kreslení (Aseprite, LibreSprite), objednávka u pixel artisty, nebo assety s licencí CC0 / CC BY. Do té doby zůstávají barevné placeholdery. Každý asset se zapíše do `CREDITS.md`.
+- **Návrh mapování na postavy (G.3):**
+  - samuraj ↔ Balvan (štít)
+  - róninka s kitsune maskou ↔ Jiskra (úskok)
+  - ninja s kusarigamou ↔ Vichr (tlaková vlna), případně nová schopnost „přitáhnutí řetězem“
+  - ninja se šurikenem ↔ 4. postava později
 
 ## G. Postavy a schopnosti
 

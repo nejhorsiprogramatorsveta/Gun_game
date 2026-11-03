@@ -12,3 +12,9 @@ func host(_port: int) -> MultiplayerPeer:
 ## Returns a connecting peer, or null if join_info is invalid or the attempt failed.
 func join(_join_info: String) -> MultiplayerPeer:
 	return null
+
+
+## What the host can send to friends so they can join, best option first:
+## [{"kind": &"lan" | &"tailscale" | &"public" | &"ipv6", "address": "ip:port"}].
+func share_addresses(_port: int) -> Array[Dictionary]:
+	return []

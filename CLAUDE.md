@@ -47,11 +47,22 @@ All verified in M1 on macOS arm64:
 Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player}.gd,
 src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players),
+src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
 src/net/connectors/{connector,enet_direct_connector}.gd.
-Planned: src/net/{upnp_helper,snapshot,lag_simulator}.gd, src/match/match_net.gd, src/autoload/settings.gd.
+Planned: src/net/{upnp_helper,snapshot,lag_simulator}.gd, src/match/match_net.gd.
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
+## Design decisions that override the original brief (details: docs/PLAN.md)
+- AIMING: shots go toward the MOUSE CURSOR (not horizontal like Gun Mayhem). Fire = left mouse button.
+  InputFrame/network input carries an aim angle; character faces the cursor; recoil opposite to aim.
+- ART: whole game in detailed pixel-art style (Japanese samurai/ninja theme), see PLAN.md section Q.
+  Reference image in art_reference/ is third-party art: style reference only, never copy/commit/ship it.
+- WINDOWS TESTING: manual tests on Windows are deferred to the END of the project unless the user says
+  otherwise. Do not ask about them each session; just keep them listed in PROGRESS.md.
+
 ## Rules
+Code must run on Windows, macOS and Linux: no OS-specific APIs/paths in game code (use res:// and user://,
+Godot APIs only); shell scripts in tools/ are dev-only (Windows devs would use Git Bash/WSL).
 Host decides all gameplay. RPC only in session.gd / src/net/ / match_net.gd. Connection only via src/net/connectors/.
 Scripts < ~300 lines, one responsibility. No new autoloads/addons/assets without approval. Record assets in CREDITS.md.
 Never claim something works unless tested.

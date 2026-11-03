@@ -39,8 +39,9 @@ U každé nové verze se tento postup opakuje.
 | Pohyb | A / D nebo šipky |
 | Skok (i dvojskok ve vzduchu) | W, mezerník nebo šipka nahoru |
 | Seskok z tenké plošiny | S nebo šipka dolů |
-| Střelba *(přijde v M3)* | J |
-| Schopnost *(přijde v M5)* | K |
+| Míření | myš (střílí se tam, kde je kurzor) |
+| Střelba *(přijde v M3)* | levé tlačítko myši |
+| Schopnost *(přijde v M5)* | pravé tlačítko myši nebo E |
 | Zpět do menu | Esc |
 
 ## Jak hrát s kamarády

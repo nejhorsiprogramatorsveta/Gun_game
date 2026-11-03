@@ -21,10 +21,14 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/arenas/arena.gd` | základ arény: spawn body (`SpawnPoints/*`), `kill_rect` |
 | `src/arenas/platform.gd` | obdélníková plošina (pevná nebo jednosměrná), nastavitelná v editoru |
 | `src/match/match_controller.gd` | průběh zápasu; v M1 lokální trénink s respawnem po pádu |
-| `src/ui/main_menu.gd/.tscn` | hlavní menu s verzí |
+| `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, chybové hlášky (`Session.last_end_message`) |
+| `src/ui/lobby.gd/.tscn` | lobby: seznam hráčů, u hostitele adresy ke sdílení s tlačítkem Kopírovat, Odejít |
+| `src/autoload/settings.gd` | **autoload `Settings`**: jméno a poslední adresa v `user://settings.cfg` |
 | `src/autoload/session.gd` | **autoload `Session`**: hostování a připojení, handshake verze, seznam hráčů v lobby (rozesílá host), odpojení a timeouty, české chybové hlášky přes signál `ended(message)` |
 | `src/net/connectors/connector.gd` | rozhraní způsobu připojení: `host(port)` a `join(info)` vrací `MultiplayerPeer` |
-| `src/net/connectors/enet_direct_connector.gd` | přímé UDP spojení (ENet) přes IP:port, rozbor adresy (IPv4, IPv6, hostname), timeouty peerů |
+| `src/net/connectors/enet_direct_connector.gd` | přímé UDP spojení (ENet) přes IP:port, rozbor adresy (IPv4, IPv6, hostname), timeouty peerů, `share_addresses()` (LAN, Tailscale podle rozhraní, IPv6) |
+| `tests/` | vlastní mini test runner (`run_tests.gd`, `TestCase`) |
+| `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd` |
 
 ## Handshake (kontrola verze)
 1. Klient se připojí. Než se stane plnohodnotným peerem, pošle přes **autentizaci SceneMultiplayer** (surová data, ne RPC) zprávu `{protocol, build, name}`.
@@ -33,12 +37,10 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 4. **Neshoda:** host pošle důvod a svůj build, za 0,5 s klienta odpojí a klient zobrazí českou hlášku.
 
 RPC se v Godotu párují podle indexu metody, proto by RPC handshake mezi různými buildy nebyl spolehlivý.
-| `tests/` | vlastní mini test runner (`run_tests.gd`, `TestCase`) |
-| `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd` |
 
 ## Kolizní vrstvy
 1 `world` (pevné plošiny) · 2 `platform_oneway` · 3 `players` · 4 `projectiles` (od M3)
 
 ## Autoloady
+- `Settings` (nastavení, načítá se jako první)
 - `Session` (síťová session musí přežít přechody mezi scénami)
-- později `Settings` (nastavení)

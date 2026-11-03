@@ -32,6 +32,45 @@ func join(join_info: String) -> MultiplayerPeer:
 	return peer
 
 
+func share_addresses(port: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var has_ipv6 := false
+	for interface in IP.get_local_interfaces():
+		for ip: String in interface.addresses:
+			var kind := address_kind(ip, interface.name)
+			if kind.is_empty() or (kind == &"ipv6" and has_ipv6):
+				continue
+			has_ipv6 = has_ipv6 or kind == &"ipv6"
+			var host_text := "[%s]" % ip if ip.contains(":") else ip
+			result.append({"kind": kind, "address": "%s:%d" % [host_text, port]})
+	var order: Array[StringName] = [&"public", &"tailscale", &"lan", &"ipv6"]
+	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return order.find(a.kind) < order.find(b.kind))
+	return result
+
+
+## Classifies a local interface address; empty = useless for friends (loopback, link-local...).
+static func address_kind(ip: String, interface_name: String = "") -> StringName:
+	if ip.contains(":"):
+		var first := ip.get_slice(":", 0).to_lower()
+		# Global unicast IPv6 (2000::/3) is often reachable from the internet without NAT.
+		return &"ipv6" if first.length() == 4 and (first.begins_with("2") or first.begins_with("3")) else &""
+	var parts := ip.split(".")
+	if parts.size() != 4:
+		return &""
+	var a := parts[0].to_int()
+	var b := parts[1].to_int()
+	if a == 127 or (a == 169 and b == 254) or a == 0:
+		return &""
+	if a == 100 and b >= 64 and b <= 127:
+		# 100.64.0.0/10 is used by Tailscale but also by some ISPs/public Wi-Fi as a LAN range,
+		# so only the interface name tells them apart (utunX on macOS, "Tailscale"/tailscale0 elsewhere).
+		var iface := interface_name.to_lower()
+		return &"tailscale" if iface.contains("tailscale") or iface.begins_with("utun") else &"lan"
+	if a == 10 or (a == 172 and b >= 16 and b <= 31) or (a == 192 and b == 168):
+		return &"lan"
+	return &"public"
+
+
 ## Accepts "1.2.3.4", "1.2.3.4:5000", "host.name:5000", "[::1]:5000" or a bare IPv6.
 ## Returns {host, port} or an empty dictionary when the text is not a valid address.
 static func parse_address(text: String) -> Dictionary:

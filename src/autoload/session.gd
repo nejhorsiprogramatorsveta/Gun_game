@@ -27,6 +27,10 @@ const REJECT_REASONS: PackedStringArray = ["ERROR_VERSION_MISMATCH", "ERROR_LOBB
 var phase := Phase.OFFLINE
 ## peer_id -> {"name": String}. Identical on all peers (host broadcasts it).
 var players: Dictionary[int, Dictionary] = {}
+## Why the last session ended (translated), so the main menu can show it after a
+## scene change. The menu clears it once shown.
+var last_end_message := ""
+var host_port := EnetDirectConnector.DEFAULT_PORT
 
 var _connector: Connector = EnetDirectConnector.new()
 var _local_name := ""
@@ -55,13 +59,19 @@ func is_host() -> bool:
 	return phase != Phase.OFFLINE and multiplayer.is_server()
 
 
+## Addresses the host can share with friends (see Connector.share_addresses).
+func share_addresses() -> Array[Dictionary]:
+	return _connector.share_addresses(host_port) if is_host() else []
+
+
 func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT) -> void:
 	leave()
 	var peer := _connector.host(port)
 	if peer == null:
-		ended.emit(tr("ERROR_HOST_FAILED").format({"port": port}))
+		_emit_ended(tr("ERROR_HOST_FAILED").format({"port": port}))
 		return
 	multiplayer.multiplayer_peer = peer
+	host_port = port
 	players = {1: {"name": _clean_name(player_name)}}
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
@@ -71,7 +81,7 @@ func join_game(address: String, player_name: String) -> void:
 	leave()
 	var peer := _connector.join(address)
 	if peer == null:
-		ended.emit(tr("ERROR_INVALID_ADDRESS"))
+		_emit_ended(tr("ERROR_INVALID_ADDRESS"))
 		return
 	_local_name = player_name
 	_join_address = address.strip_edges()
@@ -95,6 +105,11 @@ func _close(message: String) -> void:
 	_pending_names.clear()
 	_rejected_peers.clear()
 	players_changed.emit()
+	_emit_ended(message)
+
+
+func _emit_ended(message: String) -> void:
+	last_end_message = message
 	ended.emit(message)
 
 
