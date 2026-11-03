@@ -567,8 +567,34 @@ Zelené tlačítko „Code → Download ZIP“ a „Source code (zip)“ u relea
 - **Vlastní grafika a zvuky:** CC BY 4.0, uvedeno v `CREDITS.md` a `LICENSE-ASSETS`.
 - Cizí assety jen s kompatibilní licencí, vždy se zdrojem v `CREDITS.md`.
 
-### I.8 Kontrola aktualizací (později, M8)
-Hra zavolá GitHub API (`/releases/tags/dev` nebo `/releases/latest`) přes `HTTPRequest`. Pokud je novější commit nebo verze, ukáže v menu „Je dostupná nová verze“ s odkazem.
+### I.8 Automatické aktualizace (ZADÁNÍ UŽIVATELE 2026-11-03, milník M3U)
+**Cíl:** hráči nemusí po každé změně ručně stahovat hru a znovu ji povolovat. Hra po spuštění sama zjistí, že na GitHubu je nová verze, nabídne aktualizaci, stáhne ji a restartuje se. Tím zmizí i chyba „Máš jinou verzi hry“.
+
+**Postup:**
+1. **CI** ke každému buildu publikuje malý soubor `version.json` (v release `dev` a ve stabilních releasech):
+   - `build_id`, `version`, `commit`, `protocol`
+   - pro každý systém URL souboru a jeho **SHA-256**
+2. **Hra při startu v hlavním menu** stáhne přes `HTTPRequest` (HTTPS) `version.json` z pevné adresy tohoto repozitáře:
+   - `https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/version.json`
+   - Pokud se `build_id` liší od vlastního, menu ukáže: *„Je dostupná nová verze X. [Aktualizovat] [Později]“*.
+   - Bez internetu nebo při chybě se nic nestane a hra jde normálně hrát.
+3. **Aktualizace:** stažení s ukazatelem průběhu do dočasného souboru a ověření SHA-256. Pak záměna:
+   - **Windows:** běžící `.exe` nejde přepsat, ale jde přejmenovat. `gun_game.exe` → `gun_game.old.exe`, nový soubor → `gun_game.exe`, spustit nový proces (`OS.create_process`) a ukončit se. Starý soubor smaže nová verze při startu. Funguje, pokud hra leží ve složce s právem zápisu (Plocha, Stažené soubory, Dokumenty). Jinak záložní řešení: otevřít stránku ke stažení.
+   - **macOS:** stáhnout ZIP, rozbalit (`ZIPReader`) vedle aplikace a vyměnit `.app` za novou. Soubor stažený samotnou hrou nedostane karanténní značku, takže **odpadne opakované povolování v Nastavení**.
+     - Omezení: pokud macOS spouští aplikaci z „translokované“ kopie (nebyla přesunutá z Downloads), výměna nejde. Pak hra poradí přesunout aplikaci do *Aplikací*, případně otevře stránku ke stažení.
+   - **Linux:** jako Windows (jeden binární soubor).
+4. Aktualizace se nabízí **jen v menu, nikdy během hry nebo v lobby**.
+5. Čísla verzí jsou zatím `0.0.0+commit`. Porovnává se shoda `build_id` (jiný = nabídnout), ne „vyšší“. Kanál `dev` vs. stabilní: hra ze stabilního releasu kontroluje `releases/latest`, vývojová kontroluje `dev`.
+
+**Bezpečnost (sekce S):**
+- Stahuje se jen z pevné HTTPS adresy tohoto repozitáře a ověřuje se SHA-256.
+- **Doporučeno navíc:** CI podepíše `version.json` soukromým klíčem z GitHub Secrets a hra má zabudovaný veřejný klíč (`Crypto.verify`, RSA). Podvržená aktualizace by pak neprošla, ani kdyby někdo získal přístup k release stránce.
+- Nic se nespouští jako správce.
+
+**Rizika:**
+- Antivirus může podezírat program, který přepisuje vlastní exe. Ověřit na Windows (odložené testy).
+- Samoaktualizace na macOS je křehčí, proto záložní cesta „otevřít stránku ke stažení“.
+- Při chybě aktualizace musí zůstat funkční stará verze (nový soubor se použije až po úspěšném ověření).
 
 ---
 
@@ -663,6 +689,16 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Funkce:** pistole, projektily (raycast na hostu, vizuální kopie na klientech), knockback a recoil, `kill_rect`, životy, respawn s nezranitelností, odpočet, konec zápasu, výsledky, **návrat do stejného lobby a opakované zápasy bez nového hostování (sekce T.1)**, HUD (životy), návod „Jak hrát s kamarády“ v README a na release stránce.
 - **Testy:** unit testy `combat_rules` a `snapshot`; konzistence knockbacku (host i klient vidí stejný výsledek); podvržené vstupy (rychlá palba se ignoruje); **zápas přes internet s kamarádem Windows↔Windows** (Windows↔macOS volitelně).
 - **Akceptace:** celý herní cyklus přes internet. Vydat tag **`v0.1.0`**.
+
+### M3U – Automatické aktualizace *(střední)* — ZADÁNÍ UŽIVATELE 2026-11-03
+- **Kdy:** hned po M3 (první hratelná verze `v0.1.0`), před M4. Od té chvíle kamarádi hrají pravidelně a ruční stahování každé verze (a chyba „jiná verze“) je největší překážka.
+- **Funkce:**
+  - `version.json` v CI (+ volitelný podpis)
+  - `src/core/updater.gd` (kontrola, stažení, ověření, záměna, restart)
+  - nabídka v menu
+  - úklid `.old` souboru
+- **Testy:** simulovaná nová verze (lokální `version.json`); poškozený soubor (špatný hash) → aktualizace se neprovede; bez internetu → hra běží normálně. Mac lokálně, Windows v odložených testech.
+- **Akceptace:** po pushnutí nové verze se hráčům při dalším spuštění nabídne aktualizace a po jejím přijetí běží nová verze bez ručního stahování.
 
 ### M4 – Odezva online *(vysoká)*
 - **Funkce:** měření (RTT v debug overlay), podle výsledku **predikce vlastního pohybu a reconciliation**, ladění interpolačního zpoždění, zpevnění validace (rate limit, fáze), okrajové případy odpojení.

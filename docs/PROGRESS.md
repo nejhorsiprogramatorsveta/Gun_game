@@ -5,7 +5,7 @@
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M3 krok 1: střelba.** Doporučené pořadí potom: M3 krok 2 → **M4 predikce hned po M3** (viz měření v Stav testů).
+**M3 krok 1: střelba.** Pořadí potom: M3 krok 2 (životy, výsledky, návrat do lobby, `v0.1.0`) → **M3U automatické aktualizace** (PLAN.md I.8, přání uživatele) → **M4 predikce** (viz měření v Stav testů).
 - `src/data_types/weapon_data.gd` + `data/weapons/pistol.tres`: `fire_rate`, `projectile_speed`, `knockback`, `recoil`, `spread`, `range`. Názvy přes lokalizační klíče.
   - `CharacterData.weapons: Array[WeaponData]` (zatím 1 zbraň; 2 sloty a přepínání v M5, PLAN.md G.0)
 - **Střelba na hostu:** tlačítko FIRE + `aim` ze vstupu, cooldown podle `fire_rate`. Projektil letí ve směru míření.
@@ -147,6 +147,7 @@
   - síť mezi dvěma počítači a přes Tailscale
 
 ## Rozhodnutí
+- **Automatické aktualizace** (zadání 2026-11-03, PLAN.md I.8, milník M3U hned po M3): hra po spuštění porovná svůj `build_id` s `version.json` na GitHubu, nabídne aktualizaci, stáhne ji (ověření SHA-256, doporučený podpis) a restartuje se. Windows záměnou exe, macOS výměnou `.app` se záložní cestou.
 - **Lobby se po zápase vrací** (zadání 2026-11-03, PLAN.md T): výsledky → stejné lobby, žádné nové hostování. **V lobby se vybírá postava (každý) a mapa (hostitel).** Zatím jen v plánu: návrat v M3, postavy v M5, mapy v M6. Otevřená otázka: smí mít dva hráči stejnou postavu? (návrh: ano)
 - **Internet = Tailscale** (uživatel 2026-11-03): zdarma pro až 6 uživatelů, Windows, macOS i Linux.
   - Hamachi zamítnuto: jen 5 členů a Linux jen v příkazové řádce.
