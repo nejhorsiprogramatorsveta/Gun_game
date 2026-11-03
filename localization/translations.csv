@@ -9,3 +9,11 @@ MENU_VERSION,Verze {version}
 PRACTICE_HINT,"A/D nebo šipky: pohyb · W/mezerník: skok (i dvojskok) · S: seskok z plošiny · Esc: zpět do menu"
 CHARACTER_JISKRA_NAME,Jiskra
 CHARACTER_JISKRA_DESCRIPTION,"Lehká a rychlá. Snadno ji odhodíš, ale těžko ji chytíš."
+LOBBY_DEFAULT_NAME,Hráč {number}
+ERROR_HOST_FAILED,"Nepodařilo se spustit hru na portu {port}. Možná na něm už běží jiný program (nebo druhá kopie hry)."
+ERROR_INVALID_ADDRESS,Neplatná adresa. Zadej ji ve tvaru 85.12.34.56:24642 nebo jen 85.12.34.56.
+ERROR_CONNECTION_FAILED,"Nepodařilo se připojit k {address}. Zkontroluj adresu, jestli hostitel hru opravdu hostuje a jestli ji povolil ve firewallu."
+ERROR_HOST_LEFT,Hostitel ukončil hru nebo se spojení přerušilo.
+ERROR_VERSION_MISMATCH,Máš jinou verzi hry ({mine}) než hostitel ({host}). Stáhněte si oba nejnovější verzi.
+ERROR_LOBBY_FULL,"Hra je plná (max. 4 hráči)."
+ERROR_MATCH_IN_PROGRESS,"Zápas už běží, počkej na jeho konec."

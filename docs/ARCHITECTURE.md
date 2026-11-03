@@ -22,6 +22,17 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/arenas/platform.gd` | obdélníková plošina (pevná nebo jednosměrná), nastavitelná v editoru |
 | `src/match/match_controller.gd` | průběh zápasu; v M1 lokální trénink s respawnem po pádu |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu s verzí |
+| `src/autoload/session.gd` | **autoload `Session`**: hostování a připojení, handshake verze, seznam hráčů v lobby (rozesílá host), odpojení a timeouty, české chybové hlášky přes signál `ended(message)` |
+| `src/net/connectors/connector.gd` | rozhraní způsobu připojení: `host(port)` a `join(info)` vrací `MultiplayerPeer` |
+| `src/net/connectors/enet_direct_connector.gd` | přímé UDP spojení (ENet) přes IP:port, rozbor adresy (IPv4, IPv6, hostname), timeouty peerů |
+
+## Handshake (kontrola verze)
+1. Klient se připojí. Než se stane plnohodnotným peerem, pošle přes **autentizaci SceneMultiplayer** (surová data, ne RPC) zprávu `{protocol, build, name}`.
+2. Host ji ověří: `PROTOCOL_VERSION` a `build_id` musí sedět, lobby nesmí být plné a nesmí běžet zápas.
+3. **Shoda:** host odpoví `{ok: true}` a oba zavolají `complete_auth`. Teprve pak vznikne `peer_connected` a mohou chodit RPC. Host rozešle seznam hráčů.
+4. **Neshoda:** host pošle důvod a svůj build, za 0,5 s klienta odpojí a klient zobrazí českou hlášku.
+
+RPC se v Godotu párují podle indexu metody, proto by RPC handshake mezi různými buildy nebyl spolehlivý.
 | `tests/` | vlastní mini test runner (`run_tests.gd`, `TestCase`) |
 | `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd` |
 
@@ -29,4 +40,5 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 1 `world` (pevné plošiny) · 2 `platform_oneway` · 3 `players` · 4 `projectiles` (od M3)
 
 ## Autoloady
-Zatím žádné. V M2 přibude `Session` (síťová session) a `Settings` (nastavení).
+- `Session` (síťová session musí přežít přechody mezi scénami)
+- později `Settings` (nastavení)

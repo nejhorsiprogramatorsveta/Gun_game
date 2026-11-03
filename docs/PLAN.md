@@ -173,7 +173,7 @@ Lobby stav (jména, postavy, připravenost) drží host a při každé změně h
 - Zprávy během špatné fáze (např. vstup v lobby) host ignoruje.
 
 ### D.8 Kontrola verze a protokolu
-Po připojení klient pošle reliable `hello(protocol_version, build_id, player_name)`.
+Po připojení klient pošle `hello(protocol_version, build_id, player_name)` **přes autentizaci SceneMultiplayer** (`auth_callback` / `send_auth`), ne přes RPC. RPC metody se párují podle indexu, takže u jiného buildu by RPC hello nemuselo jít ani přečíst. Dokud handshake neskončí, peer nemůže posílat ani přijímat RPC. (Upřesněno při implementaci v M2.)
 - `build_id` = `verze+commit` (např. `0.2.0+a1b2c3d`) vygenerované v CI.
 - Host porovná obojí. Při neshodě odpoví `rejected("ERROR_VERSION_MISMATCH", host_build_id)` a po chvíli klienta odpojí.
 - Klient uvidí česky: *„Máš jinou verzi hry (0.2.0+a1b2c3d) než hostitel (0.2.1+ff00aa1). Stáhněte si oba nejnovější verzi.“*

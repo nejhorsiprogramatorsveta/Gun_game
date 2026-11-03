@@ -38,12 +38,17 @@ All verified in M1 on macOS arm64:
 - Export: `tools/godot --headless --path . --export-release "<Windows Desktop|macOS|Linux>" build/<os>/<file>`
 - Smoke tests of scenes: write a throwaway `extends SceneTree` script (outside the repo) and run it with `-s`;
   `Input.action_press()` simulates keys. Run without `--headless` to take screenshots (opens a window).
+- Network smoke test without UI: throwaway SceneTree scripts that call `root.get_node("Session").host_game()/join_game()`
+  (autoloads ARE loaded with `-s`), run as separate background processes on 127.0.0.1, logs to files (not pipes).
+  `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - CI: .github/workflows/build.yml (push main -> prerelease tag `dev`; tag v* -> stable release).
 
 ## Architecture (see docs/ARCHITECTURE.md for what exists, docs/PLAN.md section F for the target)
 Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player}.gd,
-src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres.
-Planned from M2: src/autoload/session.gd, src/net/*, src/match/match_net.gd.
+src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
+src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players),
+src/net/connectors/{connector,enet_direct_connector}.gd.
+Planned: src/net/{upnp_helper,snapshot,lag_simulator}.gd, src/match/match_net.gd, src/autoload/settings.gd.
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Rules

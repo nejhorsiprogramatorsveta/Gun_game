@@ -13,13 +13,18 @@ static var channel: String = "dev"
 
 
 static func _static_init() -> void:
-	if not FileAccess.file_exists(FILE_PATH):
-		return
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(FILE_PATH))
-	if data is Dictionary:
-		version = str(data.get("version", version))
-		commit = str(data.get("commit", commit))
-		channel = str(data.get("channel", channel))
+	if FileAccess.file_exists(FILE_PATH):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(FILE_PATH))
+		if data is Dictionary:
+			version = str(data.get("version", version))
+			commit = str(data.get("commit", commit))
+			channel = str(data.get("channel", channel))
+	# Debug/editor runs only: `-- --fake-commit=abc` simulates another build to test
+	# the version-mismatch handshake with two local instances.
+	if OS.is_debug_build():
+		for arg in OS.get_cmdline_user_args():
+			if arg.begins_with("--fake-commit="):
+				commit = arg.get_slice("=", 1)
 
 
 ## Exact build identity; peers must match it to play together.
