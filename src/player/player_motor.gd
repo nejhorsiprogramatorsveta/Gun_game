@@ -4,6 +4,7 @@ class_name PlayerMotor
 ## step() applies it to a CharacterBody2D.
 
 ## Physics layer number of one-way platforms (see project.godot layer names).
+## Players also collide with the "players" layer, so they can touch but never overlap.
 const ONE_WAY_LAYER := 2
 
 

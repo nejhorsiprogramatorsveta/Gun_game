@@ -67,6 +67,13 @@
 - **Nefunguje zatím:** životy, konec zápasu a výsledky (M3 krok 2).
 
 ## Poslední změny
+- **2026-11-03, úpravy podle uživatele:**
+  - střely pomalejší (pistole 1500 → 1000 px/s) s delší stopou (40 px)
+  - pohled zmenšen na 70 % (zoom 0,85 → 0,6), `kill_rect` rozšířen za okraj obrazovky
+  - **postavy se nepřekrývají** (kolidují spolu, mohou stát na sobě)
+  - **střelba zblízka funguje** (`hit_from_inside`)
+  - větší jména nad postavami
+  - plán: mapy také pixel art, animace postav (PLAN.md Q)
 - **2026-11-03, M3 krok 1 (střelba):**
   - **Data:** `WeaponData` + `data/weapons/pistol.tres`; `CharacterData.weapons` a `knockback_friction` (odhoz klouže i po zemi)
   - **Logika:** `src/combat/combat_rules.gd` (odhoz, zpětný ráz, rozptyl, kadence), `src/combat/projectile.gd` (raycast každý tick), `src/combat/weapon_system.gd` (střelba na hostu, události pro klienty)
@@ -182,7 +189,7 @@
 
 ## Rozhodnutí
 - **Číslo sestavení místo kódu commitu** (uživatel nerozuměl kódům): hráči porovnávají „sestavení N“. Číslo jen roste, což se hodí i pro automatické aktualizace.
-- **Mapy:** malovaný „plovoucí ostrov“ s vesmírným pozadím (reference 2), ale s více patry plošin jako demo aréna. **Otevřená otázka:** pixel-art postavy vs. malované mapy (PLAN.md Q).
+- **Celá hra v pixel artu včetně map** (uživatel 2026-11-03). Mapy kompozicí jako reference 2 (plovoucí ostrov, vesmír), ale víc pater. **Postavy mají animace:** klid, běh, skok, pád, seskok, střelba, zásah, schopnost (PLAN.md Q).
 - **Automatické aktualizace** (zadání 2026-11-03, PLAN.md I.8, milník M3U hned po M3): hra po spuštění porovná svůj `build_id` s `version.json` na GitHubu, nabídne aktualizaci, stáhne ji (ověření SHA-256, doporučený podpis) a restartuje se. Windows záměnou exe, macOS výměnou `.app` se záložní cestou.
 - **Lobby se po zápase vrací** (zadání 2026-11-03, PLAN.md T): výsledky → stejné lobby, žádné nové hostování. **V lobby se vybírá postava (každý) a mapa (hostitel).** Zatím jen v plánu: návrat v M3, postavy v M5, mapy v M6. Otevřená otázka: smí mít dva hráči stejnou postavu? (návrh: ano)
 - **Internet = Tailscale** (uživatel 2026-11-03): zdarma pro až 6 uživatelů, Windows, macOS i Linux.

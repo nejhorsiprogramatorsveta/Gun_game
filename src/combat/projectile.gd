@@ -11,6 +11,8 @@ signal finished(projectile: Projectile)
 
 const WORLD_MASK := 1
 const PLAYERS_MASK := 4
+## Length of the visible streak behind the bullet (px).
+const TRAIL_LENGTH := 40.0
 
 var id := 0
 var direction := Vector2.RIGHT
@@ -35,6 +37,8 @@ func _physics_process(delta: float) -> void:
 	var step := direction * weapon.projectile_speed * delta
 	var mask := WORLD_MASK | (PLAYERS_MASK if authoritative else 0)
 	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + step, mask, _exclude)
+	# The muzzle can start inside a player standing right next to the shooter; still a hit.
+	query.hit_from_inside = true
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():
 		if hit.collider is Player:
@@ -43,6 +47,7 @@ func _physics_process(delta: float) -> void:
 		return
 	position += step
 	_travelled += step.length()
+	queue_redraw()
 	if _travelled >= weapon.max_range:
 		finish()
 
@@ -55,4 +60,7 @@ func finish() -> void:
 
 
 func _draw() -> void:
-	draw_line(-direction * 12.0, direction * 4.0, Color(1, 0.93, 0.55), 3.0)
+	# The trail fades out behind the bullet and never sticks out behind the muzzle.
+	var trail := minf(TRAIL_LENGTH, _travelled + 4.0)
+	draw_line(-direction * trail, -direction * trail * 0.4, Color(1, 0.85, 0.4, 0.35), 2.0)
+	draw_line(-direction * trail * 0.4, direction * 4.0, Color(1, 0.95, 0.65), 3.0)

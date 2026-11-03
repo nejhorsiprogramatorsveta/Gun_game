@@ -31,9 +31,11 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, display_n
 	var name_label := Label.new()
 	name_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	name_label.text = display_name
+	# The arena camera is zoomed out, so world-space text needs a bigger font to stay readable.
+	name_label.add_theme_font_size_override("font_size", 26)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.size = Vector2(160, 24)
-	name_label.position = Vector2(-80, -BODY_SIZE.y / 2.0 - 30)
+	name_label.size = Vector2(240, 36)
+	name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 42)
 	add_child(name_label)
 
 

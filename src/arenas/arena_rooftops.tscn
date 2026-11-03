@@ -5,11 +5,11 @@
 
 [node name="ArenaRooftops" type="Node2D"]
 script = ExtResource("1")
-kill_rect = Rect2(-400, -600, 2080, 1500)
+kill_rect = Rect2(-700, -800, 2680, 1900)
 
 [node name="Camera" type="Camera2D" parent="."]
 position = Vector2(640, 360)
-zoom = Vector2(0.85, 0.85)
+zoom = Vector2(0.6, 0.6)
 
 [node name="Ground" type="StaticBody2D" parent="."]
 position = Vector2(240, 560)
