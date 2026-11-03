@@ -29,15 +29,22 @@ Friends (mainly Windows) download ZIP from GitHub Releases. MVP: keyboard only.
 Godot 4.7.2-stable (non-.NET), GDScript (static typing), Compatibility renderer.
 
 ## Commands (pinned Godot lives in .tools/, never use a system-wide godot)
-- Setup dev env (once): `tools/setup_env.sh` (add `--with-templates` for local exports)
-- Run: `tools/godot --path .`   - Two local instances: run twice, one Host, one Join 127.0.0.1
-- Tests: `tools/godot --headless --path . -s tests/run_tests.gd`
-- Loc check: `tools/godot --headless --path . -s tools/check_localization.gd`
-- Export: `tools/godot --headless --path . --export-release "<preset>" <out>`
-(Test/loc/export commands become valid during M1; update this section when they are verified.)
+All verified in M1 on macOS arm64:
+- Setup dev env (once): `tools/setup_env.sh` (add `--with-templates` for local exports, ~1 GB)
+- Import (after clean clone or new assets; 1st run logs harmless translation errors): `tools/godot --headless --path . --import`
+- Run game: `tools/godot --path .`   Editor: `tools/godot --path . --editor`
+- Tests: `tools/godot --headless --path . -s tests/run_tests.gd` (exit 1 on failure)
+- Loc check: `tools/godot --headless --path . -s tools/check_localization.gd` (exit 1 on missing key)
+- Export: `tools/godot --headless --path . --export-release "<Windows Desktop|macOS|Linux>" build/<os>/<file>`
+- Smoke tests of scenes: write a throwaway `extends SceneTree` script (outside the repo) and run it with `-s`;
+  `Input.action_press()` simulates keys. Run without `--headless` to take screenshots (opens a window).
+- CI: .github/workflows/build.yml (push main -> prerelease tag `dev`; tag v* -> stable release).
 
-## Architecture (planned key files – see docs/PLAN.md section F)
-src/autoload/session.gd, src/net/*, src/match/match_controller.gd, src/player/player_motor.gd, data/*.tres
+## Architecture (see docs/ARCHITECTURE.md for what exists, docs/PLAN.md section F for the target)
+Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player}.gd,
+src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres.
+Planned from M2: src/autoload/session.gd, src/net/*, src/match/match_net.gd.
+Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Rules
 Host decides all gameplay. RPC only in session.gd / src/net/ / match_net.gd. Connection only via src/net/connectors/.

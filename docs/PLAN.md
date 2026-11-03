@@ -301,7 +301,7 @@ src/
   player/
     player.tscn, player.gd    # uzel postavy: host simuluje, klient zobrazuje/interpoluje
     player_motor.gd           # ČISTÁ funkce pohybu (sdílená host/predikce)
-    player_input.gd           # sběr lokálního vstupu -> InputFrame
+    input_frame.gd            # vstup za tick (směr + bitmaska tlačítek), sample_local() čte klávesnici
     remote_interpolator.gd    # buffer snapshotů pro vzdálené hráče
   combat/
     projectile.tscn, projectile.gd
@@ -312,12 +312,13 @@ src/
     match.tscn, match_controller.gd   # pravidla na hostu: tick, eliminace, respawn, konec
     match_net.gd              # RPC vrstva zápasu (vstupy, snapshoty, události)
   arenas/
-    arena_rooftops.tscn ...   # TileMapLayer/StaticBody2D, spawny, kill_rect
+    arena.gd, platform.gd     # základ arény (spawny, kill_rect) + nastavitelná plošina (pevná/jednosměrná)
+    arena_rooftops.tscn ...   # Platform uzly, SpawnPoints/Marker2D
   ui/
     main_menu.tscn/.gd  lobby.tscn/.gd  hud.tscn/.gd  results.tscn/.gd
     settings_menu.tscn/.gd  message_dialog.tscn/.gd
 tests/
-  run_tests.gd                # headless runner (extends SceneTree)
+  run_tests.gd, test_case.gd  # headless runner (extends SceneTree) + základ testů
   test_combat_rules.gd  test_snapshot.gd  test_cooldown.gd
 tools/
   setup_env.sh                # „venv“ projektu: stáhne připnutý Godot 4.7.2 do .tools/ (+ ověří SHA512)
@@ -545,7 +546,7 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 ### M1 – Kostra, lokální pohyb, CI s ZIPy *(střední)*
 - **Cíl:** spustitelná hra stažitelná z GitHubu.
 - **Funkce:** projekt, `.gitignore`, README, CLAUDE.md, PROGRESS.md, LICENSE a CREDITS; hlavní menu s verzí; jedna testovací aréna; `PlayerMotor` a postava ovládaná klávesnicí (lokálně, bez sítě); lokalizace CSV a font; `build_info`; testovací runner; workflow s exporty a prereleasem `dev`.
-- **Soubory:** `project.godot`, `export_presets.cfg`, `build.yml`, `main_menu`, `player_motor.gd`, `player.gd`, `player_input.gd`, `arena_rooftops.tscn`, `data/characters/*.tres`, `translations.csv`.
+- **Soubory:** `project.godot`, `export_presets.cfg`, `build.yml`, `main_menu`, `player_motor.gd`, `player.gd`, `input_frame.gd`, `arena_rooftops.tscn`, `data/characters/*.tres`, `translations.csv`.
 - **Závislosti:** GitHub repo (veřejné, viz O1).
 - **Testy:** CI zelené; ZIP stažený z `releases/tag/dev` jde spustit na Windows (hlavní platforma), na Macu podle možností (Gatekeeper postup); pohyb a skok fungují; diakritika se zobrazuje správně.
 - **Akceptace:** kamarád stáhne ZIP, spustí ho a vidí menu s verzí.

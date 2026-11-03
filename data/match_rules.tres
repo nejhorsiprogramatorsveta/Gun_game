@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="MatchRules" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/match_rules.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lives = 5
+respawn_delay = 1.5
+respawn_invulnerability = 1.5
+countdown_seconds = 3

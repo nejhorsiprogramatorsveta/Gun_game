@@ -1,0 +1,10 @@
+# Normalize text files to LF (Godot and the shell scripts in tools/ expect LF).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ogg binary
+*.wav binary
+*.ttf binary
+*.otf binary
+*.zip binary

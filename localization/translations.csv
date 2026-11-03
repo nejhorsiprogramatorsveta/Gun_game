@@ -1,0 +1,11 @@
+keys,cs
+GAME_TITLE,Gun Game
+MENU_PRACTICE,Trénink
+MENU_HOST,Hostovat
+MENU_JOIN,Připojit
+MENU_QUIT,Konec
+MENU_COMING_SOON,Online hra přijde v další verzi.
+MENU_VERSION,Verze {version}
+PRACTICE_HINT,"A/D nebo šipky: pohyb · W/mezerník: skok (i dvojskok) · S: seskok z plošiny · Esc: zpět do menu"
+CHARACTER_JISKRA_NAME,Jiskra
+CHARACTER_JISKRA_DESCRIPTION,"Lehká a rychlá. Snadno ji odhodíš, ale těžko ji chytíš."
