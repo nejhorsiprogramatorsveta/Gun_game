@@ -3,9 +3,8 @@ extends Node
 ## Owns hosting/joining, the version handshake and the lobby player list.
 ## Host-authoritative: only the host (peer 1) changes `players` and broadcasts them.
 ##
-## The handshake uses SceneMultiplayer authentication (raw bytes), not RPCs: RPC methods
-## are matched by index, so a peer on a different build might not even decode an RPC
-## hello. Until authentication completes, a peer cannot send or receive any RPC.
+## The join handshake (version + room code) uses SceneMultiplayer authentication; messages
+## are built/checked in Handshake. Until it completes, a peer cannot send or receive any RPC.
 
 signal phase_changed(phase: Phase)
 signal players_changed
@@ -24,12 +23,6 @@ const CONNECT_TIMEOUT := 10.0
 const AUTH_TIMEOUT := 5.0
 ## Gives a rejection message time to arrive before the host drops the peer.
 const REJECT_DISCONNECT_DELAY := 0.5
-const REJECT_REASONS: PackedStringArray = ["ERROR_VERSION_MISMATCH", "ERROR_WRONG_CODE", "ERROR_LOBBY_FULL", "ERROR_MATCH_IN_PROGRESS"]
-## Handshake messages are tiny; anything bigger is ignored unparsed (security, PLAN.md S).
-const MAX_AUTH_MESSAGE_BYTES := 512
-## Room code: 6 characters from 32 unambiguous symbols (no 0/O, 1/I) = ~1 billion combinations.
-const ROOM_CODE_LENGTH := 6
-const ROOM_CODE_ALPHABET := "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 var phase := Phase.OFFLINE
 ## peer_id -> {"name": String}. Identical on all peers (host broadcasts it).
@@ -95,13 +88,6 @@ func internet_status() -> StringName:
 	return _connector.internet_status() if is_host() else &""
 
 
-## Cryptographically secure, so the code cannot be predicted.
-static func generate_room_code() -> String:
-	var code := ""
-	for byte in Crypto.new().generate_random_bytes(ROOM_CODE_LENGTH):
-		code += ROOM_CODE_ALPHABET[byte % ROOM_CODE_ALPHABET.length()]  # 256 % 32 == 0: unbiased
-	return code
-
 
 func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT) -> void:
 	leave()
@@ -111,7 +97,7 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 		return
 	multiplayer.multiplayer_peer = peer
 	host_port = port
-	room_code = generate_room_code()
+	room_code = Handshake.generate_room_code()
 	players = {1: {"name": _clean_name(player_name)}}
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
@@ -120,9 +106,9 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 ## join_text is what the host shared: "address#CODE".
 func join_game(join_text: String, player_name: String) -> void:
 	leave()
-	var parts := join_text.strip_edges().split("#", true, 1)
-	var address := parts[0].strip_edges()
-	_join_code = parts[1].strip_edges().to_upper() if parts.size() > 1 else ""
+	var parts := Handshake.split_join_text(join_text)
+	var address := parts[0]
+	_join_code = parts[1]
 	if _join_code.is_empty():
 		_emit_ended(tr("ERROR_MISSING_CODE"))
 		return
@@ -178,16 +164,12 @@ func _clean_name(raw_name: String) -> String:
 
 func _on_peer_authenticating(id: int) -> void:
 	if not multiplayer.is_server():
-		var hello := {"protocol": BuildInfo.PROTOCOL_VERSION, "build": BuildInfo.build_id(), "code": _join_code, "name": _local_name}
-		(multiplayer as SceneMultiplayer).send_auth(id, var_to_bytes(hello))
+		(multiplayer as SceneMultiplayer).send_auth(id, Handshake.make_hello(_join_code, _local_name))
 
 
 func _on_auth_message(id: int, data: PackedByteArray) -> void:
-	if data.size() > MAX_AUTH_MESSAGE_BYTES:
-		return
-	# bytes_to_var() never decodes objects, so untrusted data cannot create code.
-	var message: Variant = bytes_to_var(data)
-	if not message is Dictionary:
+	var message := Handshake.decode(data)
+	if message.is_empty():
 		return
 	if multiplayer.is_server():
 		_handle_hello(id, message)
@@ -197,39 +179,26 @@ func _on_auth_message(id: int, data: PackedByteArray) -> void:
 
 func _handle_hello(id: int, hello: Dictionary) -> void:
 	var api := multiplayer as SceneMultiplayer
-	var reason := ""
-	if not (_value_is(hello, "protocol", BuildInfo.PROTOCOL_VERSION) and _value_is(hello, "build", BuildInfo.build_id())):
-		reason = "ERROR_VERSION_MISMATCH"
-	elif not _value_is(hello, "code", room_code):
-		reason = "ERROR_WRONG_CODE"
-	elif phase != Phase.LOBBY:
+	var reason := Handshake.check_hello(hello, room_code)
+	if reason.is_empty() and phase != Phase.LOBBY:
 		reason = "ERROR_MATCH_IN_PROGRESS"
-	elif players.size() + _pending_names.size() >= MAX_PLAYERS:
+	elif reason.is_empty() and players.size() + _pending_names.size() >= MAX_PLAYERS:
 		reason = "ERROR_LOBBY_FULL"
 	if not reason.is_empty():
-		api.send_auth(id, var_to_bytes({"ok": false, "reason": reason, "build": BuildInfo.build_id()}))
+		api.send_auth(id, Handshake.make_reject(reason))
 		_rejected_peers[id] = true
 		get_tree().create_timer(REJECT_DISCONNECT_DELAY).timeout.connect(_drop_peer.bind(id))
 		return
-	_pending_names[id] = str(hello.get("name", ""))
-	api.send_auth(id, var_to_bytes({"ok": true}))
+	_pending_names[id] = Handshake.requested_name(hello)
+	api.send_auth(id, Handshake.make_accept())
 	api.complete_auth(id)
 
 
 func _handle_auth_reply(reply: Dictionary) -> void:
-	if _value_is(reply, "ok", true):
+	if Handshake.is_accept(reply):
 		(multiplayer as SceneMultiplayer).complete_auth(1)
-		return
-	var reason := str(reply.get("reason", ""))
-	if reason not in REJECT_REASONS:
-		reason = "ERROR_VERSION_MISMATCH"
-	_rejection_message = tr(reason).format({"mine": BuildInfo.build_id(), "host": str(reply.get("build", "?"))})
-
-
-## Type-safe equality for values received from the network.
-static func _value_is(data: Dictionary, key: String, expected: Variant) -> bool:
-	var value: Variant = data.get(key)
-	return typeof(value) == typeof(expected) and value == expected
+	else:
+		_rejection_message = Handshake.rejection_text(reply)
 
 
 func _drop_peer(id: int) -> void:

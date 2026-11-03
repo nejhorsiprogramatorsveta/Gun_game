@@ -1,34 +1,34 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M2 krok 3 (UPnP, veřejná adresa, kód hry a bezpečnostní opatření) je hotový, commitnutý a pushnutý.**
-- Nový trvalý požadavek uživatele: **bezpečnost online hry** (PLAN.md, sekce S; CLAUDE.md; paměť).
-- Úspěšnou cestu UPnP (router port otevře) nešlo otestovat, uživatel je v knihovně. Ověřit doma.
+**M2 krok 4a (rozdělení `session.gd`) je hotový, commitnutý a pushnutý.**
+- Handshake (zprávy, kód hry, validace) je v `src/net/handshake.gd` (81 ř.), `session.gd` se zmenšil z 292 na 262 ř.
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M2 krok 4a: rozdělit `session.gd` (292 řádků) a připravit start zápasu.**
-1. Přesunout handshake (hello, reply, kód hry, validace) z `session.gd` do `src/net/handshake.gd` (statické funkce pro sestavení a ověření zpráv). `Session` si nechá jen stav a události.
-2. Pak **M2 krok 4b, synchronizace pohybu** (PLAN.md D.2–D.4):
-   - tlačítko *Začít zápas* u hostitele (min. 2 hráči), RPC `match_started` → všichni načtou `match.tscn`
-   - spawn podle slotů
-   - `InputFrame` rozšířit o `seq` a `aim` (úhel ke kurzoru, u16)
-   - vstupy 60 Hz (unreliable_ordered, poslední 3 kvůli ztrátám) → host
-   - snapshot 30 Hz → klienti (`src/net/snapshot.gd`)
-   - interpolace vzdálených hráčů (`src/player/remote_interpolator.gd`)
-   - RPC jen v `src/match/match_net.gd`, validace dle D.7 a sekce S (velikosti, rate-limit, sender ID)
-   - Lze rozdělit na víc commitů.
+**Opravit BUG s dvojskokem po sejití z plošiny** (sekce níže, postup je popsaný). Potom **M2 krok 4b, synchronizace pohybu**:
+- tlačítko *Začít zápas* u hostitele (min. 2 hráči), RPC `match_started` → všichni načtou `match.tscn`
+- spawn podle slotů
+- `InputFrame` rozšířit o `seq` a `aim` (úhel ke kurzoru, u16)
+- vstupy 60 Hz (unreliable_ordered, poslední 3 kvůli ztrátám) → host
+- snapshot 30 Hz → klienti (`src/net/snapshot.gd`)
+- interpolace vzdálených hráčů (`src/player/remote_interpolator.gd`)
+- RPC jen v `src/match/match_net.gd`, validace dle PLAN.md D.7 a sekce S
+- Lze rozdělit na víc commitů.
 
-## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
-**Neptat se na to v každé session.**
-
-**Ruční test staženého ZIPu (poslední část M1).** CI a ZIPy jsou ověřené (body 1–3 hotové 2026-11-03).
-4. Uživatel stáhne `gun_game-windows.zip` na **Windows PC** (a případně `gun_game-macos.zip` v prohlížeči na Macu) a zkontroluje:
-   - SmartScreen / Gatekeeper postup
-   - menu s verzí `v0.0.0+<commit> (dev)`
-   - trénink
-
-**Do té doby se hra na Macu spouští lokálně:** `tools/godot --path .` z kořene projektu, nebo lokálně exportovaný `build/macos/gun_game.zip` (vzniká jen lokálním exportem, není v gitu).
+## BUG K OPRAVĚ: dvojskok po sejití z plošiny (nahlásil uživatel 2026-11-03, potvrzeno simulací)
+- **Reprodukce:**
+  1. Stát na plošině a vyjít přes hranu (bez skoku).
+  2. Skok zmáčknout až po coyote time (> 0,08 s).
+  3. Skočí jen jednou, druhý stisk nic neudělá (scénář D, simulace v `match.tscn`).
+  - Do 0,08 s po sejití fungují 2 skoky, po skoku ze země taky 2.
+- **Příčina:** `PlayerMotor` bere skok ze země jako dostupný jen v coyote time. Po něm zbývá jen `air_jumps` (1).
+- **Navržená oprava:**
+  - Nahradit `air_jumps_left` + coyote za `jumps_left = 1 + air_jumps` (reset na zemi). Každý skok jeden spotřebuje, ve vzduchu jen nový stisk, buffer jen pro dopad.
+  - Odstranit `coyote_time` z `CharacterData` a `jiskra.tres` (nebude potřeba).
+  - Upravit testy v `tests/test_player_motor.gd` a přidat test „sejití z hrany + pozdní skok = 2 skoky“.
+  - Výsledek: po sejití i po odhození knockbackem má hráč vždy 2 skoky (lepší záchrana jako v žánru).
+- **Kdy:** hned po M2 kroku 4a (před synchronizací pohybu, protože motor sdílí host i predikce).
 
 ## ODLOŽENÉ ROZHODNUTÍ: připojení a skrytí IP (uživatel 2026-11-03: „vyřešíme v dalších krocích“)
 - Uživateli vadí, že je IP vidět v lobby. Chce rozumět, kdy jde hrát mimo stejnou Wi-Fi.
@@ -65,6 +65,10 @@
   - `server_relay` je vypnutý a zprávy handshaku jsou omezené na 512 B.
 
 ## Poslední změny
+- **2026-11-03, M2 krok 4a:**
+  - nový `src/net/handshake.gd` (`Handshake`: kód hry, rozdělení `adresa#KÓD`, sestavení a dekódování zpráv s limitem 4–512 B, `check_hello`, text odmítnutí)
+  - `session.gd` ho používá
+  - `tests/test_room_code.gd` → `tests/test_handshake.gd` (+ testy podvržených a nesmyslných zpráv)
 - **2026-11-03, M2 krok 3:**
   - **`src/net/upnp_helper.gd`:** vlákno, mutex, neblokující zavření, `wait_for_all()`.
   - **Connector:** `close()`, `internet_status()`, signál `share_info_changed`.
@@ -116,7 +120,6 @@ Ostatní milníky viz PLAN.md, sekce K.
   - Typ připojení hostitele (veřejná IPv4 / CGNAT) se zjistí v M2 z výsledku UPnP.
 - **Velikost buildů:** Windows exe má ~110 MB (ZIP ~39 MB, změřeno lokálně), macOS ZIP ~62 MB. To je dáno šablonami Godotu 4.7.
 - Ikona hry a exe je výchozí ikona Godotu (vlastní přijde v M8).
-- **`session.gd` má 292 řádků** (limit ~300). Před dalším rozšiřováním rozdělit (Další krok 4a).
 - **UPnP hledání routeru trvá 8–12 s** (sítě bez UPnP). Lobby mezitím ukazuje „Zkouším…“. Zavření hry v té době čeká až ~6 s.
 - **Grafika:** cílový pixel-art styl (PLAN.md, sekce Q) vyžaduje sprity. Zdroj zatím není rozhodnutý (vlastní kresba, objednávka, nebo CC0 assety), proto zatím placeholdery.
 - `EDITING_GUIDE.md` zatím neexistuje (plán: M5).
@@ -124,7 +127,7 @@ Ostatní milníky viz PLAN.md, sekce K.
 - Varování o „leaked RID/ObjectDB“ při exportu bylo opraveno v `platform.gd` (tvar se přidává v `_init`).
 
 ## Stav testů
-- **Unit testy:** 16/16 OK (+ kód hry: formát a náhodnost).
+- **Unit testy:** 19/19 OK (+ handshake: kód hry, rozdělení adresy, shoda buildu a kódu, příliš velké, nesmyslné a špatně typované zprávy).
   - `PlayerMotor` (8): skok, držený skok, coyote, dvojskok, buffer, rozjezd, knockback se neruší, seskok
   - adresy (6): rozbor IPv4, hostname, IPv6, neplatné vstupy, druh adresy, rozsah 100.64/10 podle rozhraní
 - **Síť, lokálně na jednom Macu** (headless procesy, 127.0.0.1 a `[::1]`, M2 krok 1):

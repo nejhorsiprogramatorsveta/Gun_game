@@ -27,6 +27,7 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/autoload/session.gd` | **autoload `Session`**: hostování a připojení, handshake verze, seznam hráčů v lobby (rozesílá host), odpojení a timeouty, české chybové hlášky přes signál `ended(message)` |
 | `src/net/connectors/connector.gd` | rozhraní způsobu připojení: `host(port)` a `join(info)` vrací `MultiplayerPeer` |
 | `src/net/connectors/enet_direct_connector.gd` | přímé UDP spojení (ENet) přes IP:port, rozbor adresy (IPv4, IPv6, hostname), timeouty peerů, `share_addresses()` (LAN, Tailscale podle rozhraní, IPv6) |
+| `src/net/handshake.gd` | `Handshake`: zprávy handshaku (sestavení, dekódování s limitem velikosti, kontrola verze a kódu hry), generování kódu hry |
 | `src/net/upnp_helper.gd` | UPnP ve vlákně: otevře jeden UDP port s limitem 2 h, při odchodu ho zavře (neblokuje); `wait_for_all()` při zavření hry |
 | `tests/` | vlastní mini test runner (`run_tests.gd`, `TestCase`) |
 | `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd` |
