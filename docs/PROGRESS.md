@@ -1,21 +1,22 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Opravený bug s dvojskokem a pohled zmenšený na 85 % (přání uživatele), commitnuté a pushnuté.**
+**M2 krok 4b (start zápasu a synchronizace pohybu) je hotový, otestovaný lokálně, commitnutý a pushnutý.**
+- Poprvé jde hrát spolu: hostitel klikne v lobby *Začít zápas* a všichni vidí pohyb a míření ostatních.
+- Ještě se nestřílí (M3). Klientova postava reaguje se zpožděním (bez predikce, viz Známé problémy).
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-1. **M2 krok 4b, synchronizace pohybu** (první společné hraní):
-   - tlačítko *Začít zápas* u hostitele (min. 2 hráči), RPC `match_started` → všichni načtou `match.tscn`
-   - spawn podle slotů
-   - `InputFrame` rozšířit o `seq`, `aim` (úhel ke kurzoru, u16) a aktivní slot zbraně (1 bit, PLAN.md G.0)
-   - vstupy 60 Hz (unreliable_ordered, poslední 3 kvůli ztrátám) → host
-   - snapshot 30 Hz → klienti (`src/net/snapshot.gd`)
-   - interpolace vzdálených hráčů (`src/player/remote_interpolator.gd`)
-   - RPC jen v `src/match/match_net.gd`, validace dle PLAN.md D.7 a sekce S
-   - Lze rozdělit na víc commitů.
-2. **M2 krok 5:** `LagSimulator`, test 2 počítačů v LAN a **test přes Tailscale s kamarádem**.
-3. **M3:** souboj = MVP (`v0.1.0`). Pak **M5:** 4 postavy, 2 zbraně na postavu, schopnosti (PLAN.md G.0).
+**M2 krok 5: `LagSimulator` a test na dvou počítačích.**
+- `src/net/lag_simulator.gd`: debug zpoždění a ztráta paketů pro vstupy a snapshoty (PLAN.md D.11).
+  - Zapnutí parametrem `-- --fake-lag=100 --fake-loss=5`, jen v debug buildech.
+  - Napojit v `match_net.gd` (jediné místo, kudy jdou).
+- Ověřit lokálně se 100 ms a 5 % ztrát: plynulost interpolace vzdálených hráčů, reakce vlastní postavy.
+- Pak test s uživatelem:
+  - 2 počítače na stejné Wi-Fi, ideálně doma (knihovna často blokuje provoz mezi zařízeními)
+  - nebo přes Tailscale s kamarádem
+  - Postup a co sledovat napsat česky.
+- Po M2 následuje **M3 souboj** (zbraň, střely ke kurzoru, knockback, životy, výsledky → `v0.1.0`).
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -36,9 +37,33 @@
   - hostování a připojení: kód hry, kontrola verze, seznam hráčů (max. 4), české chybové hlášky (jiná verze, špatný nebo chybějící kód, plné lobby, odchod hostitele, nedostupný host, obsazený port)
   - lobby: hráči se štítky, adresy ke sdílení (Tailscale, stejná Wi-Fi) s kopírováním, nápověda, jestli je Tailscale zapnutý
   - export a CI: ZIPy pro Windows, macOS a Linux na `releases/tag/dev`
-- **Nefunguje zatím:** společný zápas (žádný start z lobby, žádná synchronizace pohybu).
+- **Společný zápas (M2 krok 4b):**
+  - hostitel spustí zápas z lobby (min. 2 hráči)
+  - pohyb, skoky a míření všech hráčů se synchronizují
+  - jména nad postavami, barva podle slotu
+  - odchod hráče nebo hostitele uprostřed zápasu funguje
+  - Esc v zápase = odejít
+- **Nefunguje zatím:** střelba, životy a konec zápasu (M3).
 
 ## Poslední změny
+- **2026-11-03, M2 krok 4b:**
+  - **`Session`:** fáze `IN_MATCH`, `start_match()` (host, min. 2 hráči), RPC `_begin_match` se sloty
+  - **Lobby:** tlačítko *Začít zápas*, „Čekáme na hostitele“, přechod do zápasu
+  - **`InputFrame`:** `seq`, `aim` (u16 úhel ke kurzoru), `sample_local(origin)` s myší. Postava se otáčí podle míření.
+  - **`src/net/net_codec.gd`:** binární vstupy (3 snímky kvůli ztrátám, 14 B) a snapshoty (18 B na hráče), kontrola velikosti, `seq_newer`
+  - **`src/match/match_net.gd`:** jediné RPC zápasu
+    - vstupy klient → host a snapshoty host → klienti (unreliable_ordered)
+    - „loaded“ handshake s opakováním
+    - rate-limit 150 paketů/s
+  - **`match_controller.gd`:** společný průběh pro trénink i síť
+    - host simuluje všechny ze vstupů (fronta max. 6, při výpadku opakuje poslední vstup)
+    - snapshot 30 Hz
+    - klient posílá vstup 60 Hz
+    - odchod hráče
+  - **`src/player/remote_interpolator.gd`:** zobrazení se zpožděním 100 ms, prolínání, okamžitý skok při respawnu
+  - **`player.gd`:** `simulate`, `snapshot_state`, `receive_state`, jméno, barva slotu, čára zbraně ve směru míření
+  - **`PROTOCOL_VERSION = 2`**
+  - **Testy:** `tests/test_net_codec.gd` (7 testů) + test „postava se dívá podle míření“
 - **2026-11-03, oprava skoku a zoom:**
   - `PlayerMotor`: místo coyote time počítadlo `jumps_left = 1 + air_jumps` (reset na zemi). Po sejití z hrany i po odhození jsou vždy 2 skoky, ve vzduchu jen nový stisk, buffer jen pro dopad.
   - Odstraněno `coyote_time` z `CharacterData` a `jiskra.tres`.
@@ -59,6 +84,9 @@
 
 ## Známé problémy
 - **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
+- **Vlastní postava klienta reaguje se zpožděním** (cesta k hostu a zpět + ~100 ms interpolace). Na LAN skoro nepoznatelné, přes internet znatelné. Predikce vlastního pohybu je naplánovaná v M4 (PLAN.md D.4), architektura je připravená (`last_seq` ve snapshotu, sdílený `PlayerMotor`).
+- **Hostitel nemá zpoždění** (výhoda hostitele, PLAN.md M).
+- **Interpolace neextrapoluje:** při výpadku snapshotů postava stojí na poslední pozici.
 - **Knihovní Wi-Fi** (síť uživatele) používá rozsah 100.64.x.x a často blokuje provoz mezi zařízeními. Ověřovat raději doma nebo přes Tailscale.
 - **Velikost buildů:** Windows ZIP ~39 MB, macOS ZIP ~62 MB (dáno šablonami Godotu 4.7).
 - Ikona hry je výchozí ikona Godotu (vlastní přijde v M8).
@@ -67,7 +95,8 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 19/19 OK
+- **Unit testy:** 27/27 OK (+ kodek vstupů a snapshotů, podvržené pakety, přetečení seq, míření, interpolace)
+- **Dříve:** 19 testů
   - pohyb (8)
   - adresy (6)
   - handshake (5): kód hry, rozdělení adresy, shoda buildu a kódu, podvržené a nesmyslné zprávy
@@ -80,6 +109,12 @@
 - **Pohyb:** smoke testy se simulovanými klávesami (běh, skok, respawn, seskok, průskok plošiny).
   - Bug s dvojskokem: po opravě simulace v aréně dává 2 skoky ve všech scénářích (skok ze země, sejití a hned skok, sejití a skok po 10 snímcích).
   - Zoom 0,85 ověřen snímkem obrazovky.
+- **Společný zápas lokálně** (2 okna nebo 2 headless procesy, 127.0.0.1, macOS):
+  - start z lobby
+  - pozice obou hráčů na hostu a klientovi shodné po pohybu obou
+  - pád z arény a respawn synchronizovaný
+  - odchod klienta (host pokračuje s 1 hráčem) i hostitele (klient do menu s hláškou)
+  - trénink beze změny (scénáře skoků a seskoku)
 - **Export a CI:** 3 exporty lokálně i v CI OK. Stažený macOS build má správnou verzi, je podepsaný a spustí se.
 - **NETESTOVÁNO:**
   - Windows (exe, SmartScreen, firewall)

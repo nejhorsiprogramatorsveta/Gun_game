@@ -77,11 +77,18 @@ theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
 text = "LOBBY_SHARE_SAFETY"
 autowrap_mode = 3
 
-[node name="Status" type="Label" parent="Center/Column"]
+[node name="StatusLabel" type="Label" parent="Center/Column"]
+unique_name_in_owner = true
+auto_translate_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
-text = "LOBBY_MATCH_START_LATER"
 horizontal_alignment = 1
+
+[node name="StartButton" type="Button" parent="Center/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "LOBBY_START"
 
 [node name="LeaveButton" type="Button" parent="Center/Column"]
 unique_name_in_owner = true

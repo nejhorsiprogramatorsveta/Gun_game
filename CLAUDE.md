@@ -50,8 +50,9 @@ Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_fr
 src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
-src/net/connectors/{connector,enet_direct_connector}.gd, src/net/handshake.gd.
-Planned: src/net/{snapshot,lag_simulator}.gd, src/match/match_net.gd.
+src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,
+src/match/match_net.gd (only match RPCs), src/player/remote_interpolator.gd.
+Planned: src/net/lag_simulator.gd.
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Design decisions that override the original brief (details: docs/PLAN.md)

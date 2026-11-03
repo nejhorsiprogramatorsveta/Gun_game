@@ -132,7 +132,7 @@ To je ~20 B na hráče, pro 4 hráče s hlavičkou ~90 B. Při 30 Hz to dělá ~
 
 Proč 30 Hz: polovina ticku dává plynulou interpolaci s malou zátěží. 60 Hz by zdvojnásobilo provoz bez viditelného rozdílu, 20 Hz by zvětšilo interpolační zpoždění.
 
-**Kódování:** `PackedByteArray` s metodami `encode_*`/`decode_*`, vše v jednom souboru `snapshot.gd`.
+**Kódování:** `PackedByteArray` s metodami `encode_*`/`decode_*`, vše v jednom souboru `src/net/net_codec.gd` (implementováno v M2 kroku 4b).
 
 ### D.4 Latence, interpolace a predikce
 

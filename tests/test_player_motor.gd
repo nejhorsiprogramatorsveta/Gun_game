@@ -61,7 +61,14 @@ func test_run_accelerates_up_to_max_speed() -> void:
 	for i in 60:
 		v = _step(state, v, true, 1)
 	check_eq(v.x, stats.move_speed, "running reaches but does not exceed max speed")
-	check_eq(state.facing, 1, "facing follows input")
+	check_eq(state.facing, 1, "aiming right (default) faces right")
+
+
+func test_facing_follows_aim_not_movement() -> void:
+	var state := PlayerMotor.State.new()
+	var aim_left := InputFrame.aim_from_vector(Vector2.LEFT)
+	PlayerMotor.compute_velocity(Vector2.ZERO, true, InputFrame.create(1, 0, aim_left), state, stats, DT)
+	check_eq(state.facing, -1, "running right while aiming left faces left")
 
 
 func test_knockback_is_not_cancelled_instantly() -> void:

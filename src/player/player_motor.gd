@@ -15,7 +15,7 @@ class State:
 	var jumps_left: int = 0
 	var jump_buffer_timer: float = 0.0
 	var drop_timer: float = 0.0
-	## 1 = right, -1 = left. Also the shooting direction.
+	## 1 = right, -1 = left: the side the player aims at.
 	var facing: int = 1
 
 
@@ -31,8 +31,10 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	_update_timers(on_floor, just_pressed, state, stats, delta)
 
 	velocity.x = _horizontal(velocity.x, on_floor, input.move_x, stats, delta)
-	if input.move_x != 0:
-		state.facing = input.move_x
+	# The character looks where the player aims (mouse cursor), not where it runs.
+	var aim_x := InputFrame.aim_to_vector(input.aim).x
+	if absf(aim_x) > 0.01:
+		state.facing = 1 if aim_x > 0.0 else -1
 
 	if not on_floor:
 		velocity.y = minf(velocity.y + stats.gravity * delta, stats.max_fall_speed)

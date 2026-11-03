@@ -15,12 +15,15 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/core/build_info.gd` | verze a commit buildu (z `build_info.json`, který zapisuje CI), `PROTOCOL_VERSION` |
 | `src/core/content_db.gd` | načte `data/characters/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
 | `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `MatchRules`) |
-| `src/player/input_frame.gd` | vstup hráče za jeden tick (směr a bitmaska tlačítek). Od M2 se posílá hostu. |
+| `src/player/input_frame.gd` | vstup hráče za jeden tick: směr, tlačítka, úhel míření ke kurzoru (u16), pořadové číslo. Klienti ho posílají hostu. |
+| `src/player/remote_interpolator.gd` | plynulé zobrazení postav na klientovi: snapshoty se zpožděním 100 ms a prolínáním |
 | `src/player/player_motor.gd` | pohyb: běh, skok + dvojskok (počítadlo skoků do dopadu), buffer skoku, seskok z plošiny |
-| `src/player/player.gd/.tscn` | uzel postavy: propojuje vstup, data, pohyb a placeholder grafiku |
+| `src/player/player.gd/.tscn` | uzel postavy: na hostu `simulate()` z vstupu, na klientovi `receive_state()` ze snapshotu; jméno, barva slotu, čára zbraně |
 | `src/arenas/arena.gd` | základ arény: spawn body (`SpawnPoints/*`), `kill_rect`, kamera `Camera` (zoom 0,85 = velikost pohledu) |
 | `src/arenas/platform.gd` | obdélníková plošina (pevná nebo jednosměrná), nastavitelná v editoru |
-| `src/match/match_controller.gd` | průběh zápasu; v M1 lokální trénink s respawnem po pádu |
+| `src/match/match_controller.gd` | průběh zápasu pro trénink i síť: host simuluje všechny ze vstupů a posílá snapshoty 30 Hz, klient posílá vstupy 60 Hz; respawn, odchod hráčů |
+| `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, „loaded“, rate-limit |
+| `src/net/net_codec.gd` | binární formát vstupů a snapshotů s kontrolou velikosti, `seq_newer()` |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, chybové hlášky (`Session.last_end_message`) |
 | `src/ui/lobby.gd/.tscn` | lobby: seznam hráčů, u hostitele adresy ke sdílení s tlačítkem Kopírovat, Odejít |
 | `src/autoload/settings.gd` | **autoload `Settings`**: jméno a poslední adresa v `user://settings.cfg` |

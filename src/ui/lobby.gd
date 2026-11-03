@@ -1,8 +1,9 @@
 extends Control
 ## Lobby: who is connected and, for the host, which address to send to friends.
-## Starting a match is added in M2 step 4.
+## The host starts the match; every peer then switches to the match scene.
 
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
+const MATCH_PATH := "res://src/match/match.tscn"
 const ADDRESS_KIND_KEYS := {
 	&"tailscale": "LOBBY_ADDRESS_TAILSCALE",
 	&"lan": "LOBBY_ADDRESS_LAN",
@@ -15,12 +16,17 @@ const ADDRESS_KIND_KEYS := {
 @onready var _room_code_label: Label = %RoomCodeLabel
 @onready var _internet_hint: Label = %InternetHint
 @onready var _leave_button: Button = %LeaveButton
+@onready var _start_button: Button = %StartButton
+@onready var _status_label: Label = %StatusLabel
 
 
 func _ready() -> void:
 	Session.players_changed.connect(_refresh_players)
 	Session.ended.connect(func(_message: String) -> void: get_tree().change_scene_to_file.call_deferred(MAIN_MENU_PATH))
+	Session.phase_changed.connect(_on_phase_changed)
 	_leave_button.pressed.connect(Session.leave)
+	_start_button.pressed.connect(Session.start_match)
+	_start_button.visible = Session.is_host()
 	_share_section.visible = Session.is_host()
 	if Session.is_host():
 		_build_address_list()
@@ -40,6 +46,16 @@ func _refresh_players() -> void:
 		if id == multiplayer.get_unique_id():
 			text += " " + tr("LOBBY_YOU_TAG")
 		_player_list.add_child(_make_label(text))
+	_start_button.disabled = not Session.can_start_match()
+	if Session.is_host():
+		_status_label.text = "" if Session.can_start_match() else tr("LOBBY_NEED_PLAYERS").format({"min": Session.MIN_PLAYERS_TO_START})
+	else:
+		_status_label.text = tr("LOBBY_WAITING_FOR_HOST")
+
+
+func _on_phase_changed(phase: Session.Phase) -> void:
+	if phase == Session.Phase.IN_MATCH:
+		get_tree().change_scene_to_file.call_deferred(MATCH_PATH)
 
 
 func _build_address_list() -> void:

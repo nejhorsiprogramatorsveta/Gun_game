@@ -1,0 +1,75 @@
+extends Node
+## RPC layer of a network match – the only place with match RPCs (PLAN.md F.3).
+## Inputs go client -> host, snapshots host -> clients, both unreliable_ordered: a lost
+## packet is simply replaced by the next one, resending old state would only add delay.
+## Security (PLAN.md section S): sender identity comes from the network layer, packets are
+## size-checked in NetCodec and rate-limited per client.
+
+signal input_received(peer_id: int, frames: Array[InputFrame])
+signal snapshot_received(snapshot: Dictionary)
+
+## A legit client sends 60/s; anything far above is dropped.
+const MAX_INPUT_PACKETS_PER_SECOND := 150
+## Clients repeat "loaded" until the first snapshot arrives (the host may still be loading).
+const LOADED_RETRY_SECONDS := 0.5
+
+## Host: clients whose match scene is ready to receive snapshots.
+var _loaded_peers: Dictionary[int, bool] = {}
+var _packet_counts: Dictionary[int, int] = {}
+var _rate_window_start_ms := 0
+var _got_snapshot := false
+
+
+func _ready() -> void:
+	multiplayer.peer_disconnected.connect(func(id: int) -> void: _loaded_peers.erase(id))
+	if not multiplayer.is_server():
+		_announce_loaded()
+
+
+func send_input(data: PackedByteArray) -> void:
+	_receive_input.rpc_id(1, data)
+
+
+func broadcast_snapshot(data: PackedByteArray) -> void:
+	for peer_id in _loaded_peers:
+		_receive_snapshot.rpc_id(peer_id, data)
+
+
+func _announce_loaded() -> void:
+	while not _got_snapshot and is_inside_tree():
+		_client_loaded.rpc_id(1)
+		await get_tree().create_timer(LOADED_RETRY_SECONDS).timeout
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _client_loaded() -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if multiplayer.is_server() and Session.players.has(sender):
+		_loaded_peers[sender] = true
+
+
+@rpc("any_peer", "call_remote", "unreliable_ordered")
+func _receive_input(data: PackedByteArray) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if not multiplayer.is_server() or not _loaded_peers.has(sender) or _rate_exceeded(sender):
+		return
+	var frames := NetCodec.decode_input(data)
+	if not frames.is_empty():
+		input_received.emit(sender, frames)
+
+
+@rpc("authority", "call_remote", "unreliable_ordered")
+func _receive_snapshot(data: PackedByteArray) -> void:
+	var snapshot := NetCodec.decode_snapshot(data)
+	if not snapshot.is_empty():
+		_got_snapshot = true
+		snapshot_received.emit(snapshot)
+
+
+func _rate_exceeded(peer_id: int) -> bool:
+	var now := Time.get_ticks_msec()
+	if now - _rate_window_start_ms >= 1000:
+		_rate_window_start_ms = now
+		_packet_counts.clear()
+	_packet_counts[peer_id] = _packet_counts.get(peer_id, 0) + 1
+	return _packet_counts[peer_id] > MAX_INPUT_PACKETS_PER_SECOND

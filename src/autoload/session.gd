@@ -12,9 +12,10 @@ signal players_changed
 ## (message is then empty). The message is already translated for the UI.
 signal ended(message: String)
 
-enum Phase { OFFLINE, CONNECTING, LOBBY }
+enum Phase { OFFLINE, CONNECTING, LOBBY, IN_MATCH }
 
 const MAX_PLAYERS := 4
+const MIN_PLAYERS_TO_START := 2
 const MAX_NAME_LENGTH := 16
 const CONNECT_TIMEOUT := 10.0
 ## Host drops peers that do not finish the handshake in time.
@@ -29,6 +30,8 @@ var players: Dictionary[int, Dictionary] = {}
 ## scene change. The menu clears it once shown.
 var last_end_message := ""
 var host_port := EnetDirectConnector.DEFAULT_PORT
+## peer_id -> slot (0..3) of the running match; identical on all peers.
+var match_slots: Dictionary[int, int] = {}
 ## Host: secret that friends need to join (sent along with the address as "ip:port#CODE").
 var room_code := ""
 
@@ -66,6 +69,28 @@ func _notification(what: int) -> void:
 
 func is_host() -> bool:
 	return phase != Phase.OFFLINE and multiplayer.is_server()
+
+
+func can_start_match() -> bool:
+	return is_host() and phase == Phase.LOBBY and players.size() >= MIN_PLAYERS_TO_START
+
+
+## Host: starts the match for everyone in the lobby (slots by peer id, host = slot 0).
+func start_match() -> void:
+	if not can_start_match():
+		return
+	var ids := players.keys()
+	ids.sort()
+	var slots := {}
+	for i in ids.size():
+		slots[ids[i]] = i
+	_begin_match.rpc(slots)
+
+
+@rpc("authority", "call_local", "reliable")
+func _begin_match(slots: Dictionary) -> void:
+	match_slots.assign(slots)
+	_set_phase(Phase.IN_MATCH)
 
 
 ## Addresses the host can share with friends, each including the room code
@@ -129,6 +154,7 @@ func _close(message: String) -> void:
 	_connector.close()
 	room_code = ""
 	players.clear()
+	match_slots.clear()
 	_pending_names.clear()
 	_rejected_peers.clear()
 	players_changed.emit()
