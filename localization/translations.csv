@@ -52,3 +52,12 @@ RESULTS_PLACE,{place}. {name}
 RESULTS_BACK,Zpět do lobby
 RESULTS_AUTO_RETURN,Návrat do lobby za {seconds} s
 RESULTS_WAITING,"Hostitel vás za chvíli vrátí do lobby…"
+UPDATE_AVAILABLE,"Je dostupná nová verze {version}. Stáhnout? Hra se pak sama restartuje."
+UPDATE_BUILD,sestavení {build}
+UPDATE_INSTALL,Aktualizovat
+UPDATE_LATER,Později
+UPDATE_MANUAL,Stáhnout ručně
+UPDATE_DOWNLOADING,Stahuji aktualizaci…
+UPDATE_FAILED_DOWNLOAD,"Aktualizaci se nepodařilo stáhnout (zkontroluj internet). Můžeš ji stáhnout ručně."
+UPDATE_FAILED_VERIFY,"Stažený soubor nesouhlasí s kontrolním otiskem, aktualizace byla zrušena. Zkus to později nebo stáhni hru ručně."
+UPDATE_FAILED_INSTALL,"Hru se nepodařilo nahradit. Přesuň ji do složky, kam smíš zapisovat (Windows: Plocha nebo Dokumenty, Mac: Aplikace), nebo ji stáhni ručně."

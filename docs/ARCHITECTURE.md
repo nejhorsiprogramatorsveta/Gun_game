@@ -13,6 +13,7 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | Soubor | Odpovědnost |
 |---|---|
 | `src/core/build_info.gd` | verze a commit buildu (z `build_info.json`, který zapisuje CI), `PROTOCOL_VERSION` |
+| `src/core/updater.gd` | automatické aktualizace: `version.json` z GitHubu, stažení, SHA-256, výměna exe/.app, restart, úklid |
 | `src/core/content_db.gd` | načte `data/characters/*.tres`, `data/weapons/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
 | `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `WeaponData`, `MatchRules`) |
 | `src/player/input_frame.gd` | vstup hráče za jeden tick: směr, tlačítka, úhel míření ke kurzoru (u16), pořadové číslo. Klienti ho posílají hostu. |

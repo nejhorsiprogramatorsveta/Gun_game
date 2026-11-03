@@ -15,6 +15,15 @@ const INFO_COLOR := Color(0.75, 0.78, 0.85)
 @onready var _quit_button: Button = %QuitButton
 @onready var _status_label: Label = %StatusLabel
 @onready var _version_label: Label = %VersionLabel
+@onready var _update_panel: PanelContainer = %UpdatePanel
+@onready var _update_label: Label = %UpdateLabel
+@onready var _update_progress: ProgressBar = %UpdateProgress
+@onready var _update_button: Button = %UpdateButton
+@onready var _update_later_button: Button = %UpdateLaterButton
+
+var _updater := Updater.new()
+## After a failed update the button opens the download page instead.
+var _manual_download := false
 
 
 func _ready() -> void:
@@ -32,6 +41,46 @@ func _ready() -> void:
 	_show_status(Session.last_end_message, ERROR_COLOR)
 	Session.last_end_message = ""
 	_practice_button.grab_focus()
+	_setup_updater()
+
+
+func _setup_updater() -> void:
+	add_child(_updater)
+	if not _updater.is_supported():
+		return
+	Updater.cleanup_old_files()
+	_updater.update_available.connect(_on_update_available)
+	_updater.download_progress.connect(func(fraction: float) -> void: _update_progress.value = fraction)
+	_updater.failed.connect(_on_update_failed)
+	_update_button.pressed.connect(_on_update_pressed)
+	_update_later_button.pressed.connect(_update_panel.hide)
+	_updater.check()
+
+
+func _on_update_available(info: Dictionary) -> void:
+	_update_label.text = tr("UPDATE_AVAILABLE").format({"version": "%s (%s)" % [info.version, tr("UPDATE_BUILD").format({"build": info.build})]})
+	_update_panel.show()
+
+
+func _on_update_pressed() -> void:
+	if _manual_download:
+		OS.shell_open(Updater.DOWNLOADS_PAGE_URL)
+		return
+	_update_button.disabled = true
+	_update_later_button.disabled = true
+	_update_progress.show()
+	_update_label.text = tr("UPDATE_DOWNLOADING")
+	_updater.download_and_install()
+
+
+func _on_update_failed(message: String) -> void:
+	_manual_download = true
+	_update_progress.hide()
+	_update_label.text = message
+	_update_button.text = "UPDATE_MANUAL"
+	_update_button.disabled = false
+	_update_later_button.disabled = false
+	_update_panel.show()
 
 
 func _on_host_pressed() -> void:

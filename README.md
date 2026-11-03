@@ -12,6 +12,7 @@ Rychlá 2D plošinovková střílečka pro 2–4 hráče. Zásahy soupeře neub�
 | macOS (Apple Silicon i Intel) | [gun_game-macos.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-macos.zip) |
 | Linux | [gun_game-linux.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-linux.zip) |
 
+- **Automatické aktualizace:** když vyjde nová verze, hra ji po spuštění sama nabídne v menu (*Aktualizovat*), stáhne a restartuje se. Ručně je potřeba stáhnout jen první verzi s touto funkcí.
 - Všechny vývojové buildy: [releases/tag/dev](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/tag/dev). Tento build se aktualizuje po každé změně.
 - Stabilní verze: [releases/latest](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest) (od `v0.1.0`).
 

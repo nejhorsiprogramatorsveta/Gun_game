@@ -90,6 +90,24 @@ jobs:
           (cd build/linux && zip -9 -r "../../dist/${GAME_NAME}-linux.zip" .)
           ls -la dist
 
+      - name: Write update manifest (version.json)
+        # Read by the in-game updater (src/core/updater.gd): newest build + file checksums.
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then release="$GITHUB_REF_NAME"; else release="dev"; fi
+          base="https://github.com/${{ github.repository }}/releases/download/${release}"
+          python3 - "$base" <<'PY'
+          import hashlib, json, sys
+          base = sys.argv[1]
+          info = json.load(open("build_info.json"))
+          files = {}
+          for platform, name in [("windows", "gun_game-windows.exe"), ("macos", "gun_game-macos.zip"), ("linux", "gun_game-linux.zip")]:
+              sha = hashlib.sha256(open("dist/" + name, "rb").read()).hexdigest()
+              files[platform] = {"url": f"{base}/{name}", "sha256": sha}
+          manifest = {"version": info["version"], "build": info["build"], "channel": info["channel"], "files": files}
+          json.dump(manifest, open("version.json", "w"), indent=2)
+          PY
+          cat version.json
+
       - name: Release notes
         run: |
           cat > notes.md <<EOF
@@ -117,6 +135,8 @@ jobs:
           fi
           gh release edit dev --prerelease --title "Nejnovější vývojová verze" --notes-file notes.md
           gh release upload dev dist/* --clobber
+          # The manifest goes last, so the updater never sees it before the new files exist.
+          gh release upload dev version.json --clobber
           # Older builds shipped Windows as a ZIP; remove it so nobody downloads a stale copy.
           gh release delete-asset dev "${GAME_NAME}-windows.zip" --yes || true
 
@@ -126,3 +146,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" dist/* --title "${GAME_NAME} ${GITHUB_REF_NAME}" --notes-file notes.md --generate-notes
+          gh release upload "$GITHUB_REF_NAME" version.json

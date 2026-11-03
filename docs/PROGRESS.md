@@ -1,22 +1,18 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M3 je hotový a vydaný jako `v0.1.0`** (tag a stabilní release na GitHubu). První hratelná verze:
-- lobby → zápas (odpočet, 5 životů, nezranitelnost po respawnu, vypadávání) → výsledky → stejné lobby
+**M3U (automatické aktualizace) je hotový, otestovaný na Macu, commitnutý a pushnutý.**
+- **Pozor:** verze bez aktualizátoru (0.1.0, sestavení 23–24) si hráči musí **naposledy stáhnout ručně**. Od verze s aktualizátorem se nabídka objeví sama.
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M3U: automatické aktualizace** (PLAN.md I.8).
-- **CI:** `version.json` (`build_id`, `version`, `build`, `protocol`, URL a SHA-256 pro každý systém) do release `dev` i stabilních releasů.
-- **`src/core/updater.gd`:**
-  - v menu stáhne `version.json` (HTTPRequest)
-  - při jiném `build_id` nabídne aktualizaci
-  - stažení s průběhem a ověření SHA-256
-  - **Windows:** přejmenovat běžící exe na `.old`, nový na jeho místo, `OS.create_process`, ukončit se, při startu smazat `.old`
-  - **macOS:** ZIP → `ZIPReader` → výměna `.app`, jinak záložně otevřít stránku ke stažení
-- **Bezpečnost (PLAN.md S):** jen pevná HTTPS adresa repa, SHA-256. Zvážit podpis `version.json` (RSA, klíč v GitHub Secrets). Klíč musí vytvořit a vložit uživatel, nebo se to odloží.
-- **Testy:** lokální falešný `version.json`, špatný hash, bez internetu.
-- **Pak M4:** predikce vlastního pohybu.
+**M4: predikce vlastního pohybu klienta** (PLAN.md D.4). Měření: reakce 96–295 ms podle připojení.
+- Klient simuluje vlastní postavu hned ze svého vstupu stejným `PlayerMotor` (sdílený kód s hostem) a ukládá historii vstupů a stavů podle `seq`.
+- Po snapshotu (`last_seq` už se posílá) nastaví stav podle hostu a přehraje nepotvrzené vstupy (reconciliation). Malé rozdíly vyhladí vizuálním offsetem.
+- Knockback, respawn a odpočet přicházejí z hostu jako korekce.
+- Na klientovi potřebuje vlastní postava kolize se světem: projít `Player`, aby predikovaná postava mohla běžet `move_and_slide`, ostatní zůstávají interpolované.
+- **Test:** `--fake-lag=100/200`. Cíl: reakce vlastní postavy ~1 snímek, malé a plynulé korekce. Měřit stejným skriptem jako v M2.
+- **Zvážit potom:** vydat `v0.2.0` (M3U + M4).
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -61,6 +57,18 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-03, M3U automatické aktualizace:**
+  - **`src/core/updater.gd`:**
+    - po spuštění menu stáhne `version.json` (dev → `releases/download/dev`, stable → `releases/latest/download`)
+    - při vyšším čísle sestavení nabídne aktualizaci, stáhne ji s průběhem vedle hry a ověří SHA-256
+    - vymění se: Windows a Linux přejmenováním běžícího souboru na `.old`, Mac výměnou `.app` z ZIPu (bez zápisu mimo složku)
+    - restartuje se
+    - při startu uklidí `.old` a nedokončená stažení
+    - při chybě nabídne „Stáhnout ručně“
+  - **Bezpečnost:** jen adresy releasů tohoto repa, kontrola SHA-256 a velikosti manifestu, stará verze zůstává při jakékoli chybě
+  - **Zapnutí:** jen v exportech z CI (ne v editoru). Debug přepínač `-- --update-test=URL` pro testy.
+  - **CI:** generuje `version.json` (verze, sestavení, kanál, URL a SHA-256 pro každý systém) a nahraje ho až po souborech hry
+  - **Menu:** panel aktualizace. 9 nových textů. `tests/test_updater.gd` (5 testů).
 - **2026-11-03, M3 krok 2 + `v0.1.0`:**
   - **Snapshot:** odpočet, životy, nezranitelnost (`PROTOCOL_VERSION` 3)
   - **`Session`:** fáze `RESULTS`, `end_match()`, `return_to_lobby()`
@@ -130,7 +138,7 @@
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
-- **Každá změna hry = nová verze:** všichni hráči si musí stáhnout stejný build (kontrola verze). Dokumentace už build nemění.
+- **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
 - **`session.gd` má 306 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
 - **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
 - **Vlastní postava klienta reaguje se zpožděním** (cesta k hostu a zpět + 40 ms interpolace, změřeno viz Stav testů). Na LAN skoro nepoznatelné, přes internet znatelné. Predikce vlastního pohybu je naplánovaná v M4 (PLAN.md D.4), architektura je připravená (`last_seq` ve snapshotu, sdílený `PlayerMotor`).
@@ -144,7 +152,8 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 37/37 OK (+ snapshot s životy a odpočtem)
+- **Unit testy:** 42/42 OK (+ updater: manifest, výměna souboru, obnova při chybě, Linux ZIP, Mac `.app` a ochrana proti `..` v ZIPu)
+- **Dříve:** 37/37 OK (+ snapshot s životy a odpočtem)
 - **Dříve:** 37/37 OK (+ souboj a odhoz po zemi)
 - **Dříve:** 30/30 OK (+ LagSimulator)
 - **Dříve:** 27/27 OK (+ kodek vstupů a snapshotů, podvržené pakety, přetečení seq, míření, interpolace)
@@ -167,6 +176,12 @@
   - pád z arény a respawn synchronizovaný
   - odchod klienta (host pokračuje s 1 hráčem) i hostitele (klient do menu s hláškou)
   - trénink beze změny (scénáře skoků a seskoku)
+- **Aktualizace end-to-end na Macu** (export debug „sestavení 1“ + lokální server s „sestavením 2“):
+  - stažení, ověření a výměna `.app`
+  - restart spustí novou verzi ze stejného místa (opravena chyba: Mac po přejmenování hlásil cestu ke staré kopii)
+  - nová verze smaže `.app.old`
+  - **Špatný otisk:** nic se nevymění, stažený soubor se smaže
+  - **Windows a Linux výměna neotestována** (odložené testy na Windows). Rizika: antivirus, složka bez práva zápisu.
 - **Celý zápas (M3 krok 2, 2 okna na Macu, i s `--fake-lag=100` u klienta):**
   - odpočet: klient se nepohne (0 px)
   - pád: 4 životy a nezranitelnost
@@ -198,6 +213,8 @@
   - síť mezi dvěma počítači a přes Tailscale
 
 ## Rozhodnutí
+- **Aktualizace jen na vyšší číslo sestavení a jen ze stejného kanálu** (dev/stable). Manifest se nahrává poslední. Restart používá cestu zapamatovanou před výměnou.
+- **Podpis `version.json` zatím není:** vyžaduje klíč v GitHub Secrets od uživatele. Integritu zajišťuje SHA-256 a HTTPS z GitHubu tohoto repa.
 - **Licence PolyForm Noncommercial 1.0.0** místo MIT (uživatel 2026-11-03): stahovat, hrát a upravovat smí každý, prodávat ani vydělávat nesmí nikdo. Pull requesty slučuje jen uživatel.
 - **Číslo sestavení místo kódu commitu** (uživatel nerozuměl kódům): hráči porovnávají „sestavení N“. Číslo jen roste, což se hodí i pro automatické aktualizace.
 - **Celá hra v pixel artu včetně map** (uživatel 2026-11-03). Mapy kompozicí jako reference 2 (plovoucí ostrov, vesmír), ale víc pater. **Postavy mají animace:** klid, běh, skok, pád, seskok, střelba, zásah, schopnost (PLAN.md Q).

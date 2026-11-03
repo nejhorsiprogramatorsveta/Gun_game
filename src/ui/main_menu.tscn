@@ -79,6 +79,56 @@ layout_mode = 2
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="UpdatePanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -150.0
+offset_right = 300.0
+offset_bottom = -56.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Box" type="VBoxContainer" parent="UpdatePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="UpdateLabel" type="Label" parent="UpdatePanel/Box"]
+unique_name_in_owner = true
+auto_translate_mode = 2
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="UpdateProgress" type="ProgressBar" parent="UpdatePanel/Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+max_value = 1.0
+
+[node name="Buttons" type="HBoxContainer" parent="UpdatePanel/Box"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="UpdateButton" type="Button" parent="UpdatePanel/Box/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+text = "UPDATE_INSTALL"
+
+[node name="UpdateLaterButton" type="Button" parent="UpdatePanel/Box/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+text = "UPDATE_LATER"
+
 [node name="VersionLabel" type="Label" parent="."]
 unique_name_in_owner = true
 auto_translate_mode = 2
