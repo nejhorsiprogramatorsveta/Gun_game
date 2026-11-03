@@ -574,10 +574,10 @@ URL `github.com/<user>/<repo>/releases/latest` vždy vede na **nejnovější sta
 ### I.6 Zdrojový kód vs. hratelný ZIP
 Zelené tlačítko „Code → Download ZIP“ a „Source code (zip)“ u releasů jsou **zdrojáky**, které bez Godotu nespustíš. Kamarádi stahují soubory **`gun_game-<systém>.zip`** ze sekce *Assets*. README to bude zdůrazňovat přímými odkazy.
 
-### I.7 Licence
-- **Kód:** MIT.
-- **Vlastní grafika a zvuky:** CC BY 4.0, uvedeno v `CREDITS.md` a `LICENSE-ASSETS`.
-- Cizí assety jen s kompatibilní licencí, vždy se zdrojem v `CREDITS.md`.
+### I.7 Licence (ZMĚNA 2026-11-03 na přání uživatele)
+- **Celý projekt (kód i vlastní grafika a zvuky): PolyForm Noncommercial 1.0.0.** Stahovat, hrát, upravovat a sdílet smí kdokoli, ale jen nekomerčně. Prodej a výdělek jsou zakázané. Původní MIT nahrazeno.
+- Cizí assety jen s kompatibilní licencí, vždy se zdrojem v `CREDITS.md` (Noto Sans OFL, Godot MIT).
+- Kdo si stáhl starší verzi pod MIT (do `v0.1.0` včetně), smí ji podle MIT dál používat. Změna platí pro nové verze.
 
 ### I.8 Automatické aktualizace (ZADÁNÍ UŽIVATELE 2026-11-03, milník M3U)
 **Cíl:** hráči nemusí po každé změně ručně stahovat hru a znovu ji povolovat. Hra po spuštění sama zjistí, že na GitHubu je nová verze, nabídne aktualizaci, stáhne ji a restartuje se. Tím zmizí i chyba „Máš jinou verzi hry“.

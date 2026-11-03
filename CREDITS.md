@@ -1,6 +1,6 @@
 # Credits a licence assetů
 
-Každý cizí asset musí mít v tomto souboru uvedený zdroj a licenci. Vlastní grafika a zvuky projektu budou pod licencí CC BY 4.0.
+Každý cizí asset musí mít v tomto souboru uvedený zdroj a licenci. Vlastní kód, grafika a zvuky projektu jsou pod licencí PolyForm Noncommercial 1.0.0 (soubor `LICENSE`): jen nekomerční použití.
 
 | Asset | Soubor | Autor / zdroj | Licence |
 |---|---|---|---|

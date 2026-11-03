@@ -94,5 +94,5 @@ tools/godot --path . -- --fake-lag=100 --fake-loss=5            # test: simulace
 
 ## Licence
 
-- Kód: [MIT](LICENSE)
-- Cizí assety a jejich licence: [CREDITS.md](CREDITS.md)
+- **Hra a kód:** [PolyForm Noncommercial 1.0.0](LICENSE). Hru i kód smíš zdarma stahovat, hrát, upravovat a sdílet, ale **jen nekomerčně**. Prodávat je nebo na nich jinak vydělávat je zakázáno.
+- Cizí části mají vlastní licence (font Noto Sans: OFL, engine Godot: MIT), viz [CREDITS.md](CREDITS.md).

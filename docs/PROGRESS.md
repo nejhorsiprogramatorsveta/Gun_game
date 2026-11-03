@@ -198,6 +198,7 @@
   - síť mezi dvěma počítači a přes Tailscale
 
 ## Rozhodnutí
+- **Licence PolyForm Noncommercial 1.0.0** místo MIT (uživatel 2026-11-03): stahovat, hrát a upravovat smí každý, prodávat ani vydělávat nesmí nikdo. Pull requesty slučuje jen uživatel.
 - **Číslo sestavení místo kódu commitu** (uživatel nerozuměl kódům): hráči porovnávají „sestavení N“. Číslo jen roste, což se hodí i pro automatické aktualizace.
 - **Celá hra v pixel artu včetně map** (uživatel 2026-11-03). Mapy kompozicí jako reference 2 (plovoucí ostrov, vesmír), ale víc pater. **Postavy mají animace:** klid, běh, skok, pád, seskok, střelba, zásah, schopnost (PLAN.md Q).
 - **Automatické aktualizace** (zadání 2026-11-03, PLAN.md I.8, milník M3U hned po M3): hra po spuštění porovná svůj `build_id` s `version.json` na GitHubu, nabídne aktualizaci, stáhne ji (ověření SHA-256, doporučený podpis) a restartuje se. Windows záměnou exe, macOS výměnou `.app` se záložní cestou.
