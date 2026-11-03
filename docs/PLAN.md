@@ -398,6 +398,43 @@ Cíl: přes hru se nikdo nesmí jednoduše dostat do počítače hráče ani do 
 - **Windows Firewall:** při dotazu povolit hru pro **soukromé sítě**. Veřejné sítě (kavárna, knihovna) povolovat nedoporučujeme.
 - **Připojení kódem přes relay (M7):** skryje IP hostitele před ostatními hráči. Další bezpečnostní přínos tohoto kroku.
 
+## T. Lobby a průběh zápasů (ZADÁNÍ UŽIVATELE 2026-11-03)
+
+**Cíl:** jednou vytvořené lobby slouží pro libovolný počet zápasů. Hráči nemusí po každé hře zakládat novou.
+
+### T.1 Smyčka hry
+```
+Menu → Hostovat/Připojit → LOBBY ──(host: Začít zápas)──► ZÁPAS ──(konec)──► VÝSLEDKY ──(automaticky / tlačítko)──► LOBBY ↺
+```
+- **Po konci zápasu:** všichni uvidí obrazovku výsledků (pořadí, zbývající životy). Pak se **vrátí do stejného lobby** po ~8 s nebo dřív tlačítkem *Zpět do lobby*.
+- **Session se nezavírá.** Spojení, kód hry, seznam hráčů i jejich výběr postav zůstávají. Hostitel může hned spustit další zápas.
+- Hráč, který se odpojí během zápasu, v lobby chybí. Nový hráč se může připojit jen v lobby (během zápasu ho handshake odmítne, `ERROR_MATCH_IN_PROGRESS`).
+- **Esc v zápase:**
+  - klient opustí session
+  - hostitel dostane volbu „Ukončit zápas pro všechny“ (návrat do lobby), nebo „Opustit hru“
+- **Technicky:** `Session` dostane fázi `RESULTS`. Host pošle reliable RPC `match_ended(results)` a po návratu `_return_to_lobby()`, obě změní fázi u všech. Lobby scéna se načte znovu ze stavu `Session`, nic se nezakládá znovu.
+
+### T.2 Výběr postavy a mapy v lobby
+- **Postava:** každý hráč si v lobby vybere postavu z nabídky (karty se jménem, popisem, 2 zbraněmi a schopností z `CharacterData`).
+  - Klient pošle hostu žádost `request_character(id)`. Host ověří, že postava existuje v `ContentDB`, uloží ji a rozešle.
+  - Mohou mít dva hráči stejnou postavu? Výchozí návrh: **ano** (rozlišení barvou slotu). Rozhodne uživatel.
+- **Mapa (aréna):** vybírá **hostitel** v lobby. Ostatní výběr vidí. Volitelně později možnost „náhodná“.
+- **Připraven/a:** později volitelné tlačítko *Připraven* u každého hráče. Host pak může začít, až jsou všichni připraveni.
+- **Data:**
+  - `Session.players[peer] = {"name", "character"}` (host rozesílá jako dnes)
+  - `Session.lobby_settings = {"arena": id}`
+  - `start_match()` pošle sloty, postavy a arénu v jedné zprávě `_begin_match`
+- **Obsah:**
+  - `data/arenas/*.tres` (`ArenaData`: `id`, `name_key`, `scene`, náhled)
+  - `data/characters/*.tres` (4 postavy dle G.0)
+  - `ContentDB` vrací seznamy pro výběr
+- **Bezpečnost (sekce S):** výběr je jen žádost. Host ověřuje id proti `ContentDB` a fázi (jen v lobby). Neznámé id ignoruje.
+
+### T.3 Zařazení do roadmapy
+- **M3:** výsledky, návrat do lobby, opakované zápasy (T.1)
+- **M5:** výběr postavy v lobby (T.2)
+- **M6:** výběr mapy hostitelem (T.2), 2–3 arény
+
 ## G. Postavy a schopnosti
 
 ### G.0 Zadání uživatele (2026-11-03), má přednost před G.3
@@ -623,7 +660,7 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Akceptace:** 2 hráči na různých počítačích přes internet vidí plynulý pohyb toho druhého. Neshoda verzí dá jasnou hlášku.
 
 ### M3 – Souboj = MVP *(vysoká)*
-- **Funkce:** pistole, projektily (raycast na hostu, vizuální kopie na klientech), knockback a recoil, `kill_rect`, životy, respawn s nezranitelností, odpočet, konec zápasu, výsledky, návrat do lobby, HUD (životy), návod „Jak hrát s kamarády“ v README a na release stránce.
+- **Funkce:** pistole, projektily (raycast na hostu, vizuální kopie na klientech), knockback a recoil, `kill_rect`, životy, respawn s nezranitelností, odpočet, konec zápasu, výsledky, **návrat do stejného lobby a opakované zápasy bez nového hostování (sekce T.1)**, HUD (životy), návod „Jak hrát s kamarády“ v README a na release stránce.
 - **Testy:** unit testy `combat_rules` a `snapshot`; konzistence knockbacku (host i klient vidí stejný výsledek); podvržené vstupy (rychlá palba se ignoruje); **zápas přes internet s kamarádem Windows↔Windows** (Windows↔macOS volitelně).
 - **Akceptace:** celý herní cyklus přes internet. Vydat tag **`v0.1.0`**.
 
@@ -633,12 +670,12 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Akceptace:** při ~100 ms se vlastní postava ovládá bez znatelného zpoždění a korekce nejsou rušivé.
 
 ### M5 – Postavy a schopnosti *(střední)*
-- **Funkce:** `AbilityData` a 3 podtřídy, 3 postavy, výběr postavy v lobby (validuje host), cooldown v HUD, `EDITING_GUIDE.md`.
+- **Funkce:** `AbilityData` a podtřídy, **4 postavy se 2 zbraněmi a přepínáním (G.0)**, **výběr postavy v lobby (T.2, validuje host)**, cooldown v HUD, `EDITING_GUIDE.md`.
 - **Testy:** unit test cooldownu; spam aktivace z klienta host ignoruje; schopnosti fungují online; kontrola lokalizace.
 - **Akceptace:** novou postavu jde přidat jen přes `.tres` a CSV (vyzkoušíme).
 
 ### M6 – Obsah: zbraně, arény, 4 hráči *(střední)*
-- **Funkce:** 3–4 další zbraně (brokovnice, kulomet, sniperka) jako bedny spawnované hostem; 2 další arény; výběr arény hostem; 3–4 hráči.
+- **Funkce:** další zbraně a doladění balancu (SMG až sniper, G.0); 2 další arény (`ArenaData`); **výběr mapy hostitelem v lobby (T.2)**; 3–4 hráči.
 - **Testy:** 4 hráči online (aspoň 2 přes internet); profilace výkonu na slabším notebooku a Macu.
 - **Akceptace:** 4 hráči hrají plynule, ~60 FPS. Vydat `v0.2.0`.
 

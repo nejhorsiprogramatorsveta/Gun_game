@@ -49,6 +49,11 @@ RPC se v Godotu párují podle indexu metody, proto by RPC handshake mezi různ�
 - `allow_object_decoding` zůstává `false`. Zprávy handshaku jsou omezené na 512 B a dekódují se bez objektů.
 - Hra neotevírá žádné porty v routeru a nesdílí veřejnou IP. Internet jde přes Tailscale, lobby nabízí jen Tailscale a LAN adresy.
 
+## Plánovaný průběh (PLAN.md, sekce T)
+- **Smyčka:** lobby → zápas → výsledky → **zpět do stejného lobby**. Session se nezavírá, nové hostování není potřeba.
+- **V lobby:** každý hráč si vybírá postavu (host ji ověří), hostitel vybírá mapu.
+- **Zatím neimplementováno:** návrat do lobby přijde v M3, výběr postavy v M5, výběr mapy v M6.
+
 ## Kolizní vrstvy
 1 `world` (pevné plošiny) · 2 `platform_oneway` · 3 `players` · 4 `projectiles` (od M3)
 

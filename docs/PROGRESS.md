@@ -16,6 +16,7 @@
   - reliable události v `match_net.gd`: `projectile_spawned(id, pos, aim, weapon)` → klienti simulují jen vizuálně, `projectile_removed(id)` při zásahu nebo zdi
   - knockback se projeví přes snapshot
   - validace: střílet může jen host podle vstupu, žádné RPC „vystřel“ od klienta
+- Pozn.: M3 krok 2 musí podle PLAN.md T.1 vracet hráče po výsledcích do stejného lobby.
 - **Test:** unit testy `combat_rules`; dvě okna lokálně (zásah odhodí soupeře na obou obrazovkách); `--fake-lag=100`.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
@@ -144,6 +145,7 @@
   - síť mezi dvěma počítači a přes Tailscale
 
 ## Rozhodnutí
+- **Lobby se po zápase vrací** (zadání 2026-11-03, PLAN.md T): výsledky → stejné lobby, žádné nové hostování. **V lobby se vybírá postava (každý) a mapa (hostitel).** Zatím jen v plánu: návrat v M3, postavy v M5, mapy v M6. Otevřená otázka: smí mít dva hráči stejnou postavu? (návrh: ano)
 - **Internet = Tailscale** (uživatel 2026-11-03): zdarma pro až 6 uživatelů, Windows, macOS i Linux.
   - Hamachi zamítnuto: jen 5 členů a Linux jen v příkazové řádce.
   - UPnP odstraněno kvůli bezpečnosti a skrytí IP.
