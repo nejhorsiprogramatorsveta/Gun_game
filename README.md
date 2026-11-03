@@ -73,14 +73,6 @@ U každé nové verze se tento postup opakuje.
 - **Všichni musí mít stejnou verzi hry.** Hra jinak sama napíše, že se verze liší.
 - **Kód hry se mění při každém hostování.** Pošli vždy novou adresu.
 
-## Bezpečnost
-
-- **Hra neotevírá žádné porty v routeru** a nikde neukazuje tvoji skutečnou IP adresu. Pro hru přes internet slouží Tailscale, takže se k tvému počítači dostane jen ten, s kým ho sdílíš.
-- **Kód hry:** adresa obsahuje náhodný kód (např. `#K7Q2MX`). Bez něj se nikdo nepřipojí. Kód se mění při každém hostování.
-- **Sdílej počítač v Tailscale jen s kamarády,** kterým věříš, a nech zapnutý firewall. Sdílení můžeš kdykoli zrušit na stránce *Machines*.
-- **Hru stahuj jen z [GitHub Releases](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases)** tohoto projektu, nikdy ne jako exe poslané v chatu. Hra nikdy nepotřebuje práva správce.
-- Pro úplnost: Tailscale se snaží spojit počítače napřímo, takže technicky zdatný kamarád by v pokročilých údajích Tailscale tvoji IP dohledat mohl. Ve hře ani v běžném okně aplikace ale vidět není.
-
 ## Vývoj
 
 Potřebuješ jen git a bash (macOS nebo Linux). Godot se stáhne do projektu, nic se neinstaluje do systému.

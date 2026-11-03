@@ -47,7 +47,7 @@
 - **2026-11-03, Tailscale místo UPnP (rozhodnutí uživatele):**
   - odstraněn `src/net/upnp_helper.gd` a UPnP z konektoru, `Session` a lobby
   - `share_addresses()` vrací jen Tailscale a LAN, Tailscale se na Windows pozná podle „friendly“ názvu rozhraní
-  - README: návod Tailscale a sekce Bezpečnost
+  - README: návod Tailscale (sekce Bezpečnost později na přání uživatele odstraněna)
   - PLAN.md: sekce S a M7 je volitelný
 - **2026-11-03, plán postav:** 4 postavy, 2 přepínatelné zbraně a schopnost (PLAN.md G.0).
 - **2026-11-03, M2 krok 4a:** handshake přesunut do `src/net/handshake.gd`, testy `tests/test_handshake.gd`.
@@ -111,6 +111,7 @@
 - **ENet `MAX_CLIENTS = 4`** (o 1 víc než hráčů): klient navíc dostane hlášku „Hra je plná“.
 - **`PlayerMotor.compute_velocity()` bez vedlejších efektů:** testovatelné, připravené na predikci. `InputFrame` nese jen držená tlačítka.
 - **Skoky jako počítadlo (2 skoky do dopadu) místo coyote time:** po sejití i po odhození má hráč vždy oba skoky. Oprava bugu nahlášeného uživatelem.
+- **README neobsahuje sekci o bezpečnosti** (přání uživatele 2026-11-03, aby nikoho nenabádala). Bezpečnostní pravidla zůstávají interně v PLAN.md, sekce S.
 - **Velikost pohledu = zoom `Camera2D` v aréně** (0,85): každá aréna si může nastavit vlastní.
 - **Knockback nad max. rychlostí brzdí jen tření.**
 - **Vlastní mini test runner** místo GUT. **Lokalizační klíče se hledají regexem.**
