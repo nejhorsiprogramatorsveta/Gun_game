@@ -7,19 +7,16 @@
 - Necommitnuté soubory: žádné.
 
 ## Další krok
-**M2 krok 5: `LagSimulator` a test na dvou počítačích.**
+**M2 krok 5: `LagSimulator`** (test se skutečným druhým hráčem uživatel odložil, viz ODLOŽENO).
 - `src/net/lag_simulator.gd`: debug zpoždění a ztráta paketů pro vstupy a snapshoty (PLAN.md D.11).
   - Zapnutí parametrem `-- --fake-lag=100 --fake-loss=5`, jen v debug buildech.
   - Napojit v `match_net.gd` (jediné místo, kudy jdou).
-- Ověřit lokálně se 100 ms a 5 % ztrát: plynulost interpolace vzdálených hráčů, reakce vlastní postavy.
-- Pak test s uživatelem:
-  - 2 počítače na stejné Wi-Fi, ideálně doma (knihovna často blokuje provoz mezi zařízeními)
-  - nebo přes Tailscale s kamarádem
-  - Postup a co sledovat napsat česky.
-- Po M2 následuje **M3 souboj** (zbraň, střely ke kurzoru, knockback, životy, výsledky → `v0.1.0`).
+- Ověřit lokálně se 100 ms a 5 % ztrát: plynulost interpolace vzdálených hráčů, reakce vlastní postavy. Podle výsledku doporučit, jestli predikci (M4) udělat hned po M3.
+- Pak **M3 souboj:** zbraň, střely ke kurzoru, knockback, životy, konec zápasu a výsledky → `v0.1.0`.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
+- **Test druhého hráče na jiném počítači** (stejná Wi-Fi nebo Tailscale): uživatel 2026-11-03: „připojení druhého člověka ověřím později“. Až to nahlásí, zapsat výsledek do Stav testů.
 - Ruční test staženého `gun_game-windows.zip` na Windows PC:
   - SmartScreen
   - menu s verzí
