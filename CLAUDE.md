@@ -12,9 +12,11 @@ If PROGRESS.md and git disagree (e.g. uncommitted changes, task half-done), repo
 ## End-of-task protocol (mandatory after EVERY task, also when interrupted or unfinished)
 1. Update docs/PROGRESS.md: "Kde jsme skončili" (what part of which milestone is done / half-done, uncommitted files),
    "Další krok" (one concrete next task, specific enough to start without asking), "Poslední změny", "Stav testů", "Známé problémy".
-2. Give the user a Czech overview: which part of the plan (milestone/step) was completed, what remains in the milestone,
-   changed files, how to test, what was NOT tested, proposed commit message.
-3. Stop. Do not start the next step on your own.
+2. Commit (Conventional Commits) and PUSH to origin main yourself – the user allowed this permanently
+   (2026-11-03). Only push finished, tested work; then check that the GitHub Actions run succeeded.
+3. Give the user a Czech overview: which part of the plan (milestone/step) was completed, what remains in the milestone,
+   changed files, how to test, what was NOT tested, commit hash + CI result.
+4. Stop. Do not start the next step on your own.
 If the user says "ulož progress", do step 1 immediately.
 
 ## Communication

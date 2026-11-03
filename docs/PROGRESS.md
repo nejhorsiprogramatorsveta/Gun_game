@@ -1,16 +1,12 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M2 krok 2 (lobby UI + `Settings`) je hotový a otestovaný lokálně. Zatím není commitnutý.** Krok 1 je na GitHubu (`82ec9bc`).
+**M2 krok 2 (lobby UI + `Settings`) je hotový, otestovaný lokálně, commitnutý a pushnutý.** Od 2026-11-03 commituje a pushuje Claude sám (CLAUDE.md).
 - **Zadání 2026-11-03** (zapsáno v PLAN.md C, D.3, D.5, Q a v CLAUDE.md):
   - střelba míří ke kurzoru myši
   - celá hra v pixel-art stylu
   - testy na Windows až na konci projektu
-- Necommitnuté soubory:
-  - `src/autoload/settings.gd`, `src/ui/lobby.*`, `src/ui/main_menu.*`
-  - úpravy `session.gd` a konektorů, `project.godot` (autoload `Settings`, střelba LMB, schopnost RMB/E), `translations.csv`, `tests/test_address_parsing.gd`
-  - `.gitignore` (`art_reference/`)
-  - dokumentace (`README.md`, `PLAN.md`, `CLAUDE.md`, tento soubor)
+- Necommitnuté soubory: žádné.
 
 ## Další krok
 **M2 krok 3: UPnP a veřejná adresa v lobby.**
