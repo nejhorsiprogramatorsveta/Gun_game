@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SlowCloudAbility" format=3]
+
+[ext_resource type="Script" path="res://src/abilities/slow_cloud_ability.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"slow_cloud"
+name_key = "ABILITY_SLOW_CLOUD_NAME"
+description_key = "ABILITY_SLOW_CLOUD_DESCRIPTION"
+cooldown = 9.0
+duration = 0.0
+distance = 240.0
+radius = 110.0
+lifetime = 3.0
+speed_scale = 0.5
+jump_scale = 0.8

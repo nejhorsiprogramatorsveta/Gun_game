@@ -11,5 +11,5 @@ projectile_speed = 1250.0
 max_range = 1600.0
 spread_degrees = 2.5
 knockback = 750.0
-recoil = 150.0
+recoil = 160.0
 pellets = 1

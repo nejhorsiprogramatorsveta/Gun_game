@@ -38,7 +38,7 @@ RELEASE_LINUX,- **Linux:** `{file}`
 RELEASE_SOURCE_NOTICE,⚠️ Automatické archivy „Source code“ patří k historickému tagu. Hra ke stažení je v souborech výše.
 RELEASE_SOURCE_COMMIT,Zdrojové kódy tohoto sestavení: {url}
 RELEASE_GUIDE,"Návod (SmartScreen, macOS, hraní s kamarády): {url}"
-PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · Esc: odejít (hostitel: konec zápasu)"
+PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · E/pravé tlačítko: schopnost · Q/1/2: zbraň · Esc: odejít (hostitel: konec zápasu)"
 CHARACTER_JISKRA_NAME,Jiskra
 CHARACTER_JISKRA_DESCRIPTION,"Lehká róninka: rychlá, snadno ji odhodíš, ale těžko ji chytíš. Samopal a pistole."
 LOBBY_DEFAULT_NAME,Hráč {number}
@@ -131,14 +131,21 @@ WEAPON_LIGHT_MACHINE_GUN_NAME,Lehký kulomet
 WEAPON_REVOLVER_NAME,Revolver
 WEAPON_NAIL_GUN_NAME,Nýtovačka
 WEAPON_DOUBLE_BARREL_NAME,Dvouhlavňová brokovnice
-CHARACTER_MLHA_NAME,Mlha
-CHARACTER_MLHA_DESCRIPTION,"Kunoichi alchymistka: vyvážená. Lehký kulomet a revolver."
+CHARACTER_KRUGERMANN_NAME,Krügermann
+CHARACTER_KRUGERMANN_DESCRIPTION,"Potrhlý vynálezce: vyvážený. Lehký kulomet a revolver."
 CHARACTER_ARCHITEKT_NAME,Architekt
 CHARACTER_ARCHITEKT_DESCRIPTION,"Stavitel chrámů: spíš těžší a pomalejší. Nýtovačka a dvouhlavňová brokovnice."
-CHANGELOG_NEW_CHARACTERS,"Dvě nové postavy: Mlha (lehký kulomet, revolver) a Architekt (nýtovačka, dvouhlavňová brokovnice)."
+CHANGELOG_NEW_CHARACTERS,"Dvě nové postavy: Krügermann (lehký kulomet, revolver) a Architekt (nýtovačka, dvouhlavňová brokovnice)."
 CHANGELOG_ABILITIES,"Speciální schopnosti (E nebo pravé tlačítko myši): Balvan má štít, Vichr tlakovou vlnu. Další schopnosti přibudou."
 ABILITY_DASH_NAME,Úskok
 ABILITY_DASH_DESCRIPTION,"Bleskový přesun do strany, i ve vzduchu."
 ABILITY_TELEPORT_NAME,Přesun
 ABILITY_TELEPORT_DESCRIPTION,"Přenese se kousek směrem ke kurzoru a zastaví se."
 CHANGELOG_DASH_TELEPORT,"Jiskra má úskok (E): rychlý přesun do strany i ve vzduchu. Stín má přesun (E): teleport směrem ke kurzoru."
+ABILITY_SLOW_CLOUD_NAME,Zpomalovací oblak
+ABILITY_SLOW_CLOUD_DESCRIPTION,"Vystřelí ke kurzoru zelený oblak, který na 3 s zpomalí soupeře."
+ABILITY_PLATFORM_NAME,Plošina
+ABILITY_PLATFORM_DESCRIPTION,"Postaví pod sebou na 3 s plošinu, i ve vzduchu."
+CHANGELOG_KRUGERMANN,"Postava Mlha se nově jmenuje Krügermann a má zpomalovací oblak (E): zelený oblak ke kurzoru zpomalí soupeře na 3 s."
+CHANGELOG_ARCHITEKT_PLATFORM,"Architekt má plošinu (E): postaví pod sebou dočasnou plošinu, i ve vzduchu."
+CHANGELOG_RECOIL,"Rychlopalné zbraně (samopaly, kulomet, karabina, útočná puška, nýtovačka) mají znatelný zpětný ráz."

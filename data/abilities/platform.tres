@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PlatformAbility" format=3]
+
+[ext_resource type="Script" path="res://src/abilities/platform_ability.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"platform"
+name_key = "ABILITY_PLATFORM_NAME"
+description_key = "ABILITY_PLATFORM_DESCRIPTION"
+cooldown = 6.0
+duration = 0.0
+width = 160.0
+lifetime = 3.0

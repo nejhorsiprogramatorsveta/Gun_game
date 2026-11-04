@@ -22,6 +22,7 @@ const PRACTICE_DUMMY_ID := -1
 var _arena: Arena
 var _weapons := WeaponSystem.new()
 var _abilities := AbilitySystem.new()
+var _effects := AreaEffects.new()
 var _score := MatchScore.new()
 var _rules: MatchRules = ContentDB.match_rules()
 var _networked := false
@@ -58,9 +59,11 @@ func _ready() -> void:
 	_networked = Session.phase == Session.Phase.IN_MATCH
 	add_child(_weapons)
 	_weapons.setup(_net if _networked else null)
+	add_child(_effects)
 	_weapons.player_hit.connect(_on_player_hit)
 	_abilities.player_hit.connect(_on_player_hit)
 	_is_authority = not _networked or multiplayer.is_server()
+	_effects.setup(_net if _networked else null, _is_authority)
 	if _networked:
 		for peer_id: int in Session.match_slots:
 			_spawn(peer_id, Session.match_slots[peer_id], Session.players.get(peer_id, {}).get("name", "?"))
@@ -85,6 +88,7 @@ func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 	var player: Player = PLAYER_SCENE.instantiate()
 	var character := ContentDB.character_for_slot(slot) if _networked else ContentDB.default_character()
 	player.setup(character, slot, peer_id, display_name)
+	player.effects = _effects
 	add_child(player)
 	var spawns := _arena.spawn_points()
 	player.reset_to(spawns[slot % spawns.size()])

@@ -10,6 +10,7 @@ signal snapshot_received(snapshot: Dictionary)
 signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName)
 signal projectile_removed(id: int)
 signal kill_announced(killer_slot: int, streak: int)
+signal effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, position: Vector2)
 
 ## A legit client sends 60/s; anything far above is dropped.
 const MAX_INPUT_PACKETS_PER_SECOND := 150
@@ -62,6 +63,13 @@ func send_kill_announced(killer_slot: int, streak: int) -> void:
 	_send(func() -> void:
 		for peer_id in _loaded_peers:
 			_receive_kill_announced.rpc_id(peer_id, killer_slot, streak), true)
+
+
+## Host: an ability left a cloud/platform (AreaEffects); reliable so everyone sees it.
+func send_effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, at: Vector2) -> void:
+	_send(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_effect_spawned.rpc_id(peer_id, ability_id, owner_peer_id, seq, at), true)
 
 
 ## Sends only while the match runs: once it has ended the other side may already have
@@ -120,6 +128,14 @@ func _receive_kill_announced(killer_slot: int, streak: int) -> void:
 			or streak < 1 or streak > 65535:
 		return
 	lag.run(kill_announced.emit.bind(killer_slot, streak), true)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, at: Vector2) -> void:
+	if Session.phase != Session.Phase.IN_MATCH or ContentDB.get_ability(ability_id) == null \
+			or not Session.players.has(owner_peer_id) or seq < 0 or seq > 0xFFFF or not at.is_finite():
+		return
+	lag.run(effect_spawned.emit.bind(ability_id, owner_peer_id, seq, at), true)
 
 
 func _rate_exceeded(peer_id: int) -> bool:

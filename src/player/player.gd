@@ -35,6 +35,8 @@ var ability_cooldown := 0.0
 var ability_time_left := 0.0
 ## True on the tick the ability was activated (host applies effects on others).
 var ability_started := false
+## Clouds and platforms of the match (set by MatchController); null in unit tests.
+var effects: AreaEffects
 ## Authority: seconds of respawn protection left.
 var invulnerable_time := 0.0
 ## Authority: how long the player has been outside the arena (see out_of_bounds_grace).
@@ -67,6 +69,9 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 ## One shared movement tick, also used during client prediction and replay.
 func simulate(input: InputFrame, delta: float) -> void:
 	tick_ability(input, delta)
+	var slow := effects.slow_for(self) if effects else Vector2.ONE
+	motor_state.speed_scale = slow.x
+	motor_state.jump_scale = slow.y
 	PlayerMotor.step(self, input, motor_state, character, delta)
 	aim = input.aim
 	last_input_seq = input.seq

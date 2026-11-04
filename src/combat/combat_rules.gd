@@ -5,6 +5,9 @@ class_name CombatRules
 ## 800 per hit x 9 shots/s. Checked for every weapon by tests/test_weapons.gd.
 const MAX_KNOCKBACK_PER_SHOT := 1400.0
 const MAX_KNOCKBACK_PER_SECOND := 7500.0
+## Arcade feel: every shot must visibly push the shooter. Ground friction removes ~53 px/s
+## per tick, so smaller recoil would vanish on the ground (SMG bug, user 2026-11-04).
+const MIN_RECOIL := 100.0
 ## No shooting right after switching weapons.
 const WEAPON_SWITCH_SECONDS := 0.3
 

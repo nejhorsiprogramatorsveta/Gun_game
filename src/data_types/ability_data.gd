@@ -27,6 +27,11 @@ func activate(_user: Player, _players: Array) -> Array[Player]:
 	return []
 
 
+## World object this ability leaves behind (cloud, platform), see AreaEffects. null = none.
+func create_effect(_owner_peer_id: int) -> Node2D:
+	return null
+
+
 ## Multiplier for knockback the user receives while the ability is active.
 func knockback_scale() -> float:
 	return 1.0

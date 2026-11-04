@@ -25,6 +25,9 @@ class State:
 	## Dash ability (DashAbility.start): seconds left and side (1 / -1).
 	var dash_time_left: float = 0.0
 	var dash_direction: int = 1
+	## Slowing cloud (AreaEffects.slow_for), set before each step: running and jump multipliers.
+	var speed_scale: float = 1.0
+	var jump_scale: float = 1.0
 
 
 static func step(body: CharacterBody2D, input: InputFrame, state: State, stats: CharacterData, delta: float) -> void:
@@ -57,7 +60,7 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	if state.dash_time_left > 0.0:
 		return _dash(state, stats, delta)
 
-	velocity.x = _horizontal(velocity.x, on_floor, input.move_x, stats, delta)
+	velocity.x = _horizontal(velocity.x, on_floor, input.move_x, stats.move_speed * state.speed_scale, stats, delta)
 	# The character looks where the player aims (mouse cursor), not where it runs.
 	var aim_x := InputFrame.aim_to_vector(input.aim).x
 	if absf(aim_x) > 0.01:
@@ -70,7 +73,7 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	# still jumps. In the air only a fresh press jumps, so holding the key does nothing.
 	var wants_jump := state.jump_buffer_timer > 0.0 if on_floor else bool(just_pressed & InputFrame.JUMP)
 	if wants_jump and state.jumps_left > 0:
-		velocity.y = -stats.jump_velocity
+		velocity.y = -stats.jump_velocity * state.jump_scale
 		state.jumps_left -= 1
 		state.jump_buffer_timer = 0.0
 
@@ -100,15 +103,15 @@ static func _update_timers(on_floor: bool, just_pressed: int, state: State, stat
 	state.drop_timer = maxf(state.drop_timer - delta, 0.0)
 
 
-static func _horizontal(vx: float, on_floor: bool, move_x: int, stats: CharacterData, delta: float) -> float:
-	var target := move_x * stats.move_speed
-	var steering_allowed := move_x != 0 and (absf(vx) <= stats.move_speed or signf(vx) != move_x)
+static func _horizontal(vx: float, on_floor: bool, move_x: int, move_speed: float, stats: CharacterData, delta: float) -> float:
+	var target := move_x * move_speed
+	var steering_allowed := move_x != 0 and (absf(vx) <= move_speed or signf(vx) != move_x)
 	if steering_allowed:
 		var accel := stats.ground_acceleration if on_floor else stats.air_acceleration
 		return move_toward(vx, target, accel * delta)
 	# No input, or faster than running speed (knockback): only friction slows us down,
 	# so holding a direction cannot cancel knockback instantly.
 	var friction := stats.ground_friction if on_floor else stats.air_friction
-	if absf(vx) > stats.move_speed:
+	if absf(vx) > move_speed:
 		friction = minf(friction, stats.knockback_friction)
 	return move_toward(vx, target if move_x != 0 else 0.0, friction * delta)

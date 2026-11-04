@@ -4,11 +4,13 @@ class_name ContentDB
 
 const CHARACTERS_DIR := "res://data/characters/"
 const WEAPONS_DIR := "res://data/weapons/"
+const ABILITIES_DIR := "res://data/abilities/"
 const MATCH_RULES_PATH := "res://data/match_rules.tres"
 const DEFAULT_CHARACTER_ID := &"jiskra"
 
 static var _characters: Dictionary[StringName, CharacterData] = {}
 static var _weapons: Dictionary[StringName, WeaponData] = {}
+static var _abilities: Dictionary[StringName, AbilityData] = {}
 static var _match_rules: MatchRules
 
 
@@ -16,6 +18,9 @@ static func _static_init() -> void:
 	for data in _load_all(WEAPONS_DIR):
 		if data is WeaponData:
 			_weapons[data.id] = data
+	for data in _load_all(ABILITIES_DIR):
+		if data is AbilityData:
+			_abilities[data.id] = data
 	for data in _load_all(CHARACTERS_DIR):
 		if data is CharacterData:
 			_characters[data.id] = data
@@ -49,6 +54,10 @@ static func character_ids() -> Array[StringName]:
 
 static func get_weapon(id: StringName) -> WeaponData:
 	return _weapons.get(id)
+
+
+static func get_ability(id: StringName) -> AbilityData:
+	return _abilities.get(id)
 
 
 ## TEMPORARY until the lobby character choice (PLAN.md M5.3): network players get the

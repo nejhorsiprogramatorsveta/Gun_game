@@ -2,14 +2,15 @@
 
 [ext_resource type="Script" path="res://src/data_types/character_data.gd" id="1"]
 [ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="2"]
+[ext_resource type="Resource" path="res://data/abilities/slow_cloud.tres" id="5"]
 [ext_resource type="Resource" path="res://data/weapons/light_machine_gun.tres" id="3"]
 [ext_resource type="Resource" path="res://data/weapons/revolver.tres" id="4"]
 
 [resource]
 script = ExtResource("1")
-id = &"mlha"
-name_key = "CHARACTER_MLHA_NAME"
-description_key = "CHARACTER_MLHA_DESCRIPTION"
+id = &"krugermann"
+name_key = "CHARACTER_KRUGERMANN_NAME"
+description_key = "CHARACTER_KRUGERMANN_DESCRIPTION"
 color = Color(0.55, 0.8, 0.5, 1)
 move_speed = 430.0
 ground_acceleration = 3600.0
@@ -25,3 +26,4 @@ jump_buffer_time = 0.1
 drop_through_time = 0.25
 weight = 0.95
 weapons = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4")])
+ability = ExtResource("5")
