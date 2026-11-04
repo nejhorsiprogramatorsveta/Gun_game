@@ -60,14 +60,7 @@ static func get_ability(id: StringName) -> AbilityData:
 	return _abilities.get(id)
 
 
-## TEMPORARY until the lobby character choice (PLAN.md M5.3): network players get the
-## characters in alphabetical order by slot, so all four can be tried.
-static func character_for_slot(slot: int) -> CharacterData:
-	var ids := character_ids()
-	return _characters[ids[slot % ids.size()]] if not ids.is_empty() else null
-
-
-## Practice: the character chosen in the menu, or the default one.
+## The chosen character (lobby or practice menu), or the default one for unknown ids.
 static func practice_character(id: String) -> CharacterData:
 	return _characters.get(StringName(id), default_character())
 

@@ -86,8 +86,9 @@ func _ready() -> void:
 
 func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 	var player: Player = PLAYER_SCENE.instantiate()
-	var character := ContentDB.character_for_slot(slot) if _networked \
-			else ContentDB.practice_character(Settings.practice_character if peer_id != PRACTICE_DUMMY_ID else "")
+	var chosen: String = Session.players.get(peer_id, {}).get("character", "") if _networked \
+			else (Settings.practice_character if peer_id != PRACTICE_DUMMY_ID else "")
+	var character := ContentDB.practice_character(chosen)
 	player.setup(character, slot, peer_id, display_name)
 	player.effects = _effects
 	add_child(player)

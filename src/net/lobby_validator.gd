@@ -16,20 +16,27 @@ static func clean_name(raw_name: String, number: int) -> String:
 	return cleaned
 
 
-## peer_id -> {"name": String}; must contain the host (peer 1).
+## peer_id -> {"name": String, "character": String}; must contain the host (peer 1),
+## every character must exist and be used at most once.
 static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 	var result: Dictionary[int, Dictionary] = {}
 	if raw.size() < 1 or raw.size() > MAX_PLAYERS or not raw.has(1):
 		return result
+	var used_characters: Dictionary[String, bool] = {}
 	for peer_id: Variant in raw:
 		var entry: Variant = raw[peer_id]
 		if typeof(peer_id) != TYPE_INT or peer_id <= 0 or typeof(entry) != TYPE_DICTIONARY:
 			return {}
+		var character: Variant = entry.get("character")
+		if typeof(character) != TYPE_STRING or character.length() > 32 or used_characters.has(character) \
+				or ContentDB.get_character(StringName(character)) == null:
+			return {}
+		used_characters[character] = true
 		var player_name: Variant = entry.get("name")
 		if typeof(player_name) != TYPE_STRING or player_name.strip_edges().is_empty() \
 				or player_name.length() > MAX_NAME_LENGTH:
 			return {}
-		result[peer_id] = {"name": player_name}
+		result[peer_id] = {"name": player_name, "character": character}
 	return result
 
 

@@ -143,11 +143,15 @@ ABILITY_TELEPORT_NAME,Přesun
 ABILITY_TELEPORT_DESCRIPTION,"Přenese se kousek směrem ke kurzoru a zastaví se."
 CHANGELOG_DASH_TELEPORT,"Jiskra má úskok (E): rychlý přesun do strany i ve vzduchu. Stín má přesun (E): teleport směrem ke kurzoru."
 ABILITY_SLOW_CLOUD_NAME,Zpomalovací oblak
-ABILITY_SLOW_CLOUD_DESCRIPTION,"Vystřelí ke kurzoru zelený oblak, který na 3 s zpomalí soupeře."
+ABILITY_SLOW_CLOUD_DESCRIPTION,"Vypustí před sebe dlouhý pás zeleného plynu, který na 3 s zpomalí soupeře."
 ABILITY_PLATFORM_NAME,Plošina
 ABILITY_PLATFORM_DESCRIPTION,"Postaví pod sebou na 3 s plošinu, i ve vzduchu."
 CHANGELOG_KRUGERMANN,"Postava Mlha se nově jmenuje Krügermann a má zpomalovací oblak (E): zelený oblak ke kurzoru zpomalí soupeře na 3 s."
 CHANGELOG_ARCHITEKT_PLATFORM,"Architekt má plošinu (E): postaví pod sebou dočasnou plošinu, i ve vzduchu."
 CHANGELOG_RECOIL,"Rychlopalné zbraně (samopaly, kulomet, karabina, útočná puška, nýtovačka) mají znatelný zpětný ráz."
-MENU_PRACTICE_CHARACTER,Postava pro trénink
+MENU_PRACTICE_CHARACTER,Postava pro trénink a oblíbená postava pro lobby
 CHANGELOG_PRACTICE_CHARACTER,V menu si vedle tlačítka Trénink vybereš postavu; volba se pamatuje.
+CHANGELOG_GAS_STRIP,"Zpomalovací plyn Krügermanna je teď dlouhý vodorovný pás před ním (na stranu kurzoru), ne kruh."
+LOBBY_CHOOSE_CHARACTER,"Vyber si postavu (každá jen jednou):"
+LOBBY_CHARACTER_TAKEN,"obsazeno: {name}"
+CHANGELOG_LOBBY_CHARACTERS,"Výběr postavy v lobby: každou postavu může mít jen jeden hráč; hra si pamatuje tvou oblíbenou."

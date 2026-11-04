@@ -24,7 +24,7 @@ const AUTH_TIMEOUT := 5.0
 const REJECT_DISCONNECT_DELAY := 0.5
 
 var phase := Phase.OFFLINE
-## peer_id -> {"name": String}. Identical on all peers (host broadcasts it).
+## peer_id -> {"name": String, "character": String}. Identical on all peers (host broadcasts it).
 var players: Dictionary[int, Dictionary] = {}
 ## Why the last session ended (translated), so the main menu can show it after a
 ## scene change. The menu clears it once shown.
@@ -53,6 +53,7 @@ func _ready() -> void:
 	var api := multiplayer as SceneMultiplayer
 	# Clients may only talk to the host, never relay RPCs to each other (PLAN.md S).
 	api.server_relay = false
+	add_child(CharacterChoice.new())  # character choice RPCs, see character_choice.gd
 	api.auth_callback = _on_auth_message
 	api.auth_timeout = AUTH_TIMEOUT
 	api.peer_authenticating.connect(_on_peer_authenticating)
@@ -148,7 +149,8 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	multiplayer.multiplayer_peer = peer
 	host_port = port
 	room_code = Handshake.generate_room_code()
-	players = {1: {"name": LobbyValidator.clean_name(player_name, 1)}}
+	players = {1: {"name": LobbyValidator.clean_name(player_name, 1),
+			"character": CharacterChoice.first_free({}, Settings.practice_character)}}
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
 
@@ -257,8 +259,9 @@ func _on_peer_connected(id: int) -> void:
 	if multiplayer.is_server():
 		var requested_name: String = _pending_names.get(id, "")
 		_pending_names.erase(id)
-		players[id] = {"name": LobbyValidator.clean_name(requested_name, players.size() + 1)}
-		_broadcast_players()
+		players[id] = {"name": LobbyValidator.clean_name(requested_name, players.size() + 1),
+				"character": CharacterChoice.first_free(players, "")}
+		broadcast_players()
 	elif id == 1:
 		_set_phase(Phase.LOBBY)
 
@@ -268,7 +271,7 @@ func _on_peer_disconnected(id: int) -> void:
 		return
 	_pending_names.erase(id)
 	if players.erase(id):
-		_broadcast_players()
+		broadcast_players()
 
 
 func _on_peer_authentication_failed(id: int) -> void:
@@ -295,7 +298,7 @@ func _on_connect_timeout(peer: MultiplayerPeer) -> void:
 
 # --- Lobby state -----------------------------------------------------------
 
-func _broadcast_players() -> void:
+func broadcast_players() -> void:
 	_receive_players.rpc(players)
 	players_changed.emit()
 
