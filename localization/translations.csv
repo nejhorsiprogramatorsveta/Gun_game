@@ -13,6 +13,8 @@ CHANGELOG_HISTORY,Přehled novinek a oprav podle verzí a sestavení přímo v h
 CHANGELOG_RELEASE_NOTES,Stejný přehled změn také v poznámkách vydání ke stažení.
 CHANGELOG_FIRE_RATE,Trojnásobná kadence pistole z 3 na 9 ran za sekundu.
 CHANGELOG_RELEASE_VERSION,Jedno průběžně aktualizované vydání s verzemi 0.1.1 a dalšími. Zachované automatické aktualizace.
+CHANGELOG_LATEST_ONLY,„Co je nového“ ukazuje jen změny nejnovější verze.
+CHANGELOG_NET_DEBUG,"Klávesa F3 v zápase zobrazí měření sítě: FPS, odezvu vstupu a velikost korekcí vlastní postavy."
 CHANGELOG_PREDICTION,Predikce vlastního pohybu klienta s korekcemi podle hostitele.
 CHANGELOG_KNOCKBACK,Silnější odhoz pistole z 550 na 800 (přibližně +45 %).
 CHANGELOG_SCOREBOARD,Scoreboard se životy a počtem zabití a smrtí vedle jmen. Skóre je i ve výsledcích.
@@ -65,6 +67,12 @@ LOBBY_START,Začít zápas
 LOBBY_NEED_PLAYERS,"Na začátek zápasu jsou potřeba aspoň {min} hráči."
 LOBBY_WAITING_FOR_HOST,"Čekáme, až hostitel spustí zápas…"
 DEBUG_FAKE_LAG,"[TEST] Simulace sítě: +{lag} ms, {loss} % ztracených paketů"
+DEBUG_NET_FPS,"Měření sítě (F3) – FPS: {fps}"
+DEBUG_NET_AUTHORITY,Hostitel nebo trénink: odezva se měří jen u připojených hráčů.
+DEBUG_NET_ACK,"Potvrzení vstupu: {ms} ms (kolísání {jitter} ms)"
+DEBUG_NET_SNAPSHOTS,"Stav od hostitele: každých {gap} ms, nejdelší pauza {max} ms (2 s)"
+DEBUG_NET_CORRECTION,"Korekce vlastní postavy: {last} px, největší {max} px (2 s)"
+DEBUG_NET_PENDING,Nepotvrzené vstupy: {count}
 BUILD_DISPLAY,{version} (sestavení {build})
 BUILD_DISPLAY_DEV,"{version} (vývojová, {commit})"
 WEAPON_PISTOL_NAME,Pistole

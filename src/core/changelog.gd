@@ -24,6 +24,12 @@ static func history() -> Array[Dictionary]:
 	return result
 
 
+## The menu shows only the newest version (user decision 2026-11-04); empty if none applies.
+static func latest() -> Dictionary:
+	var entries := history()
+	return entries[0] if not entries.is_empty() else {}
+
+
 static func format_entry(entry: Dictionary) -> String:
 	var lines: PackedStringArray = [entry.heading]
 	for change: String in entry.changes:
@@ -32,8 +38,8 @@ static func format_entry(entry: Dictionary) -> String:
 
 
 static func release_changes() -> PackedStringArray:
-	var entries := history()
-	return entries[0].changes if not entries.is_empty() else PackedStringArray()
+	var entry := latest()
+	return entry.changes if not entry.is_empty() else PackedStringArray()
 
 
 static func release_notes(game_name: String, repository_url: String) -> String:

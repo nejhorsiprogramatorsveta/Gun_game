@@ -99,6 +99,17 @@ func test_release_changes_match_latest_menu_entry() -> void:
 	_restore_build(saved)
 
 
+func test_menu_shows_only_the_newest_version() -> void:
+	var saved := _set_build("9.8.7", _current_build())
+	var latest := Changelog.latest()
+	check_eq(latest, Changelog.history()[0], "menu entry is the newest history entry")
+	check_eq(latest.build, _current_build(), "newest entry belongs to the installed build")
+	check_eq(Changelog.release_changes(), latest.changes, "release notes use the same single entry")
+	BuildInfo.build = 1
+	check(Changelog.latest().is_empty(), "build before any recorded history has no entry")
+	_restore_build(saved)
+
+
 func test_build_before_recorded_history_has_no_release_changes() -> void:
 	var oldest := _current_build()
 	for build in _archived_builds():

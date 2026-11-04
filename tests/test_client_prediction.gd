@@ -51,6 +51,24 @@ func test_reconciliation_replays_only_unacknowledged_inputs() -> void:
 	player.free()
 
 
+func test_reconcile_reports_prediction_error_and_pending_inputs() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	check_eq(prediction.reconcile(player, player.snapshot_state()), -1.0, "first baseline has nothing to compare")
+	prediction.predict(player, InputFrame.create(1, 0, 0, 1), DT, false)
+	var confirmed := player.snapshot_state()
+	prediction.predict(player, InputFrame.create(1, 0, 0, 2), DT, false)
+	check_eq(prediction.pending_count(), 2, "two unacknowledged inputs")
+	check(is_equal_approx(prediction.reconcile(player, confirmed), 0.0), "exact prediction = zero correction")
+	check_eq(prediction.pending_count(), 1, "acknowledged input removed")
+	player.position += Vector2(3, 4)
+	check(is_equal_approx(prediction.reconcile(player, confirmed), 5.0), "error = distance between predicted and corrected position")
+	var dead := confirmed.duplicate()
+	dead.active = false
+	check_eq(prediction.reconcile(player, dead), -1.0, "death is not counted as a correction")
+	player.free()
+
+
 func test_sequence_wrap_and_repeated_acknowledgement() -> void:
 	var player := _player()
 	player.last_input_seq = 65533

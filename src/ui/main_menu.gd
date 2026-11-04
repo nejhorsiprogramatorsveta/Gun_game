@@ -50,10 +50,8 @@ func _ready() -> void:
 
 
 func _on_changelog_pressed() -> void:
-	var sections: PackedStringArray = []
-	for entry: Dictionary in Changelog.history():
-		sections.append(Changelog.format_entry(entry))
-	_changelog_text.text = "\n\n".join(sections) if not sections.is_empty() else tr("CHANGELOG_EMPTY")
+	var entry := Changelog.latest()
+	_changelog_text.text = Changelog.format_entry(entry) if not entry.is_empty() else tr("CHANGELOG_EMPTY")
 	_changelog_text.scroll_to_line(0)
 	# Scrolling text does not contribute a useful minimum size to AcceptDialog.
 	var available_size := Vector2i(Vector2(get_window().size) * 0.9)

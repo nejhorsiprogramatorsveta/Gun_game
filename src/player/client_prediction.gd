@@ -23,7 +23,14 @@ func predict(player: Player, input: InputFrame, delta: float, frozen: bool) -> v
 		_last_discarded_seq = discarded.input.seq
 
 
-func reconcile(player: Player, state: Dictionary) -> void:
+func pending_count() -> int:
+	return _history.size()
+
+
+## Returns how far the prediction was off (px), or -1 when there was nothing to compare
+## (first snapshot, death, respawn or a lost timeline).
+func reconcile(player: Player, state: Dictionary) -> float:
+	var old_position := player.position
 	var old_display_position := player.position + player.visual_offset
 	var discontinuity: bool = not _ready or player.visible != state.active or player.lives != state.lives
 	_ready = true
@@ -46,3 +53,4 @@ func reconcile(player: Player, state: Dictionary) -> void:
 		entry.state = player.snapshot_state()
 	var correction := old_display_position - player.position
 	player.visual_offset = correction if not discontinuity and correction.length() < MAX_SMOOTH_DISTANCE else Vector2.ZERO
+	return -1.0 if discontinuity or not state.active else old_position.distance_to(player.position)

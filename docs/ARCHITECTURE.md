@@ -14,7 +14,7 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 |---|---|
 | `src/core/build_info.gd` | verze, číslo sestavení a commit buildu (z `build_info.json`, který zapisuje CI), `PROTOCOL_VERSION = 5` |
 | `src/core/updater.gd` | automatické aktualizace: `version.json` z GitHubu, stažení, SHA-256, výměna exe/.app, restart, úklid |
-| `src/core/changelog.gd`, `data/changelog.tres` | společná historie změn pro offline menu a poznámky vydání; aktuální záznam podle `BuildInfo`, starší buildy nezobrazí budoucí změny |
+| `src/core/changelog.gd`, `data/changelog.tres` | změny pro offline menu a poznámky vydání; menu i poznámky ukazují **jen nejnovější verzi** (`Changelog.latest()`), aktuální záznam podle `BuildInfo`, starší buildy nezobrazí budoucí změny |
 | `src/core/content_db.gd` | načte `data/characters/*.tres`, `data/weapons/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
 | `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `WeaponData`, `MatchRules`, `ChangelogData`) |
 | `src/player/input_frame.gd` | vstup hráče za jeden tick: směr, tlačítka, úhel míření ke kurzoru (u16), pořadové číslo. Klienti ho posílají hostu. |
@@ -30,10 +30,11 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/combat/projectile.gd` | střela: přímý let, raycast každý tick (host: svět + hráči, klient: jen svět) |
 | `src/combat/weapon_system.gd` | střelba na hostu (kadence, zpětný ráz, odhoz) a zobrazení střel u klientů z událostí |
 | `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, spolehlivé události střel a kill hlášek, „loaded“, rate-limit |
+| `src/net/net_stats.gd` | jen klient: měření pro ladicí ukazatel F3 – potvrzení vstupu (od odeslání vstupu po snapshot s jeho `last_seq`), kolísání, intervaly a pauzy snapshotů, velikost korekcí predikce; žádné nové síťové zprávy |
 | `src/net/lag_simulator.gd` | jen pro vývoj: simulace zpoždění a ztrát paketů (`-- --fake-lag=100 --fake-loss=5`) |
 | `src/net/net_codec.gd` | binární protokol 5: vstup 14 B, snapshot 6 B + 33 B na hráče včetně stavu motoru a počtů zabití/smrtí; kontrola velikosti, slotů a konečných hodnot, `seq_newer()` |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, offline dialog „Co je nového“, chybové hlášky (`Session.last_end_message`) |
-| `src/ui/match_hud.gd` | scoreboard vedle jmen: životy, zabití, smrti; odpočet a hlášky KILL / DOUBLE / TRIPLE / MULTI KILL; v tréninku nekonečné životy |
+| `src/ui/match_hud.gd` | scoreboard vedle jmen: životy, zabití, smrti; odpočet a hlášky KILL / DOUBLE / TRIPLE / MULTI KILL; v tréninku nekonečné životy; F3 zapne ukazatel měření sítě (FPS, potvrzení vstupu, snapshoty, korekce, nepotvrzené vstupy) |
 | `src/ui/results.gd/.tscn` | výsledky po zápase včetně zabití/smrtí, návrat do stejného lobby (tlačítko hostitele nebo za 8 s) |
 | `src/ui/lobby.gd/.tscn` | lobby: seznam hráčů, u hostitele adresy ke sdílení s tlačítkem Kopírovat, Odejít |
 | `src/autoload/settings.gd` | **autoload `Settings`**: jméno a poslední adresa v `user://settings.cfg` |

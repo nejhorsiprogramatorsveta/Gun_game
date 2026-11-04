@@ -1,18 +1,18 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Sjednocené vydávání `v0.1.1` je commitnuté, pushnuté a ověřené (`6978a62`, CI úspěšné).** Uživatel commitnul a pushnul `da40eac` (predikce + skóre), `2560ebb` (changelog + kadence) a `6978a62` (vydávání). Kontrola 2026-11-04 (Claude) po `git pull`: žádné chyby nenalezeny, kód beze změn. Sekání Wi-Fi klientů zůstává odložené do PLAN.md M4.1.
-- Veřejné vydání: jediný release `dev` s názvem `gun_game v0.1.1`, stable/latest (ne prerelease), `version.json` = 0.1.1 / sestavení 29 / channel stable, soubory windows.exe + macos.zip + linux.zip. Starý `v0.1.0` už není veřejně vidět (skrytý jako koncept).
-- Ověřeno lokálně po pullu: 74/74 unit testů, lokalizace 96 klíčů / 0 chybějících, 9/9 testů release workflow (Python), síťový smoke test host + klient (127.0.0.1): start zápasu, pohyb, predikce klienta, pády, životy a smrti bez chyb skriptů.
-- **Pozor před dalším herním commitem:** CI odmítne nový build se stejnou verzí `0.1.1` (povolí jen další patch/minor/major nebo opakování stejného buildu). Před další změnou kódu/dat zvýšit `application/config/version` v `project.godot` na `0.1.2` a v `data/changelog.tres` archivovat aktuální záznam (build 0) jako `0.1.1` / sestavení 29 a založit nový. Commity jen s dokumentací (`*.md`, `docs/**`) build nespouštějí.
-- **Pozor:** verze bez aktualizátoru (0.1.0, sestavení 23–24) si hráči musí **naposledy stáhnout ručně**. Od verze s aktualizátorem se nabídka objeví sama.
-- Necommitnuté změny: žádné.
+**M4: hotový ladicí ukazatel měření sítě (F3) a verze `0.1.2`.** Současně přidán `codex.md` + `AGENTS.md` (pravidla pro Codex: nikdy nepushovat, zachovat strukturu a verzování) a „Co je nového“ nově ukazuje jen nejnovější verzi (pokyn uživatele 2026-11-04). Sekání Wi-Fi klientů zůstává odložené do PLAN.md M4.1.
+- **F3 v zápase** zapne/vypne ukazatel vlevo dole: FPS, potvrzení vstupu (ms + kolísání), intervaly snapshotů a nejdelší pauza za 2 s, poslední/největší korekce vlastní postavy (px, 2 s), počet nepotvrzených vstupů. Na hostu a v tréninku jen FPS + vysvětlení. Funguje i ve vydaných buildech (vypnuto, dokud hráč nezmáčkne F3) – hodí se k měření M4.1 s kamarády.
+- Měření lokálně (host + klient, 127.0.0.1, skákání na místě): fake lag 0 → potvrzení ~85–99 ms, 7–8 nepotvrzených vstupů; 100 ms/5 % → ~209 ms, 13–15; 200 ms/10 % → ~293 ms, 18–19. Korekce 0 px (predikce přesná). **Zjištění:** i bez lagu je potvrzení ~100 ms: fronta vstupů na hostu drží trvale 3–5 snímků (MAX_PENDING_INPUTS = 6, nikdy se nevyprázdní) + až 33 ms do snapshotu. To je konstantní zpoždění vstupu klientů navíc – viz Další krok.
+- Verze: `project.godot` = `0.1.2`; v `data/changelog.tres` archivován záznam `0.1.1` / sestavení 29 a nový aktuální záznam (F3, jen nejnovější verze v menu).
+- **Pozor před dalším herním commitem:** zvýšit verzi na `0.1.3` a archivovat aktuální záznam changelogu pod skutečně vydaným sestavením (zjistit z `version.json` releasu, neodhadovat).
+- Necommitnuté změny: žádné (vše commitnuto a pushnuto).
 
 ## Další krok
-**M4: doplnit debug měření RTT a velikosti korekcí** (PLAN.md K, M4).
-- Nejdřív zvýšit verzi na `0.1.2` a archivovat changelog sestavení 29 (viz výše), pak přidat debug ukazatel RTT a korekcí vlastní postavy do HUD, texty přes CSV; ověřit s `--fake-lag=100/200` a ztrátami paketů.
-- Sekání skutečných Wi-Fi klientů je v PLAN.md M4.1; **opravu nyní nespouštět, vyžaduje samostatné zadání.**
-- Push: Codex jen s výslovným souhlasem (viz CLAUDE.md); Claude má trvalé povolení z 2026-11-03.
+**M4 ladění: zkrátit konstantní zpoždění vstupů klientů na hostu** (PLAN.md M4 „ladění“; nejde o opravu Wi-Fi M4.1).
+- Fronta `_pending_inputs` v `match_controller.gd` se po zaplnění nikdy nevyprázdní (spotřeba = příjem), takže drží 3–5 vstupů (~50–80 ms). Přidat dohánění: když fronta trvale (např. > 0,5 s) drží víc než 2 vstupy, zahodit nejstarší navíc (nebo zpracovat 2 za tick), s testy v `tests/`.
+- Ověřit F3 ukazatelem: při fake lag 0 má potvrzení klesnout z ~100 ms na ~50 ms, při 100 ms/5 % ze ~210 ms na ~150 ms, bez nárůstu korekcí. Zvýšit verzi na `0.1.3` + changelog.
+- Pokud uživatel mezitím pošle čísla z F3 ze skutečné Wi-Fi, zapsat je do PLAN.md M4.1 (oprava Wi-Fi dál jen na samostatné zadání).
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -58,6 +58,13 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, M4 ukazatel F3 + verze 0.1.2 + codex.md (Claude):**
+  - `codex.md` a `AGENTS.md`: pravidla pro Codex (nikdy nepushovat, necommitovat bez pokynu, zachovat strukturu kódu a verzování/release, changelog jen nejnovější verze). `CLAUDE.md`: Claude znovu pushuje sám, Codex odkazem na codex.md.
+  - `src/net/net_stats.gd` (nový): měření bez nových síťových zpráv – čas odeslání vstupu podle `seq`, potvrzení přes `last_seq` ve snapshotu, vyhlazený průměr + kolísání, intervaly snapshotů, maxima za 2 s, omezená paměť (256 vstupů).
+  - `ClientPrediction.reconcile()` vrací chybu predikce v px (−1 při prvním snapshotu/smrti/respawnu), `pending_count()`.
+  - `MatchHud`: F3 přepíná ukazatel, texty `DEBUG_NET_*` v CSV. `MatchController` jen předává měření (302 řádků).
+  - Changelog: `Changelog.latest()`, menu „Co je nového“ ukazuje jen nejnovější verzi; poznámky vydání beze změny (už dřív jen nejnovější).
+  - Opravena chyba nalezená během práce: text s čárkou v CSV bez uvozovek se uřízl; nový test `tests/test_translations_csv.gd` hlídá 2 sloupce na řádek.
 - **2026-11-04, kontrola po pullu (Claude):** stažené `da40eac`, `2560ebb`, `6978a62`; prošel jsem diff kódu (predikce, skóre, protokol 5, changelog, vydávání), testy, lokalizaci, Python testy workflow, síťový smoke test a veřejný release. Chyby v kódu nenalezeny; opraven jen zastaralý PROGRESS.md (tvrdil necommitnuté změny a neověřený release).
 - **2026-11-04, sjednocení vydávání (lokálně, bez commitu/pushe):** jedno existující vydání s verzí z projektu, nyní `0.1.1`; main-only CI, bez posouvání tagů a vytváření dalších vydání. Kompatibilní přechod dev → stable/latest a skrytí původního `v0.1.0` až po úspěchu. Publikovaný changelog sestavení 28 archivovaný. Předchozí changelog/kadenci publikoval uživatel jako `2560ebb`, úspěšný CI běh `41843215167`.
 - **2026-11-04, trojnásobná kadence (lokálně, bez commitu/pushe):** `data/weapons/pistol.tres` má `shots_per_second = 9.0` místo `3.0`; ostatní parametry zbraně a střelecká logika se nemění. Novinka přidaná do aktuálního, dosud nepublikovaného záznamu changelogu a CSV.
@@ -179,7 +186,7 @@
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
-- **Sjednocení vydávání je zatím jen lokální změna.** Veřejně zůstávají dev sestavení 28 a staré `v0.1.0`; ke změně dojde až po uživatelově pushi a úspěšném CI. Changelog a kadence již v sestavení 28 jsou.
+- **Konstantní zpoždění vstupů klientů ~50–80 ms navíc** kvůli frontě vstupů na hostu, která se nevyprázdní (změřeno F3 lokálně 2026-11-04). Řeší Další krok.
 - **Stejná Wi-Fi: výrazné sekání všech klientů kromě hosta** (nahlášeno uživatelem 2026-11-04). Příčina neměřená, oprava výslovně odložená; viz PLAN.md M4.1. Lokální headless síťové testy tento problém nevyvracejí.
 - **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
 - **`session.gd` má 306 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
@@ -196,6 +203,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, F3 + 0.1.2:** 80/80 unit testů (nové: 3× `test_net_stats`, chyba predikce v `test_client_prediction`, jen nejnovější verze v `test_changelog`, sloupce CSV – ověřeno, že selže na chybném řádku), lokalizace 104 klíčů / 0 chybějících, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 %: bez chyb skriptů, hodnoty viz „Kde jsme skončili“. Screenshot ukazatele (okno 1280×720 na Retině): čitelné vlevo dole, nepřekrývá scoreboard. Menu: „Co je nového“ ukazuje jen aktuální verzi; generátor poznámek ověřen. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.1 → 0.1.2 (ověřit po CI).
 - **2026-11-04, kontrola po pullu `6978a62`:** 74/74 unit testů, lokalizace 96 / 0 chybějících, 9/9 Python testů workflow, síťový smoke test host+klient bez chyb skriptů. CI běhy `da40eac`, `2560ebb`, `6978a62` úspěšné; release `gun_game v0.1.1` (sestavení 29) ověřen přes GitHub API. Ruční hraní ani aktualizace z předchozí verze neověřeny.
 - **2026-11-04, verze/vydávání:** import, 74/74 herních unit testů a lokalizace 96 klíčů / 0 chybějících OK. Izolovaná kopie projektu: 38 kontrol skutečných headless nástrojů (verze `0.1.1`, příští `0.1.2`, shodná macOS metadata, kanál stable, poznámky a commit odkaz, odmítnutí neplatné verze/argumentů bez přepsání souboru). YAML načten a ověřen main-only, jediný publikační krok, serializace, bez příkazů push/create. **9/9 lokálních testů publikace OK**: postupné verze, zákaz přeskakování/downgradu, pořadí uploadů a skrytí archivu, selhání API/uploadu/promoce, ověření latest a bezpečné opakování po částečné publikaci. Pouze mock `gh`, bez sítě. Git Bash vyžadoval schválenou výjimku sandboxu pro lokální testy. Skutečná publikace ani nová end-to-end instalace se neprováděla.
 - **2026-11-04, kadence 3 → 9:** 6/6 stávajících combat testů OK; přímá runtime kontrola `ContentDB.default_character()` → `Player.current_weapon()` potvrzuje pistoli s `shots_per_second = 9.0` a intervalem `1/9 s`. Import, lokalizace 94 klíčů / 0 chybějících a `git diff --check` OK. Ověřovací skript `.tools/verify_pistol_rate.gd`; žádná změna logiky střelby ani nový test ve sledovaných souborech.
