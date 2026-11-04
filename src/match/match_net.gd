@@ -9,6 +9,7 @@ signal input_received(peer_id: int, frames: Array[InputFrame])
 signal snapshot_received(snapshot: Dictionary)
 signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName)
 signal projectile_removed(id: int)
+signal kill_announced(killer_slot: int, streak: int)
 
 ## A legit client sends 60/s; anything far above is dropped.
 const MAX_INPUT_PACKETS_PER_SECOND := 150
@@ -55,6 +56,12 @@ func send_projectile_removed(id: int) -> void:
 	_send(func() -> void:
 		for peer_id in _loaded_peers:
 			_receive_projectile_removed.rpc_id(peer_id, id), true)
+
+
+func send_kill_announced(killer_slot: int, streak: int) -> void:
+	_send(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_kill_announced.rpc_id(peer_id, killer_slot, streak), true)
 
 
 ## Sends only while the match runs: once it has ended the other side may already have
@@ -105,6 +112,14 @@ func _receive_projectile_spawned(id: int, origin: Vector2, direction: Vector2, w
 @rpc("authority", "call_remote", "reliable")
 func _receive_projectile_removed(id: int) -> void:
 	lag.run(projectile_removed.emit.bind(id), true)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_kill_announced(killer_slot: int, streak: int) -> void:
+	if Session.phase != Session.Phase.IN_MATCH or killer_slot < 0 or killer_slot >= Session.MAX_PLAYERS \
+			or streak < 1 or streak > 65535:
+		return
+	lag.run(kill_announced.emit.bind(killer_slot, streak), true)
 
 
 func _rate_exceeded(peer_id: int) -> bool:

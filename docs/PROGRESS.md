@@ -1,22 +1,24 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M3U (automatické aktualizace) je hotový, otestovaný na Macu, commitnutý a pushnutý.**
+**Silnější odhoz pistole, scoreboard a kill hlášky jsou implementované lokálně.** Předchozí M4 predikce zůstává v pracovním stromu; nahlášené sekání klientů na stejné Wi-Fi je výslovně odložené do PLAN.md M4.1, nyní se neopravovalo.
+- Pistole: odhoz 550 → 800 (přibližně +45 %). Scoreboard vedle jmen ukazuje životy/zabití/smrti, stejné skóre je ve výsledcích. Každá smrt se připíše poslednímu účinnému střelci; bez zásahu jen smrt. Série stejného střelce do 2 s zobrazí DOUBLE/TRIPLE/MULTI KILL.
+- Klient ihned simuluje vlastní pohyb, obnovuje úplný stav z hostu a přehrává nepotvrzené vstupy. Malé korekce vyhlazuje pouze vizuálně; vzdálení hráči dál interpolují.
+- Ověřeno pro skóre: **65/65 unit testů, lokalizace, 225/225 kontrol UI a 38/38 síťových kontrol se čtyřmi skutečnými procesy**. Předchozí M4: 57/57 lokálních síťových kontrol včetně +100 ms/5 % a +200 ms/10 %; tato měření nenahrazují nynější hlášení uživatele o sekání na skutečné Wi-Fi.
+- **Codex nesmí pushovat bez nového výslovného souhlasu; uživatel jej NEUDĚLIL (2026-11-04).** Změny zůstávají bez commitu a bez pushe. CI této změny neběželo.
 - **Pozor:** verze bez aktualizátoru (0.1.0, sestavení 23–24) si hráči musí **naposledy stáhnout ručně**. Od verze s aktualizátorem se nabídka objeví sama.
-- Necommitnuté soubory: žádné.
+- Necommitnuté soubory: `CLAUDE.md`, `docs/{PLAN,ARCHITECTURE,PROGRESS}.md`, `data/weapons/pistol.tres`, `localization/translations.csv`, `src/core/build_info.gd`, `src/combat/{projectile,weapon_system}.gd`, `src/match/{match_controller,match_net,match_score}.gd`, `src/match/match.tscn`, `src/player/{client_prediction,player,player_motor,remote_interpolator}.gd`, `src/ui/{match_hud,results}.gd`, `tests/test_{client_prediction,combat_rules,match_score,net_codec}.gd` a UID nových skriptů. Obsahuje i předchozí lokální M4.
 
 ## Další krok
-**M4: predikce vlastního pohybu klienta** (PLAN.md D.4). Měření: reakce 96–295 ms podle připojení.
-- Klient simuluje vlastní postavu hned ze svého vstupu stejným `PlayerMotor` (sdílený kód s hostem) a ukládá historii vstupů a stavů podle `seq`.
-- Po snapshotu (`last_seq` už se posílá) nastaví stav podle hostu a přehraje nepotvrzené vstupy (reconciliation). Malé rozdíly vyhladí vizuálním offsetem.
-- Knockback, respawn a odpočet přicházejí z hostu jako korekce.
-- Na klientovi potřebuje vlastní postava kolize se světem: projít `Player`, aby predikovaná postava mohla běžet `move_and_slide`, ostatní zůstávají interpolované.
-- **Test:** `--fake-lag=100/200`. Cíl: reakce vlastní postavy ~1 snímek, malé a plynulé korekce. Měřit stejným skriptem jako v M2.
-- **Zvážit potom:** vydat `v0.2.0` (M3U + M4).
+**M4: doplnit debug měření RTT a velikosti korekcí** (PLAN.md K, M4).
+- Přidat debug ukazatel RTT a korekcí vlastní postavy do HUD, texty přes CSV. Ověřit s `--fake-lag=100/200` a ztrátami paketů.
+- Predikce je implementovaná; další změny ladění dělat podle měření a zpětné vazby hráčů. Podrobné měření mezi počítači/Tailscale a ruční Windows test zůstávají odložené níže.
+- Uživatel nahlásil výrazné sekání všech klientů kromě hosta na stejné Wi-Fi. Postup reprodukce/měření/budoucí opravy je v PLAN.md M4.1. **Opravu nyní nespouštět; vyžaduje samostatné zadání.**
+- Žádný automatický push z Codexu. Vydání `v0.2.0` je samostatný pozdější krok.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
-- **Test druhého hráče na jiném počítači** (stejná Wi-Fi nebo Tailscale): uživatel 2026-11-03: „připojení druhého člověka ověřím později“. Až to nahlásí, zapsat výsledek do Stav testů.
+- **Další měření na více počítačích a Tailscale:** uživatel 2026-11-04 nahlásil, že spojení na stejné Wi-Fi funguje, ale všem klientům kromě hostitele se hra velmi seká. Výsledek je zapsán; podrobné měření a oprava jsou na jeho pokyn odložené (PLAN.md M4.1). Tailscale není ověřený.
 - Ruční test staženého `gun_game-windows.zip` na Windows PC:
   - SmartScreen
   - menu s verzí
@@ -27,7 +29,8 @@
 - Do té doby se hra na Macu spouští lokálně: `tools/godot --path .` z kořene projektu.
 
 ## Aktuální stav
-- **Milník:** M2, kroky 1–3 a 4a hotové. M1 je hotový včetně CI (chybí jen ruční test na Windows, viz ODLOŽENO).
+- **Milník:** M3 a M3U hotové; M4 predikce implementovaná lokálně. Zbývá debug měření a zpětná vazba ze skutečného připojení. Odložené ruční testy viz výše.
+- **Dodatek dle zadání 2026-11-04:** silnější pistole, scoreboard životů/zabití/smrtí a kill hlášky; autorita skóre je na hostu, síťový protokol 5. Sekání reálných Wi-Fi klientů není vyřešené.
 - **Funguje** (ověřeno lokálně na macOS arm64):
   - menu s verzí, jménem a českými texty
   - trénink: běh, skok, dvojskok, seskok z plošiny, respawn po pádu, Esc do menu
@@ -57,6 +60,23 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, silnější odhoz a skóre (lokálně, bez commitu/pushe):**
+  - Pistole má `knockback = 800` místo 550; kadence, rychlost střely a zpětný ráz se neměnily.
+  - **`MatchScore`:** poslední účinný zásah určuje autora každého zabití bez časového limitu do smrti. Po smrti se přiřazení smaže; nezranitelnost ani vlastní zásah jej nepřepíší. Odpojený střelec nedostane kredit, posmrtné zabití se počítá.
+  - Projektil si pamatuje střelce a host zaznamenává účinné zásahy. Pád zvýší smrti, případnému střelci zabití; respawn součty zachová, nový zápas začíná od nuly.
+  - **HUD:** přehled u jmen s životy/zabitími/smrtmi, v tréninku ∞ životů; dvousekundové hlášky KILL / DOUBLE / TRIPLE / MULTI KILL. Série se skládá ze zabití stejného střelce v rozestupu nejvýše 2 s. Součty jsou i ve výsledcích.
+  - **Protokol 5:** snapshot 6 B + 33 B na hráče včetně zabití/smrtí; kill hlášky spolehlivým RPC pouze od hosta. Přenos a simulace pohybu se kvůli Wi-Fi problému neopravovaly.
+  - **Plán M4.1:** nahlášené sekání klientů na skutečné Wi-Fi, budoucí reprodukce na 2–4 počítačích, měření časů snímků/RTT/front/vstupů/snapshotů/korekcí a teprve následná oprava. Žádná příčina zatím není potvrzená.
+  - **Instrukce Git:** odstraněno rozporné automatické povolení k pushi pro Codex; souhlas nyní není udělen.
+- **2026-11-04, M4 predikce vlastního pohybu (lokální změny, bez commitu/pushe):**
+  - Před implementací přečten celý repozitář: zdroje, testy, scény, data, lokalizace, dokumentace a nástroje.
+  - **`ClientPrediction`:** historie až 120 vstupů a výsledných stavů, potvrzování podle `last_seq` včetně přetečení, obnova a replay sdíleným motorem, omezená historie při výpadku. Smrt/respawn a velké korekce se zobrazí okamžitě.
+  - **Snapshot, protokol 4:** 29 B na hráče; nově kontakt se zemí, předchozí tlačítka, počet skoků a časovače bufferu/seskoku. Validace slotů, konečných čísel a časovačů.
+  - **Reconciliation pouze ve fyzikálním ticku:** příchozí snapshot se nejprve uloží; staré/duplicitní ticky se zahodí. Novější snapshot se stejným `last_seq` se zpracuje.
+  - **`Player`/`PlayerMotor`:** úplná obnova pohybu a kolizí; vizuální offset pro malé opravy. Neaktivní postavy mají vypnuté kolize. Nezranitelnost odpočítává jen host.
+  - **Odpočet:** zachovává číslo zpracovaného vstupu, dovolí jen míření. Při přechodu na výsledky/lobby se simulace a zpracování vstupů zastaví.
+  - **Testy:** 9 nových testů predikce a další test kodeku; architektura a projektové instrukce aktualizovány.
+  - **Pokyn uživatele:** Codex nesmí pushovat; zákaz je uložen i v `CLAUDE.md`.
 - **2026-11-03, opravy a úpravy podle uživatele:**
   - **Hráč na hlavě jiného hráče z ní sklouzne do strany** (`PlayerMotor._slide_off_heads`). Řeší zaseknutí po respawnu na hráči.
   - **Respawn na nejvolnějším místě** (`Arena.free_spawn_point`)
@@ -146,10 +166,12 @@
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
+- **Stejná Wi-Fi: výrazné sekání všech klientů kromě hosta** (nahlášeno uživatelem 2026-11-04). Příčina neměřená, oprava výslovně odložená; viz PLAN.md M4.1. Lokální headless síťové testy tento problém nevyvracejí.
 - **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
 - **`session.gd` má 306 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
 - **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
-- **Vlastní postava klienta reaguje se zpožděním** (cesta k hostu a zpět + 40 ms interpolace, změřeno viz Stav testů). Na LAN skoro nepoznatelné, přes internet znatelné. Predikce vlastního pohybu je naplánovaná v M4 (PLAN.md D.4), architektura je připravená (`last_seq` ve snapshotu, sdílený `PlayerMotor`).
+- **Predikce je zatím ověřená automaticky lokálně.** Skutečný internet a ruční hodnocení plynulosti korekcí čekají na hráče. Střelbu, zpětný ráz a odhoz dál potvrzuje host; M4 predikuje jen pohyb.
+- **Kolize s pohybujícími se soupeři při replay používají jejich aktuální interpolované pozice.** Mohou vyvolat korekce od hostu; historické přetáčení soupeřů není součást M4.
 - **Hostitel nemá zpoždění** (výhoda hostitele, PLAN.md M).
 - **Interpolace neextrapoluje:** při výpadku snapshotů postava stojí na poslední pozici.
 - **Knihovní Wi-Fi** (síť uživatele) používá rozsah 100.64.x.x a často blokuje provoz mezi zařízeními. Ověřovat raději doma nebo přes Tailscale.
@@ -160,7 +182,25 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
-- **Unit testy:** 44/44 OK (+ aréna: otevřený horní okraj, volný spawn)
+- **2026-11-04, skóre/odhoz, automaticky lokálně na Windows, Godot 4.7.2:** **65/65 unit testů OK**. Přibylo 9 testů přiřazení zabití/sérií (včetně odpojení, respawnu a poslední kulky), test skutečného signálu zásahu/nezranitelnosti a test přenosu rozsahu skóre. Snapshot roundtrip ověřuje i K/D a odmítnutí starého formátu.
+- **UI skóre:** **225/225 kontrol OK** na skutečných scénách při 1280×720: čtyři šestnáctiznaková česká jména, seřazení a barvy slotů, životy/vypadnutí, tréninkové ∞, počty zabití/smrtí, hlášky/časování a výsledky. Buňky a výsledky se nepřekrývají. Skript lokálně `.tools/ui_score_smoke.gd`.
+- **Síťové skóre:** **38/38 kontrol OK**, host + 3 skuteční ENet klienti na localhostu (14 kontrol hosta, po 8 na klienta). Skutečně vystřelené projektily zasáhly tři cíle; jejich pády v jednom ticku připsaly hostovi 3 zabití. Všichni klienti obdrželi po řadě KILL / DOUBLE KILL / TRIPLE KILL, stejné K/D ve snapshotech, HUD i výsledcích a vrátili se do stejného lobby se čtyřmi hráči. Reporty/logy lokálně `.tools/score_smoke_20261104_140132/`, skripty `.tools/{score_smoke.gd,run_score_smoke.ps1}`. Bez funkčních/scriptových/síťových chyb; přetrvávají známé zprávy sandboxu o certifikátech a ukončovací resource warnings.
+- **Lokalizace:** 71 použitých klíčů, 0 chybějících. Import projektu a `git diff --check` OK.
+- **Hlášení uživatele 2026-11-04:** na skutečné stejné Wi-Fi všem klientům kromě hosta hra výrazně seká. Uloženo do plánu, nikoli opraveno.
+- **Dříve v této session, M4:** 54/54 testů OK (predikce, replay, přetečení sekvencí, obnova motoru, odpočet, smrt/respawn, omezená historie a odložené/staré snapshoty).
+- **M4, dvě skutečné ENet instance na 127.0.0.1 (Windows, headless, 120 FPS limit):** 57/57 kontrol OK, po 8 na hostu a 11 na klientovi pro každý profil. Ověřeno: držený vstup během odpočtu, okamžitý běh/skok/dvojskok/seskok, odhoz od hostu, skrytí při smrti, respawn s nezranitelností, eliminace, výsledky a návrat do stejného lobby.
+
+  | Simulace pouze na klientovi | První pohyb po stisku | Největší vizuální offset během běhu | Offset 0,45 s po zastavení |
+  |---|---|---|---|
+  | bez lagu / 0 % ztrát | 20,7 ms | 0 px | 0 px |
+  | +100 ms / 5 % ztrát | 17,6 ms | 10,5 px | 0 px |
+  | +200 ms / 10 % ztrát | 14,8 ms | 0 px | 0 px |
+
+  - Ve všech případech jde o **první fyzikální snímek**. Časy jsou jednotlivá měření při souběhu headless procesů, nikoli statistický benchmark nebo měření zobrazení na monitoru.
+  - Testovací skripty, JSON výsledky a logy jsou lokálně v gitignored `.tools/`: `m4_smoke.gd`, `run_smoke.ps1`, `m4_validation_summary.json`, `m4_final_*`. Původní dočasný měřicí skript z M2 není v repozitáři; použit nový ekvivalent.
+  - Logy bez `SCRIPT ERROR` nebo síťových chyb. Sandbox hlásí nedostupný systémový seznam certifikátů; testovací procesy při ukončení také známá varování o neuvolněných prostředcích/časovačích.
+- **CI nové změny:** nespouštěno; nic není pushnuté. Ruční Windows testy a Tailscale zůstávají odložené.
+- **Dříve:** 44/44 OK (+ aréna: otevřený horní okraj, volný spawn)
 - **Dříve:** 42/42 OK (+ updater: manifest, výměna souboru, obnova při chybě, Linux ZIP, Mac `.app` a ochrana proti `..` v ZIPu)
 - **Dříve:** 37/37 OK (+ snapshot s životy a odpočtem)
 - **Dříve:** 37/37 OK (+ souboj a odhoz po zemi)
@@ -225,9 +265,12 @@
   - Gatekeeper se staženým ZIPem
   - ruční hraní
   - tlačítko Kopírovat
-  - síť mezi dvěma počítači a přes Tailscale
+  - podrobné měření/ověření opravy sekání mezi počítači; Tailscale (Wi-Fi problém pouze nahlášen uživatelem)
 
 ## Rozhodnutí
+- **Codex nesmí pushovat bez nového výslovného souhlasu (2026-11-04); nyní žádný souhlas není.** Všechny změny této session zůstávají bez commitu a bez pushe.
+- **Skóre (2026-11-04):** zabití podle poslední účinné kulky před každou smrtí, bez timeoutu do pádu; série zabití stejného střelce do 2 s. Skóre pouze host, protokol 5. Silnější pistole 550 → 800. Oprava Wi-Fi sekání je nyní pouze v plánu.
+- **M4:** vlastní pohyb se predikuje sdíleným motorem, opravy se přehrávají pouze během fyziky; odhoz, střelba a průběh zápasu zůstávají na hostu. Snapshot používá protokol 4.
 - **Build jen při změně hry:** `paths-ignore` pro `docs/**`, `**/*.md`, `LICENSE`, `.gitignore` a `.gitattributes`. README a dokumentace tedy nemění verzi a nenutí hráče aktualizovat.
 - **Nikdo nestojí na hlavě jiného hráče** (sklouznutí), **horní okraj arény je otevřený** a **život se ubírá až po 0,5 s mimo arénu.**
 - **Aktualizace jen na vyšší číslo sestavení a jen ze stejného kanálu** (dev/stable). Manifest se nahrává poslední. Restart používá cestu zapamatovanou před výměnou.

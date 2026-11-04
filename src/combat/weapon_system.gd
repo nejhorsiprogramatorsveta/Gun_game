@@ -4,6 +4,8 @@ extends Node2D
 ## Only the authority (host or offline practice) decides shots and hits. Clients receive
 ## spawn/remove events and fly the same bullets purely for display.
 
+signal player_hit(attacker_peer_id: int, target: Player)
+
 ## MatchNet of a network match; null in offline practice.
 var _net: Node
 var _projectiles: Dictionary[int, Projectile] = {}
@@ -45,9 +47,10 @@ func _spawn(id: int, origin: Vector2, direction: Vector2, weapon: WeaponData, sh
 
 
 func _on_hit(projectile: Projectile, target: Player) -> void:
-	if target.invulnerable:
-		return  # respawn protection: the bullet is absorbed
+	if not projectile.authoritative or not target.visible or target.invulnerable:
+		return
 	target.velocity += CombatRules.knockback(projectile.direction, projectile.weapon, target.character.weight)
+	player_hit.emit(projectile.shooter_peer_id, target)
 
 
 func _on_finished(projectile: Projectile) -> void:

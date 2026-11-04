@@ -28,3 +28,31 @@ func test_spread_stays_within_limits() -> void:
 func test_pistol_is_loaded_for_default_character() -> void:
 	check_eq(ContentDB.default_character().weapons.size(), 1, "default character has its weapon")
 	check(ContentDB.get_weapon(&"pistol") != null, "weapon lookup by id")
+
+
+func test_authoritative_hit_reports_shooter_and_protection_blocks_it() -> void:
+	var shooter := Player.new()
+	shooter.peer_id = 10
+	var target := Player.new()
+	target.peer_id = 20
+	target.character = CharacterData.new()
+	var projectile := Projectile.new()
+	projectile.setup(1, Vector2.ZERO, Vector2.RIGHT, pistol, shooter)
+	var weapons := WeaponSystem.new()
+	var hits: Array[int] = []
+	weapons.player_hit.connect(func(attacker_id: int, _victim: Player) -> void: hits.append(attacker_id))
+	weapons._on_hit(projectile, target)
+	check_eq(hits, [10], "bullet reports its original shooter for kill attribution")
+	check_eq(target.velocity.x, pistol.knockback, "hit applies the configured knockback")
+	target.invulnerable = true
+	weapons._on_hit(projectile, target)
+	check_eq(hits.size(), 1, "protected hits do not change kill attribution")
+	check_eq(target.velocity.x, pistol.knockback, "protected hits do not push")
+	target.invulnerable = false
+	projectile.authoritative = false
+	weapons._on_hit(projectile, target)
+	check_eq(hits.size(), 1, "client visuals cannot report hits or change score")
+	weapons.free()
+	projectile.free()
+	shooter.free()
+	target.free()

@@ -1,7 +1,7 @@
 class_name Player
 extends CharacterBody2D
 ## A character in the arena. On the authority (host or offline practice) it is moved by
-## PlayerMotor from inputs; on clients it only displays interpolated host snapshots.
+## PlayerMotor from inputs; clients predict themselves and interpolate other players.
 ## Visuals are placeholders until pixel-art sprites exist (PLAN.md section Q).
 
 const BODY_SIZE := Vector2(36, 56)
@@ -16,6 +16,8 @@ var slot := 0
 var display_name := ""
 ## Lives left in a network match (0 = eliminated). Set by the authority, shown in the HUD.
 var lives := 0
+var kills := 0
+var deaths := 0
 ## True right after a respawn: hits do not push the player (shown by blinking).
 var invulnerable := false
 var facing := 1
@@ -28,9 +30,12 @@ var fire_cooldown := 0.0
 var invulnerable_time := 0.0
 ## Authority: how long the player has been outside the arena (see out_of_bounds_grace).
 var out_of_bounds_time := 0.0
+## Render correction only; collisions always use the corrected simulation position.
+var visual_offset := Vector2.ZERO
 
-## Only on clients: smooths host snapshots.
+## Only for remote players on clients.
 var _interpolator: RemoteInterpolator
+var _name_label: Label
 
 
 func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_name: String) -> void:
@@ -47,13 +52,12 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 	name_label.size = Vector2(240, 36)
 	name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 42)
 	add_child(name_label)
+	_name_label = name_label
 
 
-## Authority only: one physics tick of movement from `input`.
+## One shared movement tick, also used during client prediction and replay.
 func simulate(input: InputFrame, delta: float) -> void:
 	PlayerMotor.step(self, input, motor_state, character, delta)
-	invulnerable_time = maxf(invulnerable_time - delta, 0.0)
-	invulnerable = invulnerable_time > 0.0
 	aim = input.aim
 	last_input_seq = input.seq
 	facing = motor_state.facing
@@ -66,20 +70,43 @@ func current_weapon() -> WeaponData:
 
 func snapshot_state() -> Dictionary:
 	return {"slot": slot, "position": position, "velocity": velocity, "facing": facing,
-			"active": visible, "invulnerable": invulnerable, "aim": aim, "last_seq": last_input_seq, "lives": lives}
+			"active": visible, "invulnerable": invulnerable, "aim": aim, "last_seq": last_input_seq, "lives": lives,
+			"on_floor": motor_state.on_floor, "prev_buttons": motor_state.prev_buttons,
+			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
+			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths}
+
+
+## Restore all movement memory before replaying inputs, including contact and press edges.
+func restore_state(state: Dictionary) -> void:
+	_apply_state(state)
+	velocity = state.velocity
+	last_input_seq = state.last_seq
+	motor_state.facing = state.facing
+	motor_state.on_floor = state.on_floor
+	motor_state.prev_buttons = state.prev_buttons
+	motor_state.jumps_left = state.jumps_left
+	motor_state.jump_buffer_timer = state.jump_buffer_timer
+	motor_state.drop_timer = state.drop_timer
+	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, visible and motor_state.drop_timer <= 0.0)
 
 
 ## Client only: queue a host snapshot for smooth display.
 func receive_state(state: Dictionary, time_ms: int) -> void:
 	if _interpolator == null:
-		var own := peer_id == multiplayer.get_unique_id()
-		_interpolator = RemoteInterpolator.new(RemoteInterpolator.OWN_PLAYER_DELAY_MS if own else RemoteInterpolator.INTERPOLATION_DELAY_MS)
+		_interpolator = RemoteInterpolator.new()
 	_interpolator.push(time_ms, state)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _interpolator:
 		_apply_state(_interpolator.sample(Time.get_ticks_msec()))
+	if not visual_offset.is_zero_approx():
+		visual_offset *= exp(-20.0 * delta)
+		if visual_offset.length_squared() < 0.01:
+			visual_offset = Vector2.ZERO
+		queue_redraw()
+	if _name_label:
+		_name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 42) + visual_offset
 	var blink_off := invulnerable and (Time.get_ticks_msec() / 100) % 2 == 0
 	modulate.a = 0.35 if blink_off else 1.0
 
@@ -88,10 +115,12 @@ func _apply_state(state: Dictionary) -> void:
 	if state.is_empty():
 		return
 	position = state.position
-	visible = state.active
+	set_active(state.active)
 	facing = state.facing
 	aim = state.aim
 	lives = state.lives
+	kills = state.get("kills", 0)
+	deaths = state.get("deaths", 0)
 	invulnerable = state.invulnerable
 	queue_redraw()
 
@@ -100,6 +129,8 @@ func reset_to(spawn_position: Vector2) -> void:
 	position = spawn_position
 	velocity = Vector2.ZERO
 	motor_state = PlayerMotor.State.new()
+	visual_offset = Vector2.ZERO
+	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, true)
 	fire_cooldown = 0.0
 	invulnerable_time = 0.0
 	invulnerable = false
@@ -109,10 +140,12 @@ func reset_to(spawn_position: Vector2) -> void:
 ## Inactive players are hidden and removed from physics (e.g. while waiting to respawn).
 func set_active(active: bool) -> void:
 	visible = active
-	process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+	collision_layer = 4 if active else 0
+	collision_mask = 7 if active else 0
 
 
 func _draw() -> void:
+	draw_set_transform(visual_offset)
 	draw_rect(Rect2(-BODY_SIZE / 2.0, BODY_SIZE), SLOT_COLORS[slot % SLOT_COLORS.size()])
 	var eye := Vector2(8.0 * facing, -BODY_SIZE.y / 4.0)
 	draw_rect(Rect2(eye - Vector2(4, 4), Vector2(8, 8)), Color(0.1, 0.1, 0.12))

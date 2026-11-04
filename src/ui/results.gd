@@ -21,12 +21,22 @@ func _ready() -> void:
 	_back_button.visible = Session.is_host()
 	_back_button.pressed.connect(Session.return_to_lobby)
 	for entry: Dictionary in Session.match_results:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 24)
 		var label := Label.new()
 		label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		var key := "RESULTS_WINNER" if entry.get("place", 0) == 1 else "RESULTS_PLACE"
 		label.text = tr(key).format({"place": entry.get("place", 0), "name": str(entry.get("name", "?"))})
 		label.add_theme_font_size_override("font_size", 34 if entry.get("place", 0) == 1 else 24)
-		_ranking.add_child(label)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var score := Label.new()
+		score.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		score.text = tr("RESULTS_SCORE").format({"kills": entry.get("kills", 0), "deaths": entry.get("deaths", 0)})
+		score.add_theme_font_size_override("font_size", 22)
+		score.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(score)
+		_ranking.add_child(row)
 	_update_status()
 	if Session.is_host():
 		_count_down()

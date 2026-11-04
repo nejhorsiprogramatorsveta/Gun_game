@@ -1,0 +1,177 @@
+extends TestCase
+
+const DT := 1.0 / 60.0
+
+## Reconciliation uses the real motor rules; physics-world contacts have separate smoke tests.
+class TestPlayer extends Player:
+	func simulate(input: InputFrame, delta: float) -> void:
+		velocity = PlayerMotor.compute_velocity(velocity, motor_state.on_floor, input, motor_state, character, delta)
+		position += velocity * delta
+		aim = input.aim
+		facing = motor_state.facing
+		last_input_seq = input.seq
+
+
+func _player() -> TestPlayer:
+	var player := TestPlayer.new()
+	player.character = CharacterData.new()
+	player.motor_state.on_floor = true
+	player.motor_state.jumps_left = 2
+	player.lives = 5
+	return player
+
+
+func test_waits_for_authority_then_predicts_immediately() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	prediction.predict(player, InputFrame.create(1, 0, 0, 1), DT, false)
+	check_eq(player.position, Vector2.ZERO, "wait for the first host baseline")
+	prediction.reconcile(player, player.snapshot_state())
+	prediction.predict(player, InputFrame.create(1, 0, 0, 2), DT, false)
+	check(player.position.x > 0.0, "movement starts on the input tick, without waiting for a snapshot")
+	player.free()
+
+
+func test_reconciliation_replays_only_unacknowledged_inputs() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	prediction.reconcile(player, player.snapshot_state())
+	var confirmed := {}
+	for seq in range(1, 4):
+		prediction.predict(player, InputFrame.create(1, 0, 0, seq), DT, false)
+		if seq == 1:
+			confirmed = player.snapshot_state()
+	var expected := player.position
+	player.position += Vector2(5, 0)
+	prediction.reconcile(player, confirmed)
+	check(player.position.is_equal_approx(expected), "restore host position/velocity and replay inputs 2 and 3")
+	check_eq(prediction._history.size(), 2, "acknowledged input removed")
+	check(player.visual_offset.is_equal_approx(Vector2(5, 0)), "small correction preserved only as a visual offset")
+	check_eq(prediction._history[-1].state.position, player.position, "saved predicted states updated after replay")
+	player.free()
+
+
+func test_sequence_wrap_and_repeated_acknowledgement() -> void:
+	var player := _player()
+	player.last_input_seq = 65533
+	var prediction := ClientPrediction.new()
+	var baseline := player.snapshot_state()
+	prediction.reconcile(player, baseline)
+	for seq in [65534, 65535, 0, 1]:
+		prediction.predict(player, InputFrame.create(1, 0, 0, seq), DT, false)
+	baseline.last_seq = 65535
+	prediction.reconcile(player, baseline)
+	check_eq(prediction._history.size(), 2, "sequence wrap retains inputs 0 and 1")
+	var previous := player.position
+	baseline.position += Vector2(20, 0)
+	prediction.reconcile(player, baseline)
+	check(player.position.is_equal_approx(previous + Vector2(20, 0)), "a newer host state with the same ack still corrects movement")
+	player.free()
+
+
+func test_restores_jump_edges_and_drop_memory() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	var state := player.snapshot_state()
+	state.on_floor = false
+	state.prev_buttons = InputFrame.JUMP | InputFrame.DOWN
+	state.jumps_left = 1
+	state.jump_buffer_timer = 0.05
+	state.drop_timer = 0.2
+	state.velocity = Vector2(0, -300)
+	prediction.reconcile(player, state)
+	check(not player.get_collision_mask_value(PlayerMotor.ONE_WAY_LAYER), "restored drop-through disables the platform collision")
+	prediction.predict(player, InputFrame.create(0, InputFrame.JUMP | InputFrame.DOWN, 0, 1), DT, false)
+	check_eq(player.motor_state.jumps_left, 1, "held jump is not replayed as a new press")
+	check(player.velocity.y > -300.0, "gravity continues instead of an extra jump")
+	check(absf(player.motor_state.drop_timer - (0.2 - DT)) < 0.00001, "drop timer continues from the host")
+	player.free()
+
+
+func test_countdown_freezes_motion_but_preserves_sequence_and_aim() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	prediction.reconcile(player, player.snapshot_state())
+	prediction.predict(player, InputFrame.create(1, InputFrame.JUMP, 32768, 42), DT, true)
+	check_eq(player.position, Vector2.ZERO, "no movement or jump during countdown")
+	check_eq([player.last_input_seq, player.aim], [42, 32768], "sequence and aim retained while frozen")
+	player.free()
+
+
+func test_death_respawn_and_large_corrections_clear_smoothing() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	var state := player.snapshot_state()
+	prediction.reconcile(player, state)
+	prediction.predict(player, InputFrame.create(1, 0, 0, 1), DT, false)
+	state.active = false
+	state.lives = 4
+	prediction.reconcile(player, state)
+	check_eq(prediction._history.size(), 0, "death discards pending movement")
+	check_eq(player.collision_layer, 0, "dead body does not block other players")
+	prediction.predict(player, InputFrame.create(1, 0, 0, 2), DT, false)
+	check_eq(prediction._history.size(), 0, "dead player does not predict")
+	state.active = true
+	state.position = Vector2(500, 0)
+	state.invulnerable = true
+	prediction.reconcile(player, state)
+	check_eq(player.position, Vector2(500, 0), "respawn applied without replaying pre-death input")
+	check(player.invulnerable, "protection is restored from the host")
+	check_eq(player.visual_offset, Vector2.ZERO, "respawn snaps visually")
+	state.position += Vector2(500, 0)
+	prediction.reconcile(player, state)
+	check_eq(player.visual_offset, Vector2.ZERO, "large correction snaps visually")
+	player.free()
+
+
+func test_history_is_bounded_and_recovers_after_outage() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	var baseline := player.snapshot_state()
+	prediction.reconcile(player, baseline)
+	for seq in range(1, ClientPrediction.MAX_PENDING_INPUTS + 10):
+		prediction.predict(player, InputFrame.create(1, 0, 0, seq), DT, false)
+	check_eq(prediction._history.size(), ClientPrediction.MAX_PENDING_INPUTS, "history has a fixed bound")
+	prediction.reconcile(player, baseline)
+	check_eq(player.position, baseline.position, "missing history resets to the host")
+	check_eq(prediction._history.size(), 0, "incomplete timeline discarded")
+	player.free()
+
+
+func test_respawn_resets_history_even_when_death_snapshot_was_lost() -> void:
+	var player := _player()
+	var prediction := ClientPrediction.new()
+	var state := player.snapshot_state()
+	prediction.reconcile(player, state)
+	prediction.predict(player, InputFrame.create(1, InputFrame.JUMP, 0, 1), DT, false)
+	state.lives -= 1
+	state.position = Vector2(800, 400)
+	prediction.reconcile(player, state)
+	check_eq(player.position, state.position, "life change detects a missed death/respawn")
+	check_eq(prediction._history.size(), 0, "old-life inputs cannot affect respawn")
+	check_eq(player.visual_offset, Vector2.ZERO, "missed death still snaps at respawn")
+	player.free()
+
+
+func test_snapshot_delivery_defers_replay_and_rejects_old_ticks() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var session := tree.root.get_node("Session")
+	var previous_phase: int = session.phase
+	session.phase = session.Phase.IN_MATCH
+	var controller: Node = load("res://src/match/match_controller.gd").new()
+	var snapshot := {"tick": 0xFFFFFFFF, "countdown": 1, "states": []}
+	controller._on_snapshot_received(snapshot)
+	check_eq(controller._countdown_display, 0, "delivery queues state without running simulation outside physics")
+	check_eq(controller._pending_snapshot, snapshot, "latest authoritative state queued for physics")
+	snapshot = {"tick": 0, "countdown": 0, "states": []}
+	controller._on_snapshot_received(snapshot)
+	check_eq(controller._last_snapshot_tick, 0, "u32 tick wrap accepted")
+	controller._on_snapshot_received({"tick": 0xFFFFFFFE, "countdown": 3, "states": []})
+	check_eq(controller._pending_snapshot, snapshot, "old tick cannot overwrite queued state")
+	controller._on_snapshot_received({"tick": 0, "countdown": 3, "states": []})
+	check_eq(controller._pending_snapshot, snapshot, "duplicate tick ignored")
+	session.phase = session.Phase.RESULTS
+	controller._on_snapshot_received({"tick": 1, "countdown": 3, "states": []})
+	check_eq(controller._last_snapshot_tick, 0, "late match packets ignored during scene transition")
+	session.phase = previous_phase
+	controller.free()

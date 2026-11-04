@@ -18,6 +18,7 @@ var id := 0
 var direction := Vector2.RIGHT
 var weapon: WeaponData
 var authoritative := false
+var shooter_peer_id := 0
 
 var _exclude: Array[RID] = []
 var _travelled := 0.0
@@ -30,6 +31,7 @@ func setup(projectile_id: int, origin: Vector2, flight_direction: Vector2, weapo
 	weapon = weapon_data
 	authoritative = shooter != null
 	if shooter:
+		shooter_peer_id = shooter.peer_id
 		_exclude = [shooter.get_rid()]
 
 

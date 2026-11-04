@@ -10,13 +10,15 @@ const INPUT_FRAME_BYTES := 4  # s8 move_x, u8 buttons, u16 aim
 const INPUT_PACKET_BYTES := 2 + INPUT_HISTORY * INPUT_FRAME_BYTES
 
 const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown seconds left
-## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives
-const SNAPSHOT_PLAYER_BYTES := 19
+## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives,
+## u8 previous buttons, u8 jumps left, f32 jump buffer timer, f32 drop timer, u16 kills, u16 deaths.
+const SNAPSHOT_PLAYER_BYTES := 33
 const MAX_SNAPSHOT_PLAYERS := 4
 
 const FLAG_FACING_RIGHT := 1
 const FLAG_ACTIVE := 2
 const FLAG_INVULNERABLE := 4
+const FLAG_ON_FLOOR := 8
 
 
 ## frames[0] is the newest; older frames must have seq = newest.seq - index.
@@ -47,8 +49,8 @@ static func decode_input(data: PackedByteArray) -> Array[InputFrame]:
 	return frames
 
 
-## states: [{slot, position, velocity, facing, active, invulnerable, aim, last_seq, lives}],
-## see Player.snapshot_state(). countdown = whole seconds left before the match starts.
+## Player.snapshot_state() includes the movement memory needed to replay pending inputs.
+## countdown = whole seconds left before the match starts.
 static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]) -> PackedByteArray:
 	var data := PackedByteArray()
 	data.resize(SNAPSHOT_HEADER_BYTES + states.size() * SNAPSHOT_PLAYER_BYTES)
@@ -61,7 +63,7 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		var position: Vector2 = state.position
 		var velocity: Vector2 = state.velocity
 		var flags := (FLAG_FACING_RIGHT if state.facing > 0 else 0) | (FLAG_ACTIVE if state.active else 0) \
-				| (FLAG_INVULNERABLE if state.invulnerable else 0)
+				| (FLAG_INVULNERABLE if state.invulnerable else 0) | (FLAG_ON_FLOOR if state.get("on_floor", false) else 0)
 		data.encode_u8(offset, state.slot)
 		data.encode_float(offset + 1, position.x)
 		data.encode_float(offset + 5, position.y)
@@ -71,6 +73,12 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		data.encode_u16(offset + 14, state.aim)
 		data.encode_u16(offset + 16, state.last_seq)
 		data.encode_u8(offset + 18, clampi(state.lives, 0, 255))
+		data.encode_u8(offset + 19, int(state.get("prev_buttons", 0)) & InputFrame.ALL_BUTTONS)
+		data.encode_u8(offset + 20, clampi(state.get("jumps_left", 0), 0, 255))
+		data.encode_float(offset + 21, state.get("jump_buffer_timer", 0.0))
+		data.encode_float(offset + 25, state.get("drop_timer", 0.0))
+		data.encode_u16(offset + 29, clampi(state.get("kills", 0), 0, 65535))
+		data.encode_u16(offset + 31, clampi(state.get("deaths", 0), 0, 65535))
 	return data
 
 
@@ -82,19 +90,36 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 	if count > MAX_SNAPSHOT_PLAYERS or data.size() != SNAPSHOT_HEADER_BYTES + count * SNAPSHOT_PLAYER_BYTES:
 		return {}
 	var states: Array[Dictionary] = []
+	var slots: Dictionary[int, bool] = {}
 	for i in count:
 		var offset := SNAPSHOT_HEADER_BYTES + i * SNAPSHOT_PLAYER_BYTES
 		var flags := data.decode_u8(offset + 13)
+		var slot := data.decode_u8(offset)
+		var position := Vector2(data.decode_float(offset + 1), data.decode_float(offset + 5))
+		var jump_buffer_timer := data.decode_float(offset + 21)
+		var drop_timer := data.decode_float(offset + 25)
+		if slot >= MAX_SNAPSHOT_PLAYERS or slots.has(slot) or not position.is_finite() \
+				or not is_finite(jump_buffer_timer) or not is_finite(drop_timer) \
+				or jump_buffer_timer < 0.0 or drop_timer < 0.0:
+			return {}
+		slots[slot] = true
 		states.append({
-			"slot": data.decode_u8(offset),
-			"position": Vector2(data.decode_float(offset + 1), data.decode_float(offset + 5)),
+			"slot": slot,
+			"position": position,
 			"velocity": Vector2(data.decode_s16(offset + 9), data.decode_s16(offset + 11)),
 			"facing": 1 if flags & FLAG_FACING_RIGHT else -1,
 			"active": flags & FLAG_ACTIVE != 0,
 			"invulnerable": flags & FLAG_INVULNERABLE != 0,
+			"on_floor": flags & FLAG_ON_FLOOR != 0,
 			"aim": data.decode_u16(offset + 14),
 			"last_seq": data.decode_u16(offset + 16),
 			"lives": data.decode_u8(offset + 18),
+			"prev_buttons": data.decode_u8(offset + 19) & InputFrame.ALL_BUTTONS,
+			"jumps_left": data.decode_u8(offset + 20),
+			"jump_buffer_timer": jump_buffer_timer,
+			"drop_timer": drop_timer,
+			"kills": data.decode_u16(offset + 29),
+			"deaths": data.decode_u16(offset + 31),
 		})
 	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "states": states}
 

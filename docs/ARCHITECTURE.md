@@ -4,34 +4,36 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 
 ## Vrstvy
 - **Data** (`data/`, `localization/`): jen hodnoty a texty, žádná logika. Upravuje se ručně.
-- **Pravidla a simulace** (`src/player/player_motor.gd`, `src/match/`): od M2 poběží jen na hostu. `PlayerMotor` je sdílená funkce pohybu, kterou v M4 využije i predikce na klientovi.
-- **Síť** (od M2): `src/autoload/session.gd`, `src/net/`, `src/match/match_net.gd`. RPC nikde jinde.
+- **Pravidla a simulace** (`src/player/player_motor.gd`, `src/match/`, `src/combat/`): host rozhoduje o souboji a průběhu zápasu. `PlayerMotor` používá host i klient pro predikci vlastního pohybu.
+- **Síť**: `src/autoload/session.gd`, `src/net/`, `src/match/match_net.gd`. RPC nikde jinde.
 - **Prezentace** (`src/ui/`, kreslení v `player.gd` a `platform.gd`): nic nerozhoduje.
 
-## Co je kde (stav po M1)
+## Co je kde (M4: predikce vlastního pohybu + skóre)
 
 | Soubor | Odpovědnost |
 |---|---|
-| `src/core/build_info.gd` | verze a commit buildu (z `build_info.json`, který zapisuje CI), `PROTOCOL_VERSION` |
+| `src/core/build_info.gd` | verze, číslo sestavení a commit buildu (z `build_info.json`, který zapisuje CI), `PROTOCOL_VERSION = 5` |
 | `src/core/updater.gd` | automatické aktualizace: `version.json` z GitHubu, stažení, SHA-256, výměna exe/.app, restart, úklid |
 | `src/core/content_db.gd` | načte `data/characters/*.tres`, `data/weapons/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
 | `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `WeaponData`, `MatchRules`) |
 | `src/player/input_frame.gd` | vstup hráče za jeden tick: směr, tlačítka, úhel míření ke kurzoru (u16), pořadové číslo. Klienti ho posílají hostu. |
-| `src/player/remote_interpolator.gd` | plynulé zobrazení postav na klientovi: snapshoty se zpožděním 100 ms (vlastní postava 40 ms) a prolínáním |
-| `src/player/player_motor.gd` | pohyb: běh, skok + dvojskok (počítadlo skoků do dopadu), buffer skoku, seskok z plošiny, sklouznutí z hlavy jiného hráče |
-| `src/player/player.gd/.tscn` | uzel postavy: na hostu `simulate()` z vstupu, na klientovi `receive_state()` ze snapshotu; jméno, barva slotu, čára zbraně |
+| `src/player/remote_interpolator.gd` | plynulé zobrazení vzdálených postav na klientovi: snapshoty se zpožděním 100 ms a prolínáním; při výpadku drží poslední stav |
+| `src/player/client_prediction.gd` | okamžitý vlastní pohyb, historie až 120 nepotvrzených vstupů a stavů, obnova stavu hosta a přehrání vstupů; malé korekce vyhlazuje vizuální offset |
+| `src/player/player_motor.gd` | sdílený pohyb: běh, skok + dvojskok, buffer skoku, seskok z plošiny, sklouznutí z hlavy; stav uchovává i kontakt se zemí pro reconciliation |
+| `src/player/player.gd/.tscn` | uzel postavy: `simulate()` a `restore_state()` pro hosta/predikci, `receive_state()` pro vzdálené postavy; vizuální korekce, jméno, barva slotu, čára zbraně |
 | `src/arenas/arena.gd` | základ arény: spawn body (`SpawnPoints/*`), `free_spawn_point()`, `kill_rect` (horní okraj otevřený), kamera `Camera` (zoom = velikost pohledu) |
 | `src/arenas/platform.gd` | obdélníková plošina (pevná nebo jednosměrná), nastavitelná v editoru |
-| `src/match/match_controller.gd` | průběh zápasu pro trénink i síť: host simuluje všechny ze vstupů a posílá snapshoty 30 Hz, klient posílá vstupy 60 Hz; respawn, odchod hráčů |
+| `src/match/match_controller.gd` | host simuluje všechny ze vstupů a posílá snapshoty 30 Hz; klient posílá vstupy 60 Hz, predikuje sebe a aplikuje nejnovější čekající snapshot ve fyzikálním ticku; respawn, odchod hráčů |
+| `src/match/match_score.gd` | host připisuje každou smrt poslednímu účinnému střelci, počítá zabití/smrti a série killů v okně 2 s; po smrti nebo odchodu čistí přiřazení |
 | `src/combat/combat_rules.gd` | čisté vzorce: odhoz, zpětný ráz, rozptyl, kadence |
 | `src/combat/projectile.gd` | střela: přímý let, raycast každý tick (host: svět + hráči, klient: jen svět) |
 | `src/combat/weapon_system.gd` | střelba na hostu (kadence, zpětný ráz, odhoz) a zobrazení střel u klientů z událostí |
-| `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, události střel, „loaded“, rate-limit |
+| `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, spolehlivé události střel a kill hlášek, „loaded“, rate-limit |
 | `src/net/lag_simulator.gd` | jen pro vývoj: simulace zpoždění a ztrát paketů (`-- --fake-lag=100 --fake-loss=5`) |
-| `src/net/net_codec.gd` | binární formát vstupů a snapshotů s kontrolou velikosti, `seq_newer()` |
+| `src/net/net_codec.gd` | binární protokol 5: vstup 14 B, snapshot 6 B + 33 B na hráče včetně stavu motoru a počtů zabití/smrtí; kontrola velikosti, slotů a konečných hodnot, `seq_newer()` |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, chybové hlášky (`Session.last_end_message`) |
-| `src/ui/match_hud.gd` | HUD v zápase: životy hráčů a odpočet |
-| `src/ui/results.gd/.tscn` | výsledky po zápase, návrat do stejného lobby (tlačítko hostitele nebo za 8 s) |
+| `src/ui/match_hud.gd` | scoreboard vedle jmen: životy, zabití, smrti; odpočet a hlášky KILL / DOUBLE / TRIPLE / MULTI KILL; v tréninku nekonečné životy |
+| `src/ui/results.gd/.tscn` | výsledky po zápase včetně zabití/smrtí, návrat do stejného lobby (tlačítko hostitele nebo za 8 s) |
 | `src/ui/lobby.gd/.tscn` | lobby: seznam hráčů, u hostitele adresy ke sdílení s tlačítkem Kopírovat, Odejít |
 | `src/autoload/settings.gd` | **autoload `Settings`**: jméno a poslední adresa v `user://settings.cfg` |
 | `src/autoload/session.gd` | **autoload `Session`**: hostování a připojení, handshake verze, seznam hráčů v lobby (rozesílá host), odpojení a timeouty, české chybové hlášky přes signál `ended(message)` |
@@ -42,12 +44,29 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd` |
 
 ## Handshake (kontrola verze)
-1. Klient se připojí. Než se stane plnohodnotným peerem, pošle přes **autentizaci SceneMultiplayer** (surová data, ne RPC) zprávu `{protocol, build, name}`.
-2. Host ji ověří: `PROTOCOL_VERSION` a `build_id` musí sedět, lobby nesmí být plné a nesmí běžet zápas.
+1. Klient se připojí. Než se stane plnohodnotným peerem, pošle přes **autentizaci SceneMultiplayer** (surová data, ne RPC) zprávu `{protocol, build, code, name}`.
+2. Host ji ověří: `PROTOCOL_VERSION`, `build_id` a kód hry musí sedět, lobby nesmí být plné a nesmí běžet zápas.
 3. **Shoda:** host odpoví `{ok: true}` a oba zavolají `complete_auth`. Teprve pak vznikne `peer_connected` a mohou chodit RPC. Host rozešle seznam hráčů.
 4. **Neshoda:** host pošle důvod a svůj build, za 0,5 s klienta odpojí a klient zobrazí českou hlášku.
 
 RPC se v Godotu párují podle indexu metody, proto by RPC handshake mezi různými buildy nebyl spolehlivý.
+
+## Pohyb a reconciliation (M4)
+
+1. Klient v každém fyzikálním ticku (60 Hz) jednou načte vstup. Stejný vstup použije pro vlastní pohyb i paket hostu; paket opakuje poslední tři vstupy proti ztrátám.
+2. Host aplikuje nejvýše jeden vstup hráče za tick, při výpadku opakuje poslední. Snapshoty (30 Hz) nesou `last_seq`, pozici, rychlost, příznaky a stav motoru: kontakt se zemí, předchozí tlačítka, zbývající skoky a časovače bufferu/seskoku. Během odpočtu zachovává `seq`, ale dovolí jen míření.
+3. Klient zahodí staré/duplicitní snapshoty podle ticku a nejnovější uloží do fronty. **Reconciliation běží až na začátku dalšího `_physics_process()`**, před novým vstupem. `move_and_slide()` tak při přehrávání používá fyzikální delta.
+4. Pro vlastní postavu klient obnoví úplný stav hosta, odstraní potvrzené vstupy a zbytek přehraje sdíleným motorem. Novější snapshot zpracuje i při stejném `last_seq`, protože host mohl opakovat poslední vstup. Malé rozdíly vyhladí jen vizuálně; kolize používají opravenou pozici.
+5. Predikce čeká na první snapshot a neběží pro neaktivní postavu. Změna životů/aktivity nebo neúplná historie zahodí předchozí přehrávání. Knockback, zpětný ráz, respawn, životy a nezranitelnost přicházejí z hosta. Vzdálené postavy dál interpolují se zpožděním 100 ms.
+
+Další práce v M4: dokončit měření a RTT v debug overlay, zhodnotit korekce při ztrátách a skutečném připojení podle zpětné vazby hráčů. Uživatel nahlásil sekání klientů na stejné Wi-Fi; další měření/oprava a ruční Windows testy zůstávají odložené podle PROGRESS.md a PLAN.md M4.1.
+
+## Skóre a hlášky zabití
+
+- Každý autoritativní projektil si pamatuje `shooter_peer_id`. Účinný zásah zaznamená host přes `WeaponSystem.player_hit`; nezranitelnost zásah nepřipíše.
+- Každý pád zvýší počet smrtí. Zabití dostane poslední účinný střelec v daném životě, bez časového limitu mezi zásahem a smrtí. Pád bez zásahu nikomu zabití nepřidá; odpojený střelec kredit nemá. Počty přetrvají respawn, další zápas začíná od nuly.
+- Skóre se doručuje ve snapshotech, takže pozdě načtený klient dostane aktuální součty. Hlášky killů se posílají samostatně spolehlivou autoritativní událostí; zabití stejného střelce do 2 s zvýší sérii na double/triple/multi kill. Výsledky obsahují stejné součty.
+- Nahlášené sekání klientů na stejné Wi-Fi se nyní neopravuje; postup měření a budoucí opravy je v PLAN.md M4.1.
 
 ## Bezpečnost (PLAN.md, sekce S)
 - Handshake vyžaduje **kód hry** (6 znaků z kryptograficky bezpečného generátoru). Ten se sdílí jako součást adresy `ip:port#KÓD`.

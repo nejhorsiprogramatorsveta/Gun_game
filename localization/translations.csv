@@ -44,11 +44,20 @@ BUILD_DISPLAY,{version} (sestavení {build})
 BUILD_DISPLAY_DEV,"{version} (vývojová, {commit})"
 WEAPON_PISTOL_NAME,Pistole
 PRACTICE_DUMMY,Cvičný panák
-HUD_LIVES,{name} – životy: {lives}
-HUD_ELIMINATED,{name}: vypadl/a
+HUD_PLAYER,Hráč
+HUD_LIVES_HEADER,Životy
+HUD_UNLIMITED,∞
+HUD_KILLS,Zabití
+HUD_DEATHS,Smrti
+HUD_ELIMINATED,vypadl/a
+HUD_KILL,{name} – KILL
+HUD_DOUBLE_KILL,{name} – DOUBLE KILL
+HUD_TRIPLE_KILL,{name} – TRIPLE KILL
+HUD_MULTI_KILL,{name} – MULTI KILL ×{count}
 RESULTS_TITLE,Výsledky
 RESULTS_WINNER,{place}. {name} – vítěz
 RESULTS_PLACE,{place}. {name}
+RESULTS_SCORE,{kills} zabití · {deaths} úmrtí
 RESULTS_BACK,Zpět do lobby
 RESULTS_AUTO_RETURN,Návrat do lobby za {seconds} s
 RESULTS_WAITING,"Hostitel vás za chvíli vrátí do lobby…"

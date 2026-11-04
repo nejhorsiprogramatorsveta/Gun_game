@@ -65,6 +65,7 @@ Cílem je originální 2D platformová arénová střílečka s knockbackem, ins
 ### Mechaniky
 - **Pohyb:** `CharacterBody2D` s během, skokem, dvojskokem, „coyote time“, bufferem skoku a seskokem dolů přes jednosměrné plošiny.
 - **Knockback:** zásah přičte impulz k rychlosti. Ve vzduchu se rychlost tlumí odporem vzduchu. Každá postava má `weight`, které knockback zmenšuje.
+- **Silnější současné zbraně (zadání 2026-11-04):** zvýšit sílu odhozu dostupné pistole z 550 na 800; pravidla váhy postav a zpětného rázu zůstávají zachována.
 - **Míření myší (ZMĚNA ZADÁNÍ 2026-11-03):** na rozdíl od Gun Mayhem se nestřílí jen vodorovně. Střela letí **směrem ke kurzoru myši**, střílí se levým tlačítkem myši. Postava se otáčí podle kurzoru, ne podle směru pohybu. Knockback zasaženého jde ve směru letu střely.
 - **Zpětný ráz (recoil):** výstřel posune střelce **proti směru míření**. Výstřel dolů tak trochu nadzvedne, takže zbraně mají i pohybovou roli.
 - **Smrt:** pád pod `kill_y` nebo opuštění hranic arény (`kill_rect`).
@@ -447,6 +448,12 @@ Menu → Hostovat/Připojit → LOBBY ──(host: Začít zápas)──► ZÁP
 - **M5:** výběr postavy v lobby (T.2)
 - **M6:** výběr mapy hostitelem (T.2), 2–3 arény
 
+### T.4 Skóre a hlášení zabití (ZADÁNÍ UŽIVATELE 2026-11-04)
+- Vedle jména každého hráče v HUD zobrazovat počty zabití a smrtí v aktuálním zápase.
+- Zabití připíše host hráči, jehož kulka zasáhla oběť jako poslední před její smrtí; nezavádět časové vypršení zásahu. Smrt bez předchozího zásahu nepřidá nikomu zabití. Při respawnu se poslední střelec vynuluje.
+- Zobrazit hlášení `Kill`, `Double kill`, `Triple kill` (a další počet při více zabitích). Pro seskupení blízkých zabití použít okno 2 s mezi zabitími stejného střelce; to neomezuje platnost posledního zásahu.
+- Skóre i oznámení určuje host a klienti je zobrazují. Na začátku nového zápasu se skóre a série vynulují.
+
 ## G. Postavy a schopnosti
 
 ### G.0 Zadání uživatele (2026-11-03), má přednost před G.3
@@ -716,6 +723,14 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Funkce:** měření (RTT v debug overlay), podle výsledku **predikce vlastního pohybu a reconciliation**, ladění interpolačního zpoždění, zpevnění validace (rate limit, fáze), okrajové případy odpojení.
 - **Testy:** 30/80/120 ms a 2 % ztrát přes `LagSimulator` a skutečný internet; hodnocení „pocitu“ od kamarádů.
 - **Akceptace:** při ~100 ms se vlastní postava ovládá bez znatelného zpoždění a korekce nejsou rušivé.
+
+#### M4.1 – Sekání klientů na stejné Wi-Fi (nahlášeno 2026-11-04, odloženo)
+- **Pozorování uživatele:** všem připojeným hráčům kromě hostitele se aktuální verze na stejné Wi-Fi výrazně seká. Příčina dosud nebyla změřena; nelze ji připsat samotné Wi-Fi, predikci ani připojování bez reprodukce a měření.
+- **Rozsah nynějšího úkolu:** pouze zapsat problém a plán. Síťování, pohyb, predikci ani interpolaci kvůli tomuto problému nyní neopravovat; realizace až v samostatně zadaném úkolu.
+- **Reprodukce:** stejný build na 2–4 počítačích ve stejné LAN/Wi-Fi, vystřídat hostitele a porovnat klid, pohyb, skoky, střelbu a zásahy. Zaznamenat konfiguraci, počet hráčů a přesný scénář; porovnat s localhostem a podle dostupnosti s kabelovou LAN.
+- **Měření na hostu i klientech:** časy renderovacích a fyzikálních snímků (včetně špiček), RTT/jitter/ztráty a intervaly příchozích vstupů a snapshotů; délku a stáří front vstupů, potvrzování `last_input_seq`, historii predikce a četnost/velikost korekcí. Ověřit také zaplnění a výpadky interpolačního bufferu.
+- **Izolace a následná oprava:** porovnat měření bez simulovaného zpoždění se stejnými scénáři při přidaném lagu a ztrátě paketů. Určit, zda zasekávání souvisí s výkonem snímků, doručováním, frontami nebo korekcemi, a až podle prokázané příčiny provést nejmenší opravu v navazujícím úkolu.
+- **Ověření budoucí opravy:** zopakovat původní reprodukci i lag/loss scénáře, porovnat metriky před/po, ověřit autoritu hostitele a plynulost místní i vzdálených postav při 2–4 hráčích. Samotný průchod headless testy nenahrazuje praktické ověření na stejné Wi-Fi.
 
 ### M5 – Postavy a schopnosti *(střední)*
 - **Funkce:** `AbilityData` a podtřídy, **4 postavy se 2 zbraněmi a přepínáním (G.0)**, **výběr postavy v lobby (T.2, validuje host)**, cooldown v HUD, `EDITING_GUIDE.md`.

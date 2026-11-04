@@ -10,12 +10,16 @@ PROGRESS.md "Další krok" – nothing more. If "Další krok" is unclear, block
 If PROGRESS.md and git disagree (e.g. uncommitted changes, task half-done), report it first.
 
 ## End-of-task protocol (mandatory after EVERY task, also when interrupted or unfinished)
+**Git permission (user 2026-11-04): Codex must NEVER push without new explicit consent from the user.
+No consent is currently granted. Leave this task's changes local; do not commit or push.
+The earlier automatic push permission (2026-11-03) does not authorize Codex to push.**
+
 1. Update docs/PROGRESS.md: "Kde jsme skončili" (what part of which milestone is done / half-done, uncommitted files),
    "Další krok" (one concrete next task, specific enough to start without asking), "Poslední změny", "Stav testů", "Známé problémy".
-2. Commit (Conventional Commits) and PUSH to origin main yourself – the user allowed this permanently
-   (2026-11-03). Only push finished, tested work; then check that the GitHub Actions run succeeded.
+2. Follow the Git permission above. When a commit/push is explicitly authorized for the acting agent,
+   use Conventional Commits, push only finished, tested work, and check that the GitHub Actions run succeeded.
 3. Give the user a Czech overview: which part of the plan (milestone/step) was completed, what remains in the milestone,
-   changed files, how to test, what was NOT tested, commit hash + CI result.
+   changed files, how to test, what was NOT tested, commit hash + CI result if a push was authorized and performed.
 4. Stop. Do not start the next step on your own.
 If the user says "ulož progress", do step 1 immediately.
 
@@ -47,16 +51,27 @@ All verified in M1 on macOS arm64:
 - CI: .github/workflows/build.yml (push main -> prerelease tag `dev`; tag v* -> stable release).
 
 ## Architecture (see docs/ARCHITECTURE.md for what exists, docs/PLAN.md section F for the target)
-Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player}.gd,
+Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player,client_prediction}.gd,
 src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
 src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,
 src/match/match_net.gd (only match RPCs), src/player/remote_interpolator.gd, src/net/lag_simulator.gd.
 src/combat/{combat_rules,projectile,weapon_system}.gd, src/data_types/weapon_data.gd, data/weapons/*.tres.
-src/ui/{match_hud,results}.gd (lives/countdown HUD, results -> same lobby, PLAN.md T.1).
+src/ui/{match_hud,results}.gd (lives/K/D scoreboard, kill notices, results -> same lobby, PLAN.md T.1/T.4).
+src/match/match_score.gd (host-owned last-bullet attribution and 2-second multikill window).
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
-Next (M4): client-side prediction of the own player (PLAN.md D.4).
+M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
+retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
+Snapshot protocol 5 carries complete motor memory (floor contact, previous buttons, remaining jumps, jump/drop timers)
+alongside position/velocity, last_seq and kills/deaths: 6-byte header + 33 bytes/player. Input packets remain 14 bytes.
+MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
+move_and_slide() must use the physics delta during replay. Remote players still interpolate with a 100 ms delay.
+Small corrections use a visual offset; combat, knockback, recoil, respawns, countdown and lives remain host-authoritative.
+Next (M4): complete validation/RTT debug overlay and assess field feedback on latency/corrections (see PROGRESS.md).
+User report (2026-11-04): severe stutter on the same Wi-Fi for clients while the host remains smooth.
+Root cause is unmeasured. PLAN.md M4.1 records investigation and later fixes; do not change networking,
+movement prediction or interpolation to address it in the current combat/scoreboard task.
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Design decisions that override the original brief (details: docs/PLAN.md)

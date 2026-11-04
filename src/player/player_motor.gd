@@ -1,5 +1,5 @@
 class_name PlayerMotor
-## Platformer movement shared by the host simulation and (from M4) client prediction.
+## Platformer movement shared by the host simulation and client prediction.
 ## compute_velocity() has no engine side effects, so it can be unit-tested and replayed;
 ## step() applies it to a CharacterBody2D.
 
@@ -18,14 +18,17 @@ class State:
 	var jumps_left: int = 0
 	var jump_buffer_timer: float = 0.0
 	var drop_timer: float = 0.0
+	## Last step's contact, explicitly restored when client prediction rewinds the body.
+	var on_floor: bool = false
 	## 1 = right, -1 = left: the side the player aims at.
 	var facing: int = 1
 
 
 static func step(body: CharacterBody2D, input: InputFrame, state: State, stats: CharacterData, delta: float) -> void:
-	body.velocity = compute_velocity(body.velocity, body.is_on_floor(), input, state, stats, delta)
+	body.velocity = compute_velocity(body.velocity, state.on_floor, input, state, stats, delta)
 	body.set_collision_mask_value(ONE_WAY_LAYER, state.drop_timer <= 0.0)
 	body.move_and_slide()
+	state.on_floor = body.is_on_floor()
 	_slide_off_heads(body, delta)
 
 
