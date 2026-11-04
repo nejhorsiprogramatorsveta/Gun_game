@@ -1,7 +1,7 @@
 class_name MatchHud
 extends Control
 ## In-match overlay: player scores, the start countdown and kill announcements.
-## F3 toggles a connection debug overlay (FPS, input ack time, snapshots, corrections).
+## Bottom left: FPS and (on clients) ping; F3 hides/shows it.
 
 const SCORE_COLUMNS := 4
 const KILL_NOTICE_SECONDS := 2.0
@@ -38,12 +38,12 @@ func _ready() -> void:
 		_scoreboard.add_child(cell)
 		_score_cells.append(cell)
 	_net_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	_net_label.visible = false
 	_net_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 16)
 	_net_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_net_label.add_theme_font_size_override("font_size", 16)
+	_net_label.add_theme_font_size_override("font_size", 12)
+	_net_label.add_theme_color_override("font_color", Color(0.8, 0.82, 0.88))
 	_net_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	_net_label.add_theme_constant_override("outline_size", 4)
+	_net_label.add_theme_constant_override("outline_size", 3)
 	add_child(_net_label)
 
 
@@ -95,20 +95,11 @@ func show_kill(player_name: String, streak: int) -> void:
 	_kill_label.show()
 
 
-## stats: NetStats.summary(); measured = false on the host and in practice (nothing to measure).
-func show_net_debug(stats: Dictionary, pending_inputs: int, measured: bool) -> void:
+## ping_ms < 0 = nothing to measure (host, practice) or not measured yet.
+func show_ping(ping_ms: int) -> void:
 	if not _net_label.visible:
 		return
-	var lines: PackedStringArray = [tr("DEBUG_NET_FPS").format({"fps": Engine.get_frames_per_second()})]
-	if not measured:
-		lines.append(tr("DEBUG_NET_AUTHORITY"))
-	else:
-		lines.append(tr("DEBUG_NET_ACK").format({"ms": _value(stats.ack_ms), "jitter": stats.jitter_ms}))
-		lines.append(tr("DEBUG_NET_SNAPSHOTS").format({"gap": _value(stats.snapshot_gap_ms), "max": stats.snapshot_gap_max_ms}))
-		lines.append(tr("DEBUG_NET_CORRECTION").format({"last": stats.correction_px, "max": stats.correction_max_px}))
-		lines.append(tr("DEBUG_NET_PENDING").format({"count": pending_inputs}))
-	_net_label.text = "\n".join(lines)
-
-
-static func _value(number: int) -> String:
-	return "–" if number < 0 else str(number)
+	var text := tr("HUD_FPS").format({"fps": roundi(Engine.get_frames_per_second())})
+	if ping_ms >= 0:
+		text += "   " + tr("HUD_PING").format({"ping": ping_ms})
+	_net_label.text = text

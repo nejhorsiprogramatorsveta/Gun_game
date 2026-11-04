@@ -16,8 +16,6 @@ const RESULTS_DELAY := 1.5
 const SCENE_CHANGE_GRACE := 0.5
 ## 60 Hz physics -> 30 Hz snapshots.
 const SNAPSHOT_EVERY_TICKS := 2
-## Caps the extra delay if a client's packets arrive in a burst.
-const MAX_PENDING_INPUTS := 6
 ## Peer id of the practice dummy (real peer ids are always positive).
 const PRACTICE_DUMMY_ID := -1
 
@@ -37,10 +35,8 @@ var _match_over := false
 ## Authority: peer ids in the order they ran out of lives (for the ranking).
 var _elimination_order: Array[int] = []
 
-# Authority: inputs received from clients.
-var _pending_inputs: Dictionary[int, Array] = {}
-var _current_input: Dictionary[int, InputFrame] = {}
-var _newest_seq: Dictionary[int, int] = {}
+# Authority: inputs received from clients, peer_id -> InputBuffer.
+var _inputs: Dictionary[int, InputBuffer] = {}
 
 # Client: own input history (newest first) for redundancy against packet loss.
 var _input_seq := 0
@@ -102,7 +98,7 @@ func _physics_process(delta: float) -> void:
 			_pending_snapshot = {}
 		_send_local_input(delta)
 	_hud.show_state(_players.values(), _countdown_display, _networked)
-	_hud.show_net_debug(_stats.summary(Time.get_ticks_msec()), _prediction.pending_count(), not _is_authority)
+	_hud.show_ping(_stats.ping_ms() if not _is_authority else -1)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -134,9 +130,10 @@ func _simulate_tick(delta: float) -> void:
 	var frozen := _countdown > 0.0
 	for peer_id in _players:
 		var player := _players[peer_id]
+		# Read the input even while dead, so the queue does not fill up and delay the respawn.
+		var input := _input_for(peer_id, player)
 		if not player.visible:
 			continue
-		var input := _input_for(peer_id, player)
 		if frozen:
 			input = InputFrame.create(0, 0, input.aim, input.seq)  # only aiming during the countdown
 		player.simulate(input, delta)
@@ -162,27 +159,13 @@ func _simulate_tick(delta: float) -> void:
 func _input_for(peer_id: int, player: Player) -> InputFrame:
 	if peer_id == multiplayer.get_unique_id():
 		return InputFrame.sample_local(player)
-	var queue: Array = _pending_inputs.get(peer_id, [])
-	if not queue.is_empty():
-		_current_input[peer_id] = queue.pop_front()
-	return _current_input.get(peer_id, InputFrame.new())
+	return _inputs.get_or_add(peer_id, InputBuffer.new()).next()
 
 
 func _on_input_received(peer_id: int, frames: Array[InputFrame]) -> void:
 	if Session.phase != Session.Phase.IN_MATCH or not _players.has(peer_id):
 		return
-	var queue: Array = _pending_inputs.get_or_add(peer_id, [])
-	var newest: int = _newest_seq.get(peer_id, -1)
-	# frames are newest first; queue the ones we have not seen yet, oldest first.
-	for i in range(frames.size() - 1, -1, -1):
-		var frame := frames[i]
-		var is_first_packet := newest == -1
-		if (is_first_packet and i == 0) or (not is_first_packet and NetCodec.seq_newer(frame.seq, newest)):
-			queue.append(frame)
-			newest = frame.seq
-	while queue.size() > MAX_PENDING_INPUTS:
-		queue.pop_front()
-	_newest_seq[peer_id] = newest
+	_inputs.get_or_add(peer_id, InputBuffer.new()).push(frames)
 
 
 func _on_player_fell(player: Player) -> void:
@@ -271,7 +254,6 @@ func _on_snapshot_received(snapshot: Dictionary) -> void:
 	if _last_snapshot_tick >= 0 and (tick == _last_snapshot_tick or ((tick - _last_snapshot_tick) & 0xFFFFFFFF) >= 0x80000000):
 		return
 	_last_snapshot_tick = tick
-	_stats.record_snapshot_arrival(Time.get_ticks_msec())
 	_pending_snapshot = snapshot
 
 
@@ -283,7 +265,7 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 		for player in _players.values():
 			if player.slot == state.slot:
 				if player.peer_id == multiplayer.get_unique_id():
-					_stats.record_correction(_prediction.reconcile(player, state), now)
+					_prediction.reconcile(player, state)
 					_stats.record_ack(state.last_seq, now)
 				else:
 					player.receive_state(state, now)
@@ -297,6 +279,4 @@ func _remove_departed_players() -> void:
 			_score.remove_player(peer_id)
 			_players[peer_id].queue_free()
 			_players.erase(peer_id)
-			_pending_inputs.erase(peer_id)
-			_current_input.erase(peer_id)
-			_newest_seq.erase(peer_id)
+			_inputs.erase(peer_id)

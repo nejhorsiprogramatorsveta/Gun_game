@@ -1,18 +1,17 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M4: hotový ladicí ukazatel měření sítě (F3) a verze `0.1.2`.** Současně přidán `codex.md` + `AGENTS.md` (pravidla pro Codex: nikdy nepushovat, zachovat strukturu a verzování) a „Co je nového“ nově ukazuje jen nejnovější verzi (pokyn uživatele 2026-11-04). Sekání Wi-Fi klientů zůstává odložené do PLAN.md M4.1.
-- **F3 v zápase** zapne/vypne ukazatel vlevo dole: FPS, potvrzení vstupu (ms + kolísání), intervaly snapshotů a nejdelší pauza za 2 s, poslední/největší korekce vlastní postavy (px, 2 s), počet nepotvrzených vstupů. Na hostu a v tréninku jen FPS + vysvětlení. Funguje i ve vydaných buildech (vypnuto, dokud hráč nezmáčkne F3) – hodí se k měření M4.1 s kamarády.
-- Měření lokálně (host + klient, 127.0.0.1, skákání na místě): fake lag 0 → potvrzení ~85–99 ms, 7–8 nepotvrzených vstupů; 100 ms/5 % → ~209 ms, 13–15; 200 ms/10 % → ~293 ms, 18–19. Korekce 0 px (predikce přesná). **Zjištění:** i bez lagu je potvrzení ~100 ms: fronta vstupů na hostu drží trvale 3–5 snímků (MAX_PENDING_INPUTS = 6, nikdy se nevyprázdní) + až 33 ms do snapshotu. To je konstantní zpoždění vstupu klientů navíc – viz Další krok.
-- Verze: `project.godot` = `0.1.2`; v `data/changelog.tres` archivován záznam `0.1.1` / sestavení 29 a nový aktuální záznam (F3, jen nejnovější verze v menu).
-- **Pozor před dalším herním commitem:** zvýšit verzi na `0.1.3` a archivovat aktuální záznam changelogu pod skutečně vydaným sestavením (zjistit z `version.json` releasu, neodhadovat).
-- Necommitnuté změny: žádné (vše commitnuto a pushnuto).
+**M4: hotové zkrácení zpoždění vstupů na hostu + zjednodušený ukazatel (jen ping a FPS), verze `0.1.3`.** Sekání Wi-Fi klientů zůstává odložené do PLAN.md M4.1.
+- Ukazatel vlevo dole menším písmem (12): `FPS 120   Ping 169 ms`, na hostu a v tréninku jen FPS. Zobrazený vždy, F3 ho skryje/zobrazí (pokyn uživatele 2026-11-04: jen ping a FPS, menší písmo).
+- `InputBuffer` (nový, `src/match/input_buffer.gd`): fronta vstupů se už trvale nehromadí; host čte vstupy i u mrtvého hráče (dřív se během respawnu fronta zaplnila na 6 = +100 ms po každém respawnu).
+- Měření (host + klient lokálně, klient běhá a skáče): ping fake lag 0 → **~33 ms** (dřív ~95), 100 ms/5 % → **~155 ms** (dřív ~210), 200 ms/10 % → **~275 ms** (dřív ~290). Fronta na hostu 0–2 místo 3–6. Největší vizuální korekce 8/52/51 px proti 38/107/52 px před změnou (bez zhoršení).
+- Changelog: archivováno `0.1.2` / sestavení 32, nový záznam (nižší zpoždění ovládání, ping a FPS).
+- **Pozor před dalším herním commitem:** verze `0.1.4` a archivace aktuálního záznamu changelogu pod skutečně vydaným sestavením (zjistit z `version.json`).
+- Necommitnuté změny: žádné.
 
 ## Další krok
-**M4 ladění: zkrátit konstantní zpoždění vstupů klientů na hostu** (PLAN.md M4 „ladění“; nejde o opravu Wi-Fi M4.1).
-- Fronta `_pending_inputs` v `match_controller.gd` se po zaplnění nikdy nevyprázdní (spotřeba = příjem), takže drží 3–5 vstupů (~50–80 ms). Přidat dohánění: když fronta trvale (např. > 0,5 s) drží víc než 2 vstupy, zahodit nejstarší navíc (nebo zpracovat 2 za tick), s testy v `tests/`.
-- Ověřit F3 ukazatelem: při fake lag 0 má potvrzení klesnout z ~100 ms na ~50 ms, při 100 ms/5 % ze ~210 ms na ~150 ms, bez nárůstu korekcí. Zvýšit verzi na `0.1.3` + changelog.
-- Pokud uživatel mezitím pošle čísla z F3 ze skutečné Wi-Fi, zapsat je do PLAN.md M4.1 (oprava Wi-Fi dál jen na samostatné zadání).
+**M4.1 – měření sekání na skutečné Wi-Fi (potřebuje uživatele).** Uživatel s kamarádem zahraje verzi 0.1.3 na stejné Wi-Fi a pošle ping/FPS z levého dolního rohu u klienta i hosta a popis, kdy se to seká. Agent čísla zapíše do PLAN.md M4.1 a navrhne další měření/opravu – samotnou opravu Wi-Fi spustit až na výslovné zadání.
+- Pokud čísla nepřijdou a uživatel chce pokračovat jinak: další položka M4 je „zpevnění validace (rate limit, fáze), okrajové případy odpojení“ (PLAN.md K, M4) – nejdřív se zeptat.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -58,6 +57,9 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, M4 fronta vstupů + ping/FPS, verze 0.1.3 (Claude):**
+  - `src/match/input_buffer.gd` (nový): logika fronty přesunuta z `match_controller.gd` (282 řádků), dohánění po 0,5 s, sloučení tlačítek přeskočených vstupů, čtení vstupu i u neaktivního hráče.
+  - `NetStats` zjednodušen jen na ping; `MatchHud.show_ping()` – FPS + ping, písmo 12, viditelné hned, F3 přepíná. Odstraněny klíče `DEBUG_NET_*`, nové `HUD_FPS`, `HUD_PING`, `CHANGELOG_PING_FPS`, `CHANGELOG_INPUT_DELAY`. `ClientPrediction.pending_count()` odstraněno.
 - **2026-11-04, M4 ukazatel F3 + verze 0.1.2 + codex.md (Claude):**
   - `codex.md` a `AGENTS.md`: pravidla pro Codex (nikdy nepushovat, necommitovat bez pokynu, zachovat strukturu kódu a verzování/release, changelog jen nejnovější verze). `CLAUDE.md`: Claude znovu pushuje sám, Codex odkazem na codex.md.
   - `src/net/net_stats.gd` (nový): měření bez nových síťových zpráv – čas odeslání vstupu podle `seq`, potvrzení přes `last_seq` ve snapshotu, vyhlazený průměr + kolísání, intervaly snapshotů, maxima za 2 s, omezená paměť (256 vstupů).
@@ -186,7 +188,8 @@
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
-- **Konstantní zpoždění vstupů klientů ~50–80 ms navíc** kvůli frontě vstupů na hostu, která se nevyprázdní (změřeno F3 lokálně 2026-11-04). Řeší Další krok.
+- **Ping ukazuje potvrzení vstupu**, tj. RTT + až ~33 ms do dalšího snapshotu + případná fronta na hostu; je tedy o něco vyšší než čistý síťový ping.
+- **Přeskočený vstup při dohánění** způsobí na klientovi malou korekci (~1 tick pohybu), vyhlazenou vizuálním offsetem.
 - **Stejná Wi-Fi: výrazné sekání všech klientů kromě hosta** (nahlášeno uživatelem 2026-11-04). Příčina neměřená, oprava výslovně odložená; viz PLAN.md M4.1. Lokální headless síťové testy tento problém nevyvracejí.
 - **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
 - **`session.gd` má 306 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
@@ -203,6 +206,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, fronta vstupů + ping/FPS (0.1.3):** 83/83 unit testů (nové `test_input_buffer`: pořadí/duplikáty/opakování, strop se sloučením skoku, dohánění trvalé fronty, žádné přeskočení při trhaném doručování; `test_net_stats` upraven na ping), lokalizace OK, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 % na novém i starém kódu (srovnání viz „Kde jsme skončili“), bez chyb skriptů. Screenshot: ukazatel čitelný vlevo dole. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.2 → 0.1.3.
 - **2026-11-04, F3 + 0.1.2:** 80/80 unit testů (nové: 3× `test_net_stats`, chyba predikce v `test_client_prediction`, jen nejnovější verze v `test_changelog`, sloupce CSV – ověřeno, že selže na chybném řádku), lokalizace 104 klíčů / 0 chybějících, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 %: bez chyb skriptů, hodnoty viz „Kde jsme skončili“. Screenshot ukazatele (okno 1280×720 na Retině): čitelné vlevo dole, nepřekrývá scoreboard. Menu: „Co je nového“ ukazuje jen aktuální verzi; generátor poznámek ověřen. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.1 → 0.1.2 (ověřit po CI).
 - **2026-11-04, kontrola po pullu `6978a62`:** 74/74 unit testů, lokalizace 96 / 0 chybějících, 9/9 Python testů workflow, síťový smoke test host+klient bez chyb skriptů. CI běhy `da40eac`, `2560ebb`, `6978a62` úspěšné; release `gun_game v0.1.1` (sestavení 29) ověřen přes GitHub API. Ruční hraní ani aktualizace z předchozí verze neověřeny.
 - **2026-11-04, verze/vydávání:** import, 74/74 herních unit testů a lokalizace 96 klíčů / 0 chybějících OK. Izolovaná kopie projektu: 38 kontrol skutečných headless nástrojů (verze `0.1.1`, příští `0.1.2`, shodná macOS metadata, kanál stable, poznámky a commit odkaz, odmítnutí neplatné verze/argumentů bez přepsání souboru). YAML načten a ověřen main-only, jediný publikační krok, serializace, bez příkazů push/create. **9/9 lokálních testů publikace OK**: postupné verze, zákaz přeskakování/downgradu, pořadí uploadů a skrytí archivu, selhání API/uploadu/promoce, ověření latest a bezpečné opakování po částečné publikaci. Pouze mock `gh`, bez sítě. Git Bash vyžadoval schválenou výjimku sandboxu pro lokální testy. Skutečná publikace ani nová end-to-end instalace se neprováděla.

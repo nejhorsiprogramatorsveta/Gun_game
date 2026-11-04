@@ -7,6 +7,10 @@ script = ExtResource("1")
 entries = Array[Dictionary]([{
 "build": 0,
 "version": "",
+"change_keys": PackedStringArray("CHANGELOG_INPUT_DELAY", "CHANGELOG_PING_FPS")
+}, {
+"build": 32,
+"version": "0.1.2",
 "change_keys": PackedStringArray("CHANGELOG_NET_DEBUG", "CHANGELOG_LATEST_ONLY")
 }, {
 "build": 29,

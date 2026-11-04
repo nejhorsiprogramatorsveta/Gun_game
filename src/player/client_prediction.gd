@@ -23,10 +23,6 @@ func predict(player: Player, input: InputFrame, delta: float, frozen: bool) -> v
 		_last_discarded_seq = discarded.input.seq
 
 
-func pending_count() -> int:
-	return _history.size()
-
-
 ## Returns how far the prediction was off (px), or -1 when there was nothing to compare
 ## (first snapshot, death, respawn or a lost timeline).
 func reconcile(player: Player, state: Dictionary) -> float:
