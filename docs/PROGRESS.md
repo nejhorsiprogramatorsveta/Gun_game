@@ -1,23 +1,18 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Lokálně dokončené a otestované sjednocení vydávání na jediné vydání `v0.1.1`, potom `v0.1.2` atd. dle upřesnění uživatele.** Veřejný stav je `2560ebb` (dev sestavení 28; changelog a kadence 9 ran/s), který commitnul/pushnul uživatel. Codex necommitoval ani nepushoval. Na GitHubu se zatím nic neměnilo. Sekání Wi-Fi klientů zůstává odložené do PLAN.md M4.1.
-- Ověřeno: **74/74 unit testů, 35/35 kontrol dialogu, 18/18 kontrol samostatného exportovaného balíčku**, lokalizace a lokální generátor dev/stable poznámek. Otevření: hlavní menu → „Co je nového“; zavření tlačítkem nebo Esc.
-- Changelog používá `data/changelog.tres` a české texty v CSV. Publikovaný záznam sestavení 28 je archivovaný, aktuální záznam popisuje nové vydávání. Historie obsahuje sestavení 28, 27, 26 a 25. Starší build nezobrazuje budoucí změny. Před další obsahovou změnou archivovat aktuální záznam pod jeho skutečným vydaným buildem a založit nový.
-- Pistole: odhoz 550 → 800 (přibližně +45 %). Scoreboard vedle jmen ukazuje životy/zabití/smrti, stejné skóre je ve výsledcích. Každá smrt se připíše poslednímu účinnému střelci; bez zásahu jen smrt. Série stejného střelce do 2 s zobrazí DOUBLE/TRIPLE/MULTI KILL.
-- Klient ihned simuluje vlastní pohyb, obnovuje úplný stav z hostu a přehrává nepotvrzené vstupy. Malé korekce vyhlazuje pouze vizuálně; vzdálení hráči dál interpolují.
-- Ověřeno pro skóre: **65/65 unit testů, lokalizace, 225/225 kontrol UI a 38/38 síťových kontrol se čtyřmi skutečnými procesy**. Předchozí M4: 57/57 lokálních síťových kontrol včetně +100 ms/5 % a +200 ms/10 %; tato měření nenahrazují nynější hlášení uživatele o sekání na skutečné Wi-Fi.
-- **Nové rozhodnutí o vydávání:** `project.godot` obsahuje verzi `0.1.1`, příště ji výslovně zvýšit na `0.1.2`. CI dovolí pouze následující patch/minor/major s vyšším buildem nebo opakování stejné dvojice; přeskakování nepovolí. Aktualizuje jediné existující vydání `dev`, název `gun_game vX.Y.Z`, stable/latest; nové release ani tagy nevytváří a tagy neposouvá. Staré `v0.1.0` skryje jako koncept až po úspěšné publikaci a ověření. Staré dev i stable aktualizační URL zůstávají použitelné, nové hry používají stable. Buildy dál rostou, soubory hry se nahrávají před manifestem, SHA-256 zůstává. Pevný tag má historické archivy zdrojů; poznámky obsahují odkaz na skutečný commit.
-- **Codex nesmí pushovat bez nového výslovného souhlasu; uživatel jej NEUDĚLIL (2026-11-04).** Codex nic necommitnul ani nepushnul. Nové změny zůstávají lokálně; jejich CI neběželo.
+**Sjednocené vydávání `v0.1.1` je commitnuté, pushnuté a ověřené (`6978a62`, CI úspěšné).** Uživatel commitnul a pushnul `da40eac` (predikce + skóre), `2560ebb` (changelog + kadence) a `6978a62` (vydávání). Kontrola 2026-11-04 (Claude) po `git pull`: žádné chyby nenalezeny, kód beze změn. Sekání Wi-Fi klientů zůstává odložené do PLAN.md M4.1.
+- Veřejné vydání: jediný release `dev` s názvem `gun_game v0.1.1`, stable/latest (ne prerelease), `version.json` = 0.1.1 / sestavení 29 / channel stable, soubory windows.exe + macos.zip + linux.zip. Starý `v0.1.0` už není veřejně vidět (skrytý jako koncept).
+- Ověřeno lokálně po pullu: 74/74 unit testů, lokalizace 96 klíčů / 0 chybějících, 9/9 testů release workflow (Python), síťový smoke test host + klient (127.0.0.1): start zápasu, pohyb, predikce klienta, pády, životy a smrti bez chyb skriptů.
+- **Pozor před dalším herním commitem:** CI odmítne nový build se stejnou verzí `0.1.1` (povolí jen další patch/minor/major nebo opakování stejného buildu). Před další změnou kódu/dat zvýšit `application/config/version` v `project.godot` na `0.1.2` a v `data/changelog.tres` archivovat aktuální záznam (build 0) jako `0.1.1` / sestavení 29 a založit nový. Commity jen s dokumentací (`*.md`, `docs/**`) build nespouštějí.
 - **Pozor:** verze bez aktualizátoru (0.1.0, sestavení 23–24) si hráči musí **naposledy stáhnout ručně**. Od verze s aktualizátorem se nabídka objeví sama.
-- Necommitnuté změny tohoto úkolu: `.github/workflows/build.yml`, `project.godot`, `tools/write_build_info.gd` + UID, `tools/publish_release.sh`, `tests/test_release_workflow.py`, `data/changelog.tres`, `localization/translations.csv`, `src/core/changelog.gd`, `tests/test_changelog.gd`, `README.md`, `CLAUDE.md`, `docs/{PLAN,ARCHITECTURE,PROGRESS}.md`.
+- Necommitnuté změny: žádné.
 
 ## Další krok
 **M4: doplnit debug měření RTT a velikosti korekcí** (PLAN.md K, M4).
-- Přidat debug ukazatel RTT a korekcí vlastní postavy do HUD, texty přes CSV; ověřit s `--fake-lag=100/200` a ztrátami paketů. Changelog už je hotový.
-- Nejdřív nechat uživatele commitnout/pushnout připravené vydávání `0.1.1`; poté ověřit jediný veřejný release a aktualizační manifest. Před dalším herním vydáním zvýšit verzi projektu na `0.1.2`, archivovat skutečně publikovaný build a zachovat stejné vydání/adresy i pořadí soubory → manifest.
+- Nejdřív zvýšit verzi na `0.1.2` a archivovat changelog sestavení 29 (viz výše), pak přidat debug ukazatel RTT a korekcí vlastní postavy do HUD, texty přes CSV; ověřit s `--fake-lag=100/200` a ztrátami paketů.
 - Sekání skutečných Wi-Fi klientů je v PLAN.md M4.1; **opravu nyní nespouštět, vyžaduje samostatné zadání.**
-- Žádný commit ani push bez nového výslovného souhlasu. Zvýšení minor verze je samostatné rozhodnutí, stále na téže stránce vydání.
+- Push: Codex jen s výslovným souhlasem (viz CLAUDE.md); Claude má trvalé povolení z 2026-11-03.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -63,6 +58,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, kontrola po pullu (Claude):** stažené `da40eac`, `2560ebb`, `6978a62`; prošel jsem diff kódu (predikce, skóre, protokol 5, changelog, vydávání), testy, lokalizaci, Python testy workflow, síťový smoke test a veřejný release. Chyby v kódu nenalezeny; opraven jen zastaralý PROGRESS.md (tvrdil necommitnuté změny a neověřený release).
 - **2026-11-04, sjednocení vydávání (lokálně, bez commitu/pushe):** jedno existující vydání s verzí z projektu, nyní `0.1.1`; main-only CI, bez posouvání tagů a vytváření dalších vydání. Kompatibilní přechod dev → stable/latest a skrytí původního `v0.1.0` až po úspěchu. Publikovaný changelog sestavení 28 archivovaný. Předchozí changelog/kadenci publikoval uživatel jako `2560ebb`, úspěšný CI běh `41843215167`.
 - **2026-11-04, trojnásobná kadence (lokálně, bez commitu/pushe):** `data/weapons/pistol.tres` má `shots_per_second = 9.0` místo `3.0`; ostatní parametry zbraně a střelecká logika se nemění. Novinka přidaná do aktuálního, dosud nepublikovaného záznamu changelogu a CSV.
 - **2026-11-04, implementace changelogu (lokálně, bez commitu/pushe):**
@@ -200,6 +196,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, kontrola po pullu `6978a62`:** 74/74 unit testů, lokalizace 96 / 0 chybějících, 9/9 Python testů workflow, síťový smoke test host+klient bez chyb skriptů. CI běhy `da40eac`, `2560ebb`, `6978a62` úspěšné; release `gun_game v0.1.1` (sestavení 29) ověřen přes GitHub API. Ruční hraní ani aktualizace z předchozí verze neověřeny.
 - **2026-11-04, verze/vydávání:** import, 74/74 herních unit testů a lokalizace 96 klíčů / 0 chybějících OK. Izolovaná kopie projektu: 38 kontrol skutečných headless nástrojů (verze `0.1.1`, příští `0.1.2`, shodná macOS metadata, kanál stable, poznámky a commit odkaz, odmítnutí neplatné verze/argumentů bez přepsání souboru). YAML načten a ověřen main-only, jediný publikační krok, serializace, bez příkazů push/create. **9/9 lokálních testů publikace OK**: postupné verze, zákaz přeskakování/downgradu, pořadí uploadů a skrytí archivu, selhání API/uploadu/promoce, ověření latest a bezpečné opakování po částečné publikaci. Pouze mock `gh`, bez sítě. Git Bash vyžadoval schválenou výjimku sandboxu pro lokální testy. Skutečná publikace ani nová end-to-end instalace se neprováděla.
 - **2026-11-04, kadence 3 → 9:** 6/6 stávajících combat testů OK; přímá runtime kontrola `ContentDB.default_character()` → `Player.current_weapon()` potvrzuje pistoli s `shots_per_second = 9.0` a intervalem `1/9 s`. Import, lokalizace 94 klíčů / 0 chybějících a `git diff --check` OK. Ověřovací skript `.tools/verify_pistol_rate.gd`; žádná změna logiky střelby ani nový test ve sledovaných souborech.
 - **2026-11-04, changelog:** 74/74 unit testů OK (9 nových: aktuální metadata, lokální dev, filtrování budoucích záznamů, shoda menu/poznámek, pořadí a úplnost textů, izolace dat a formátování). Dosavadní testy aktualizátoru součástí běhu. Import a lokalizace 93 klíčů / 0 chybějících OK.
