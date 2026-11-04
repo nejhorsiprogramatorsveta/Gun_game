@@ -14,9 +14,9 @@ signal ended(message: String)
 
 enum Phase { OFFLINE, CONNECTING, LOBBY, IN_MATCH, RESULTS }
 
-const MAX_PLAYERS := 4
+const MAX_PLAYERS := LobbyValidator.MAX_PLAYERS
 const MIN_PLAYERS_TO_START := 2
-const MAX_NAME_LENGTH := 16
+const MAX_NAME_LENGTH := LobbyValidator.MAX_NAME_LENGTH
 const CONNECT_TIMEOUT := 10.0
 ## Host drops peers that do not finish the handshake in time.
 const AUTH_TIMEOUT := 5.0
@@ -91,7 +91,10 @@ func start_match() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _begin_match(slots: Dictionary) -> void:
-	match_slots.assign(slots)
+	var valid_slots := LobbyValidator.slots(slots, players)
+	if phase != Phase.LOBBY or valid_slots.is_empty():
+		return
+	match_slots = valid_slots
 	_set_phase(Phase.IN_MATCH)
 
 
@@ -103,7 +106,9 @@ func end_match(results: Array) -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _end_match(results: Array) -> void:
-	match_results = results
+	if phase != Phase.IN_MATCH:
+		return
+	match_results = LobbyValidator.results(results)
 	_set_phase(Phase.RESULTS)
 
 
@@ -115,6 +120,8 @@ func return_to_lobby() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _return_to_lobby() -> void:
+	if phase != Phase.IN_MATCH and phase != Phase.RESULTS:
+		return
 	match_slots.clear()
 	_set_phase(Phase.LOBBY)
 
@@ -141,7 +148,7 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	multiplayer.multiplayer_peer = peer
 	host_port = port
 	room_code = Handshake.generate_room_code()
-	players = {1: {"name": _clean_name(player_name)}}
+	players = {1: {"name": LobbyValidator.clean_name(player_name, 1)}}
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
 
@@ -197,13 +204,6 @@ func _set_phase(new_phase: Phase) -> void:
 	phase_changed.emit(phase)
 
 
-func _clean_name(raw_name: String) -> String:
-	var cleaned := raw_name.strip_edges().left(MAX_NAME_LENGTH)
-	if cleaned.is_empty():
-		cleaned = tr("LOBBY_DEFAULT_NAME").format({"number": players.size() + 1})
-	return cleaned
-
-
 # --- Handshake -------------------------------------------------------------
 
 func _on_peer_authenticating(id: int) -> void:
@@ -257,7 +257,7 @@ func _on_peer_connected(id: int) -> void:
 	if multiplayer.is_server():
 		var requested_name: String = _pending_names.get(id, "")
 		_pending_names.erase(id)
-		players[id] = {"name": _clean_name(requested_name)}
+		players[id] = {"name": LobbyValidator.clean_name(requested_name, players.size() + 1)}
 		_broadcast_players()
 	elif id == 1:
 		_set_phase(Phase.LOBBY)
@@ -302,5 +302,8 @@ func _broadcast_players() -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func _receive_players(new_players: Dictionary) -> void:
-	players.assign(new_players)
+	var valid_players := LobbyValidator.players(new_players)
+	if valid_players.is_empty():
+		return
+	players = valid_players
 	players_changed.emit()

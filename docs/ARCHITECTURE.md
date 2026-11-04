@@ -31,7 +31,8 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/combat/weapon_system.gd` | střelba na hostu (kadence, zpětný ráz, odhoz) a zobrazení střel u klientů z událostí |
 | `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, spolehlivé události střel a kill hlášek, „loaded“, rate-limit |
 | `src/net/net_stats.gd` | jen klient: ping = čas od odeslání vstupu po snapshot s jeho `last_seq` (vyhlazený); žádné nové síťové zprávy |
-| `src/match/input_buffer.gd` | host: fronta vstupů jednoho klienta, 1 vstup za tick; strop 6, dohánění (když fronta za 0,5 s neklesne na 1, přebytek nejstarších se přeskočí a jejich tlačítka se přenesou), čte se i u mrtvého hráče |
+| `src/match/input_buffer.gd` | host: fronta vstupů jednoho klienta, 1 vstup za tick; strop 6, dohánění (když fronta za 0,5 s neklesne na 1, přebytek nejstarších se přeskočí a jejich tlačítka se přenesou), čte se i u mrtvého hráče; po 0,25 s bez vstupu neutrální vstup (postava stojí) |
+| `src/net/lobby_validator.gd` | kontrola dat lobby/průběhu zápasu od hostitele na klientech (hráči, sloty, výsledky) a čištění jmen; neplatná data se zahodí |
 | `src/net/lag_simulator.gd` | jen pro vývoj: simulace zpoždění a ztrát paketů (`-- --fake-lag=100 --fake-loss=5`) |
 | `src/net/net_codec.gd` | binární protokol 5: vstup 14 B, snapshot 6 B + 33 B na hráče včetně stavu motoru a počtů zabití/smrtí; kontrola velikosti, slotů a konečných hodnot, `seq_newer()` |
 | `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, offline dialog „Co je nového“, chybové hlášky (`Session.last_end_message`) |

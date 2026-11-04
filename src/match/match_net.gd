@@ -82,7 +82,7 @@ func _announce_loaded() -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func _client_loaded() -> void:
 	var sender := multiplayer.get_remote_sender_id()
-	if multiplayer.is_server() and Session.players.has(sender):
+	if multiplayer.is_server() and Session.phase == Session.Phase.IN_MATCH and Session.players.has(sender):
 		_loaded_peers[sender] = true
 
 

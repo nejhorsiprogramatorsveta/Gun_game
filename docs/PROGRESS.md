@@ -1,17 +1,18 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M4: hotové zkrácení zpoždění vstupů na hostu + zjednodušený ukazatel (jen ping a FPS), verze `0.1.3`.** Sekání Wi-Fi klientů zůstává odložené do PLAN.md M4.1.
-- Ukazatel vlevo dole menším písmem (12): `FPS 120   Ping 169 ms`, na hostu a v tréninku jen FPS. Zobrazený vždy, F3 ho skryje/zobrazí (pokyn uživatele 2026-11-04: jen ping a FPS, menší písmo).
-- `InputBuffer` (nový, `src/match/input_buffer.gd`): fronta vstupů se už trvale nehromadí; host čte vstupy i u mrtvého hráče (dřív se během respawnu fronta zaplnila na 6 = +100 ms po každém respawnu).
-- Měření (host + klient lokálně, klient běhá a skáče): ping fake lag 0 → **~33 ms** (dřív ~95), 100 ms/5 % → **~155 ms** (dřív ~210), 200 ms/10 % → **~275 ms** (dřív ~290). Fronta na hostu 0–2 místo 3–6. Největší vizuální korekce 8/52/51 px proti 38/107/52 px před změnou (bez zhoršení).
-- Changelog: archivováno `0.1.2` / sestavení 32, nový záznam (nižší zpoždění ovládání, ping a FPS).
-- **Pozor před dalším herním commitem:** verze `0.1.4` a archivace aktuálního záznamu changelogu pod skutečně vydaným sestavením (zjistit z `version.json`).
+**M4 dokončený (kromě ručního hodnocení s kamarády) + úprava pole adresy, verze `0.1.4`.** Sekání Wi-Fi klientů zůstává v PLAN.md M4.1 (čeká na měření uživatele s kamarádem).
+- **Pole adresy v menu** (pokyn uživatele 2026-11-04): už se nepředvyplňuje poslední adresou (`Settings.last_address` odstraněno), ukazuje šedý příklad `100.101.102.103:24642#K7Q2MX`, který po kliknutí zmizí.
+- **Zpevnění validace:** `LobbyValidator` kontroluje na klientech data od hostitele (seznam hráčů, sloty zápasu, výsledky – počty, typy, rozsahy, délky jmen); fázové RPC (`_begin_match`, `_end_match`, `_return_to_lobby`) se přijmou jen ve správné fázi; `_client_loaded` jen během zápasu; střely od hostitele s nekonečnými souřadnicemi se zahodí. Vstupy od klientů na hostu už kontrolované byly (velikost, typy, rate limit, odesílatel).
+- **Odpojení:** po 0,25 s bez vstupu host postavu zastaví (dřív opakoval poslední vstup až do časového limitu ENetu ~5 s, takže postava spadlého klienta mohla sama vyběhnout z mapy).
+- Ověřené scénáře se skutečnými procesy: odchod 1 ze 3 hráčů (zápas pokračuje), odchod jediného soupeře (výsledky → lobby), pád klienta bez rozloučení (host to pozná za ~5 s, postava mezitím stojí), odchod hostitele (klient v menu s hláškou), odchod během odpočtu, odchod během výsledků (ostatní pokračují do lobby).
+- **Pozor před dalším herním commitem:** verze `0.1.5` a archivace changelogu pod skutečně vydaným sestavením (zjistit z `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**M4.1 – měření sekání na skutečné Wi-Fi (potřebuje uživatele).** Uživatel s kamarádem zahraje verzi 0.1.3 na stejné Wi-Fi a pošle ping/FPS z levého dolního rohu u klienta i hosta a popis, kdy se to seká. Agent čísla zapíše do PLAN.md M4.1 a navrhne další měření/opravu – samotnou opravu Wi-Fi spustit až na výslovné zadání.
-- Pokud čísla nepřijdou a uživatel chce pokračovat jinak: další položka M4 je „zpevnění validace (rate limit, fáze), okrajové případy odpojení“ (PLAN.md K, M4) – nejdřív se zeptat.
+**Čeká na uživatele: M4.1 měření na Wi-Fi.** Uživatel s kamarádem zahraje 0.1.4 na stejné Wi-Fi a pošle ping/FPS z levého dolního rohu (klient i host) + kdy se to seká. Agent čísla zapíše do PLAN.md M4.1 a navrhne opravu (spustit až na výslovné zadání).
+- Pokud uživatel chce pokračovat bez měření: další milník je **M5 – postavy a schopnosti** (PLAN.md K, M5; G.0, T.2) – před začátkem se zeptat, zda začít M5, nebo M6.
+- `session.gd` má 309 řádků (limit ~300): při další změně Session přesunout fázové RPC do samostatného skriptu.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -57,6 +58,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, M4 validace + odpojení + pole adresy, verze 0.1.4 (Claude):** nové `src/net/lobby_validator.gd` (+ `clean_name` přesunuto ze Session, konstanty MAX_PLAYERS/MAX_NAME_LENGTH odtud), kontroly fází v Session, `InputBuffer.STALE_TICKS`, kontrola konečných čísel u střel od hostitele, `_client_loaded` jen v zápase, menu bez předvyplněné adresy. Testy `test_lobby_validator` (5) a `test_input_buffer::test_long_silence_stops_the_player`.
 - **2026-11-04, M4 fronta vstupů + ping/FPS, verze 0.1.3 (Claude):**
   - `src/match/input_buffer.gd` (nový): logika fronty přesunuta z `match_controller.gd` (282 řádků), dohánění po 0,5 s, sloučení tlačítek přeskočených vstupů, čtení vstupu i u neaktivního hráče.
   - `NetStats` zjednodušen jen na ping; `MatchHud.show_ping()` – FPS + ping, písmo 12, viditelné hned, F3 přepíná. Odstraněny klíče `DEBUG_NET_*`, nové `HUD_FPS`, `HUD_PING`, `CHANGELOG_PING_FPS`, `CHANGELOG_INPUT_DELAY`. `ClientPrediction.pending_count()` odstraněno.
@@ -192,7 +194,7 @@
 - **Přeskočený vstup při dohánění** způsobí na klientovi malou korekci (~1 tick pohybu), vyhlazenou vizuálním offsetem.
 - **Stejná Wi-Fi: výrazné sekání všech klientů kromě hosta** (nahlášeno uživatelem 2026-11-04). Příčina neměřená, oprava výslovně odložená; viz PLAN.md M4.1. Lokální headless síťové testy tento problém nevyvracejí.
 - **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
-- **`session.gd` má 306 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
+- **`session.gd` má 309 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
 - **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
 - **Predikce je zatím ověřená automaticky lokálně.** Skutečný internet a ruční hodnocení plynulosti korekcí čekají na hráče. Střelbu, zpětný ráz a odhoz dál potvrzuje host; M4 predikuje jen pohyb.
 - **Kolize s pohybujícími se soupeři při replay používají jejich aktuální interpolované pozice.** Mohou vyvolat korekce od hostu; historické přetáčení soupeřů není součást M4.
@@ -206,6 +208,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, validace + odpojení (0.1.4):** 89/89 unit testů, lokalizace OK. 6 scénářů odpojení se skutečnými procesy (viz „Kde jsme skončili“) bez chyb skriptů; test zastavení postavy po pádu klienta ukázal rozdíl proti kódu bez opravy (zastaví se po ~0,25 s místo běhu dál). Menu: pole prázdné, příklad zmizí po kliknutí a vrátí se po odchodu z pole, adresa se neukládá. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.3 → 0.1.4.
 - **2026-11-04, fronta vstupů + ping/FPS (0.1.3):** 83/83 unit testů (nové `test_input_buffer`: pořadí/duplikáty/opakování, strop se sloučením skoku, dohánění trvalé fronty, žádné přeskočení při trhaném doručování; `test_net_stats` upraven na ping), lokalizace OK, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 % na novém i starém kódu (srovnání viz „Kde jsme skončili“), bez chyb skriptů. Screenshot: ukazatel čitelný vlevo dole. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.2 → 0.1.3.
 - **2026-11-04, F3 + 0.1.2:** 80/80 unit testů (nové: 3× `test_net_stats`, chyba predikce v `test_client_prediction`, jen nejnovější verze v `test_changelog`, sloupce CSV – ověřeno, že selže na chybném řádku), lokalizace 104 klíčů / 0 chybějících, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 %: bez chyb skriptů, hodnoty viz „Kde jsme skončili“. Screenshot ukazatele (okno 1280×720 na Retině): čitelné vlevo dole, nepřekrývá scoreboard. Menu: „Co je nového“ ukazuje jen aktuální verzi; generátor poznámek ověřen. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.1 → 0.1.2 (ověřit po CI).
 - **2026-11-04, kontrola po pullu `6978a62`:** 74/74 unit testů, lokalizace 96 / 0 chybějících, 9/9 Python testů workflow, síťový smoke test host+klient bez chyb skriptů. CI běhy `da40eac`, `2560ebb`, `6978a62` úspěšné; release `gun_game v0.1.1` (sestavení 29) ověřen přes GitHub API. Ruční hraní ani aktualizace z předchozí verze neověřeny.

@@ -33,7 +33,10 @@ func _ready() -> void:
 	_version_label.text = tr("MENU_VERSION").format({"version": BuildInfo.display_string()})
 	_name_edit.max_length = Session.MAX_NAME_LENGTH
 	_name_edit.text = Settings.player_name
-	_address_edit.text = Settings.last_address
+	# The address always contains a new room code, so it is never prefilled; the example
+	# placeholder disappears as soon as the field is clicked.
+	_address_edit.focus_entered.connect(func() -> void: _address_edit.placeholder_text = "")
+	_address_edit.focus_exited.connect(func() -> void: _address_edit.placeholder_text = tr("MENU_ADDRESS_PLACEHOLDER"))
 	_practice_button.pressed.connect(get_tree().change_scene_to_file.bind(PRACTICE_SCENE_PATH))
 	_host_button.pressed.connect(_on_host_pressed)
 	_join_button.pressed.connect(_on_join_pressed)
@@ -116,7 +119,6 @@ func _on_join_pressed() -> void:
 
 func _remember_inputs() -> void:
 	Settings.player_name = _name_edit.text.strip_edges()
-	Settings.last_address = _address_edit.text.strip_edges()
 	Settings.save()
 
 

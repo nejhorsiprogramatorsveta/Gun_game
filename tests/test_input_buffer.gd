@@ -66,3 +66,18 @@ func test_jitter_that_empties_the_queue_is_not_skipped() -> void:
 		if NetCodec.seq_newer(consumed[i], consumed[i - 1]) and consumed[i] != consumed[i - 1] + 1:
 			skipped += 1
 	check_eq(skipped, 0, "no input skipped when the queue regularly runs low")
+
+
+func test_long_silence_stops_the_player() -> void:
+	var buffer := InputBuffer.new()
+	buffer.push(_packet(3, 1, InputFrame.FIRE))
+	var frame := buffer.next()
+	for tick in InputBuffer.STALE_TICKS:
+		frame = buffer.next()
+	check_eq(frame.move_x, 1, "short gap: the last input repeats")
+	frame = buffer.next()
+	check_eq(frame.move_x, 0, "long silence: no movement")
+	check_eq(frame.buttons, 0, "long silence: no buttons")
+	check_eq(frame.seq, 3, "sequence kept, so acknowledgements stay correct")
+	buffer.push(_packet(4))
+	check_eq(buffer.next().move_x, 1, "new input takes over again")

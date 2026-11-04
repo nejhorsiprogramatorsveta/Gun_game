@@ -7,6 +7,8 @@ extends RefCounted
 ## Catch-up: when the queue never got down to TARGET during a whole window, the surplus
 ## oldest inputs are skipped. Their held buttons are merged into the next input so a short
 ## tap (jump, fire) is not lost; the client corrects the skipped tick via reconciliation.
+## Short gaps (packet loss) repeat the last input; after STALE_TICKS without any input the
+## player stands still instead, so a crashed or frozen client does not run off the arena.
 
 ## Hard cap: older inputs beyond this are skipped right away.
 const MAX_PENDING := 6
@@ -14,12 +16,15 @@ const MAX_PENDING := 6
 const TARGET := 1
 ## 0.5 s at 60 Hz: long enough that normal jitter never triggers a skip.
 const WINDOW_TICKS := 30
+## 0.25 s at 60 Hz without new input -> neutral input (keeps aim and sequence).
+const STALE_TICKS := 15
 
 var _queue: Array[InputFrame] = []
 var _current := InputFrame.new()
 var _newest_seq := -1
 var _window_min := MAX_PENDING
 var _window_ticks := 0
+var _ticks_without_input := 0
 
 
 ## frames are newest first (NetCodec.decode_input); queues the unseen ones, oldest first.
@@ -43,6 +48,11 @@ func next() -> InputFrame:
 		_window_min = MAX_PENDING
 	if not _queue.is_empty():
 		_current = _queue.pop_front()
+		_ticks_without_input = 0
+		return _current
+	_ticks_without_input += 1
+	if _ticks_without_input > STALE_TICKS:
+		_current = InputFrame.create(0, 0, _current.aim, _current.seq)
 	return _current
 
 

@@ -61,7 +61,8 @@ func _on_finished(projectile: Projectile) -> void:
 
 func _on_remote_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName) -> void:
 	var weapon := ContentDB.get_weapon(weapon_id)
-	if weapon == null or _projectiles.has(id) or direction.is_zero_approx():
+	if weapon == null or _projectiles.has(id) or not origin.is_finite() or not direction.is_finite() \
+			or direction.is_zero_approx():
 		return
 	_spawn(id, origin, direction, weapon, null)
 
