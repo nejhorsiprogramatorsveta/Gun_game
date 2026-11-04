@@ -13,6 +13,7 @@ const KILL_NOTICE_SECONDS := 2.0
 var _score_cells: Array[Label] = []
 var _kill_seconds_left := 0.0
 var _net_label := Label.new()
+var _weapon_label := Label.new()
 
 
 func _ready() -> void:
@@ -45,6 +46,14 @@ func _ready() -> void:
 	_net_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_net_label.add_theme_constant_override("outline_size", 3)
 	add_child(_net_label)
+	_weapon_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_weapon_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 16)
+	_weapon_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_weapon_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_weapon_label.add_theme_font_size_override("font_size", 20)
+	_weapon_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_weapon_label.add_theme_constant_override("outline_size", 4)
+	add_child(_weapon_label)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -63,6 +72,7 @@ func _process(delta: float) -> void:
 func show_state(players: Array, countdown: int, show_lives: bool) -> void:
 	_countdown_label.visible = countdown > 0
 	_countdown_label.text = str(countdown)
+	_show_local_weapon(players)
 	var sorted := players.duplicate()
 	sorted.sort_custom(func(a: Player, b: Player) -> bool: return a.slot < b.slot)
 	for row in Session.MAX_PLAYERS:
@@ -103,3 +113,14 @@ func show_ping(ping_ms: int) -> void:
 	if ping_ms >= 0:
 		text += "   " + tr("HUD_PING").format({"ping": ping_ms})
 	_net_label.text = text
+
+
+func _show_local_weapon(players: Array) -> void:
+	for player: Player in players:
+		if player.peer_id == multiplayer.get_unique_id():
+			var weapon := player.current_weapon()
+			_weapon_label.visible = weapon != null and player.visible
+			if weapon:
+				_weapon_label.text = tr("HUD_WEAPON").format({"weapon": tr(weapon.name_key)})
+			return
+	_weapon_label.visible = false

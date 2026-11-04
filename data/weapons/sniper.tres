@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"sniper"
+name_key = "WEAPON_SNIPER_NAME"
+shots_per_second = 0.8
+projectile_speed = 2400.0
+max_range = 3000.0
+spread_degrees = 0.0
+knockback = 1300.0
+recoil = 600.0
+pellets = 1

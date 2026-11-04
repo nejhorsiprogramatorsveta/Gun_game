@@ -6,7 +6,7 @@ func test_input_roundtrip() -> void:
 	var history: Array[InputFrame] = [
 		InputFrame.create(1, InputFrame.JUMP | InputFrame.FIRE, 12345, 10),
 		InputFrame.create(-1, 0, 400, 9),
-		InputFrame.create(0, InputFrame.DOWN, 65535, 8),
+		InputFrame.create(0, InputFrame.DOWN | InputFrame.WEAPON_2, 65535, 8),
 	]
 	var data := NetCodec.encode_input(history)
 	check_eq(data.size(), NetCodec.INPUT_PACKET_BYTES, "fixed packet size")
@@ -15,6 +15,7 @@ func test_input_roundtrip() -> void:
 	check_eq([frames[0].seq, frames[1].seq, frames[2].seq], [10, 9, 8], "sequence numbers count down")
 	check_eq([frames[0].move_x, frames[0].buttons, frames[0].aim], [1, InputFrame.JUMP | InputFrame.FIRE, 12345], "newest frame")
 	check_eq([frames[2].move_x, frames[2].aim], [0, 65535], "oldest frame")
+	check(frames[2].is_held(InputFrame.WEAPON_2), "wanted weapon survives encoding")
 
 
 func test_input_rejects_and_sanitizes_bad_packets() -> void:
@@ -31,7 +32,7 @@ func test_snapshot_roundtrip() -> void:
 	var states: Array[Dictionary] = [
 		{"slot": 0, "position": Vector2(400.5, -20.25), "velocity": Vector2(120, -820), "facing": -1, "active": true, "invulnerable": true, "aim": 32768, "last_seq": 65535, "lives": 5,
 				"on_floor": true, "prev_buttons": InputFrame.JUMP | InputFrame.DOWN, "jumps_left": 2, "jump_buffer_timer": 0.125, "drop_timer": 0.25,
-				"kills": 7, "deaths": 3},
+				"kills": 7, "deaths": 3, "weapon_slot": 1},
 		{"slot": 3, "position": Vector2(1, 2), "velocity": Vector2(99999, 0), "facing": 1, "active": false, "invulnerable": false, "aim": 0, "last_seq": 7, "lives": 0},
 	]
 	var data := NetCodec.encode_snapshot(1234, 3, states)
@@ -49,6 +50,7 @@ func test_snapshot_roundtrip() -> void:
 			[true, InputFrame.JUMP | InputFrame.DOWN, 2, 0.125, 0.25], "movement memory survives encoding")
 	check_eq([b.on_floor, b.prev_buttons, b.jumps_left, b.jump_buffer_timer, b.drop_timer],
 			[false, 0, 0, 0.0, 0.0], "missing movement memory has neutral defaults")
+	check_eq([a.weapon_slot, b.weapon_slot], [1, 0], "selected weapon survives encoding")
 
 
 func test_snapshot_rejects_malformed() -> void:

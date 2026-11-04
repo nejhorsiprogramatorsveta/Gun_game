@@ -14,7 +14,10 @@ extends Resource
 @export var max_range: float = 1400.0
 ## Random deviation of each shot, ± degrees.
 @export var spread_degrees: float = 1.5
-## Speed (px/s) a hit adds to the target, divided by the target's weight.
+## Speed (px/s) a hit adds to the target, divided by the target's weight. Keep the totals
+## within CombatRules.MAX_KNOCKBACK_PER_SHOT / _PER_SECOND (checked by tests/test_weapons.gd).
 @export var knockback: float = 550.0
 ## Speed (px/s) the shooter gets pushed opposite to the aim direction.
 @export var recoil: float = 120.0
+## Projectiles per shot (shotgun > 1); each pellet gets its own spread and knockback.
+@export_range(1, 12) var pellets: int = 1

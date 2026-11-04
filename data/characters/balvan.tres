@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/character_data.gd" id="1"]
+[ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="2"]
+[ext_resource type="Resource" path="res://data/weapons/shotgun.tres" id="3"]
+[ext_resource type="Resource" path="res://data/weapons/assault_rifle.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"balvan"
+name_key = "CHARACTER_BALVAN_NAME"
+description_key = "CHARACTER_BALVAN_DESCRIPTION"
+color = Color(0.75, 0.3, 0.25, 1)
+move_speed = 360.0
+ground_acceleration = 3600.0
+air_acceleration = 2200.0
+ground_friction = 3200.0
+air_friction = 500.0
+knockback_friction = 900.0
+jump_velocity = 760.0
+air_jumps = 1
+gravity = 2400.0
+max_fall_speed = 1400.0
+jump_buffer_time = 0.1
+drop_through_time = 0.25
+weight = 1.4
+weapons = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4")])

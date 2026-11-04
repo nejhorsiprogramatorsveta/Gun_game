@@ -19,6 +19,7 @@ const FLAG_FACING_RIGHT := 1
 const FLAG_ACTIVE := 2
 const FLAG_INVULNERABLE := 4
 const FLAG_ON_FLOOR := 8
+const FLAG_WEAPON_2 := 16
 
 
 ## frames[0] is the newest; older frames must have seq = newest.seq - index.
@@ -63,7 +64,8 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		var position: Vector2 = state.position
 		var velocity: Vector2 = state.velocity
 		var flags := (FLAG_FACING_RIGHT if state.facing > 0 else 0) | (FLAG_ACTIVE if state.active else 0) \
-				| (FLAG_INVULNERABLE if state.invulnerable else 0) | (FLAG_ON_FLOOR if state.get("on_floor", false) else 0)
+				| (FLAG_INVULNERABLE if state.invulnerable else 0) | (FLAG_ON_FLOOR if state.get("on_floor", false) else 0) \
+				| (FLAG_WEAPON_2 if state.get("weapon_slot", 0) == 1 else 0)
 		data.encode_u8(offset, state.slot)
 		data.encode_float(offset + 1, position.x)
 		data.encode_float(offset + 5, position.y)
@@ -111,6 +113,7 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"active": flags & FLAG_ACTIVE != 0,
 			"invulnerable": flags & FLAG_INVULNERABLE != 0,
 			"on_floor": flags & FLAG_ON_FLOOR != 0,
+			"weapon_slot": 1 if flags & FLAG_WEAPON_2 else 0,
 			"aim": data.decode_u16(offset + 14),
 			"last_seq": data.decode_u16(offset + 16),
 			"lives": data.decode_u8(offset + 18),

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shotgun"
+name_key = "WEAPON_SHOTGUN_NAME"
+shots_per_second = 1.4
+projectile_speed = 950.0
+max_range = 650.0
+spread_degrees = 9.0
+knockback = 220.0
+recoil = 450.0
+pellets = 6

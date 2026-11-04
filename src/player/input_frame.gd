@@ -8,7 +8,10 @@ const JUMP := 1
 const FIRE := 2
 const ABILITY := 4
 const DOWN := 8
-const ALL_BUTTONS := JUMP | FIRE | ABILITY | DOWN
+## Not a button but the wanted weapon: set = second weapon (absolute, so a lost packet
+## cannot flip the choice twice).
+const WEAPON_2 := 16
+const ALL_BUTTONS := JUMP | FIRE | ABILITY | DOWN | WEAPON_2
 ## Aim angle is sent as u16: a full turn = 65536 steps (~0.005°).
 const AIM_STEPS := 65536
 
@@ -32,7 +35,7 @@ static func create(move: int, held_buttons: int, aim_steps: int = 0, sequence: i
 
 
 ## Reads this computer's keyboard and mouse; `origin` is the player being controlled.
-static func sample_local(origin: Node2D) -> InputFrame:
+static func sample_local(origin: Player) -> InputFrame:
 	var held := 0
 	if Input.is_action_pressed("jump"):
 		held |= JUMP
@@ -42,6 +45,8 @@ static func sample_local(origin: Node2D) -> InputFrame:
 		held |= ABILITY
 	if Input.is_action_pressed("down"):
 		held |= DOWN
+	if origin.wanted_weapon_slot == 1:
+		held |= WEAPON_2
 	var move := int(signf(Input.get_axis("move_left", "move_right")))
 	return create(move, held, aim_from_vector(origin.get_global_mouse_position() - origin.global_position))
 

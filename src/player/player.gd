@@ -26,6 +26,10 @@ var aim := 0
 var last_input_seq := 0
 ## Authority: seconds until the current weapon may fire again.
 var fire_cooldown := 0.0
+## Index into character.weapons; decided by the authority, sent in snapshots.
+var weapon_slot := 0
+## Local player only: the weapon chosen with Q / 1 / 2 / wheel, sent in every input.
+var wanted_weapon_slot := 0
 ## Authority: seconds of respawn protection left.
 var invulnerable_time := 0.0
 ## Authority: how long the player has been outside the arena (see out_of_bounds_grace).
@@ -65,7 +69,22 @@ func simulate(input: InputFrame, delta: float) -> void:
 
 
 func current_weapon() -> WeaponData:
-	return character.weapons[0] if character and not character.weapons.is_empty() else null
+	if character == null or character.weapons.is_empty():
+		return null
+	return character.weapons[clampi(weapon_slot, 0, character.weapons.size() - 1)]
+
+
+## Local player: Q / wheel toggles, 1 / 2 select directly.
+func handle_weapon_input(event: InputEvent) -> bool:
+	if event.is_action_pressed("weapon_switch"):
+		wanted_weapon_slot = 1 - wanted_weapon_slot
+	elif event.is_action_pressed("weapon_1"):
+		wanted_weapon_slot = 0
+	elif event.is_action_pressed("weapon_2"):
+		wanted_weapon_slot = 1
+	else:
+		return false
+	return true
 
 
 func snapshot_state() -> Dictionary:
@@ -73,7 +92,7 @@ func snapshot_state() -> Dictionary:
 			"active": visible, "invulnerable": invulnerable, "aim": aim, "last_seq": last_input_seq, "lives": lives,
 			"on_floor": motor_state.on_floor, "prev_buttons": motor_state.prev_buttons,
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
-			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths}
+			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths, "weapon_slot": weapon_slot}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -121,6 +140,7 @@ func _apply_state(state: Dictionary) -> void:
 	lives = state.lives
 	kills = state.get("kills", 0)
 	deaths = state.get("deaths", 0)
+	weapon_slot = state.get("weapon_slot", 0)
 	invulnerable = state.invulnerable
 	queue_redraw()
 

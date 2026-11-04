@@ -32,5 +32,5 @@ extends Resource
 @export_group("Combat")
 ## Knockback is divided by weight (heavier = harder to push).
 @export var weight: float = 1.0
-## The character's weapons (2 per character from M5, PLAN.md G.0); the first is used for now.
+## Exactly 2 weapons (PLAN.md G.0); the first is selected at spawn, Q / 1 / 2 / wheel switch.
 @export var weapons: Array[WeaponData] = []

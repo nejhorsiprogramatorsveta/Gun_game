@@ -472,6 +472,14 @@ Menu → Hostovat/Připojit → LOBBY ──(host: Začít zápas)──► ZÁP
 - **Rozšiřitelnost:** nová zbraň = nový `.tres` (+ sprite). Nová postava = `.tres` s odkazy na 2 zbraně a schopnost.
 
 
+### G.0a Rozhodnutí uživatele 2026-11-04 (M5)
+- **Soupiska (zatím, data v `data/characters/`):** Jiskra (róninka, lehká) – samopal + pistole, úskok; Balvan (samuraj, těžký) – brokovnice + útočná puška, štít; Vichr (ninja s kusarigamou) – bojová puška + karabina, tlaková vlna; Stín (ninja se šurikenem, lehký) – odstřelovačka + kompaktní samopal, přesun (teleport ~250 px ke kurzoru, cd 7 s).
+- **Každá postava má 2 vlastní zbraně (8 celkem).** Přepínání: Q, 1 / 2 a kolečko myši; po přepnutí 0,3 s bez střelby.
+- **Stejnou postavu nesmí mít dva hráči** v jednom zápase (výběr v lobby M5.3 obsazené postavy zablokuje).
+- **Knockback nesmí být příliš vysoký:** limity `CombatRules.MAX_KNOCKBACK_PER_SHOT` = 1400 (všechny broky dohromady) a `MAX_KNOCKBACK_PER_SECOND` = 7500 (měřítko: pistole 800 × 9/s), hlídá `tests/test_weapons.gd`.
+- **Rozpracované zadání (2026-11-04):** uživatel navrhl schopnosti „zpomalovací plyn ve směru kurzoru, mizí po 3 s“ a „dočasná plošina pod sebou“ (postava „Architekt“). Mechaniky jsou v pořádku; postavu podle fotografie v nacistické uniformě s plynem Claude odmítl a fotografie skutečných lidí se jako předlohy nepoužijí (postavy musí být vlastní originální návrhy, sekce Q). Čeká na rozhodnutí, kterým postavám schopnosti přidělit.
+- **Kroky M5:** M5.1 zbraně + přepínání + data postav (hotovo, 0.1.6) → M5.2 schopnosti + cooldown v HUD → M5.3 výběr postavy v lobby → M5.4 `EDITING_GUIDE.md` a ladění.
+
 ### G.1 Systém
 - `AbilityData extends Resource` obsahuje `id`, `name_key`, `description_key`, `cooldown` a metody:
   - `can_activate(player) -> bool`

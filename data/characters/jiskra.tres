@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" path="res://src/data_types/character_data.gd" id="1"]
 [ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="2"]
-[ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="3"]
+[ext_resource type="Resource" path="res://data/weapons/smg.tres" id="3"]
+[ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="4"]
 
 [resource]
 script = ExtResource("1")
@@ -23,4 +24,4 @@ max_fall_speed = 1400.0
 jump_buffer_time = 0.1
 drop_through_time = 0.25
 weight = 0.9
-weapons = Array[ExtResource("2")]([ExtResource("3")])
+weapons = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4")])

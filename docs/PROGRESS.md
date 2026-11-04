@@ -1,17 +1,18 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M4.1: zapsaný první test přes Tailscale a přidaný zápis měření do logu, verze `0.1.5`.** M4 jinak hotový (viz níže).
-- **Test 2026-11-04 (0.1.4, tvůj Mac host + kamarád klient):** nejdřív se nešlo připojit – každý měl vlastní Tailscale síť; po **Share** Macu funguje, spojení přímé (IPv6). `tailscale ping` 26–51 ms, občas ~110–125 ms. Herní ping klienta ~100–150 ms, FPS v pořádku. Kamarád: „občas lag, spíš zpožděný pohyb“ (neupřesněno, čí pohyb). Podrobnosti a kandidáti na opravu v PLAN.md M4.1.
-- **Log:** od 0.1.5 každých 5 s online zápasu řádek `[net]` v logu hry (klient: ping/max, FPS/min, nejdelší pauza snapshotů, největší korekce vlastní postavy; host: FPS/min, největší fronta vstupů po slotech). Bez adres a jmen. Mac: `~/Library/Application Support/Godot/app_userdata/gun_game/logs/godot.log`; Windows: `%APPDATA%\Godot\app_userdata\gun_game\logs\godot.log` (posledních 5 spuštění).
-- Dříve v M4 (0.1.4): validace dat od hostitele, zastavení postavy po 0,25 s bez vstupu, ověřené scénáře odpojení, pole adresy bez předvyplnění.
-- **Pozor před dalším herním commitem:** verze `0.1.6` a archivace changelogu pod skutečně vydaným sestavením (zjistit z `version.json`).
+**M5 – krok M5.1 hotový (verze `0.1.6`): 4 postavy, 8 zbraní, přepínání zbraní.** Rozhodnutí uživatele v PLAN.md G.0a. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+- Postavy: Jiskra (samopal + pistole), Balvan (brokovnice 6 broků + útočná puška), Vichr (bojová puška + karabina), Stín (odstřelovačka + kompaktní samopal); každá jiné pohybové hodnoty a váhu.
+- Přepínání Q / 1 / 2 / kolečko: vstup nese zvolenou zbraň (bit `WEAPON_2`), host přepne a 0,3 s nestřílí, snapshot nese `weapon_slot`. HUD dole uprostřed ukazuje zbraň. Protokol 6.
+- **Dočasně do M5.3:** v online zápase dostane hráč postavu podle slotu (abecedně: balvan, jiskra, stin, vichr); v tréninku Jiskra.
+- Knockback hlídají limity v `CombatRules` + test (pokyn uživatele).
+- Opravena chyba: `ContentDB.character_ids()` neřadilo `StringName` abecedně (pořadí podle adresy se může lišit mezi počítači).
+- **Uživatel poslal nové schopnosti a fotky** (viz PLAN.md G.0a „Rozpracované zadání“) – postavu „Krügermann“ podle fotky v nacistické uniformě s plynem Claude odmítl; fotky reálných lidí se jako předloha nepoužijí. Mechaniky (zpomalovací plyn, dočasná plošina) lze použít pro originální postavy – čeká na rozhodnutí.
+- **Pozor před dalším herním commitem:** verze `0.1.7` + archivace changelogu (zjistit build z `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**Čeká na rozhodnutí uživatele (M4.1).** Navrženo: zrychlit zobrazení postav ostatních hráčů – snapshoty 60 Hz místo 30 Hz a interpolační zpoždění ~50 ms místo 100 ms (`SNAPSHOT_EVERY_TICKS` v `match_controller.gd`, `INTERPOLATION_DELAY_MS` v `remote_interpolator.gd`), ověřit fake lagem a pak logem `[net]` z dalšího hraní. Spustit až po souhlasu.
-- Po dalším hraní: přečíst `[net]` řádky z logu hostitele (Mac) a nechat kamaráda poslat jeho `godot.log`; zapsat do PLAN.md M4.1.
-- Jinak další milník M5 (postavy) nebo M6 (obsah) – zeptat se.
+**M5.2 – schopnosti, až uživatel rozhodne o soupisce schopností.** Otázka: nahradit některé z výchozích schopností (úskok, štít, tlaková vlna, přesun) novými mechanikami „zpomalovací plyn ke kurzoru (3 s)“ a „dočasná plošina pod sebou“, a u kterých postav? Potom: `AbilityData` + podtřídy (G.1), bit `ABILITY` už ve vstupu je, cooldown ve snapshotu, ukazatel v HUD, testy; pohybové schopnosti simulovat v `PlayerMotor` kvůli predikci.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -57,6 +58,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, M5.1 zbraně + přepínání, verze 0.1.6 (Claude):** 7 nových `data/weapons/*.tres`, 3 nové postavy, `WeaponData.pellets`, akce `weapon_switch`/`weapon_1`/`weapon_2`, `Player.weapon_slot`/`wanted_weapon_slot`/`handle_weapon_input`, `WeaponSystem._switch_weapon` + broky, `NetCodec.FLAG_WEAPON_2`, HUD zbraň, `ContentDB.character_for_slot` (dočasné) a oprava řazení, `tests/test_weapons.gd`.
 - **2026-11-04, M4.1 test přes Tailscale + log `[net]`, verze 0.1.5 (Claude):** nové `src/net/net_log.gd` + napojení v `match_controller.gd` (289 řádků), test `tests/test_net_log.gd`, zápis zjištění do PLAN.md M4.1.
 - **2026-11-04, M4 validace + odpojení + pole adresy, verze 0.1.4 (Claude):** nové `src/net/lobby_validator.gd` (+ `clean_name` přesunuto ze Session, konstanty MAX_PLAYERS/MAX_NAME_LENGTH odtud), kontroly fází v Session, `InputBuffer.STALE_TICKS`, kontrola konečných čísel u střel od hostitele, `_client_loaded` jen v zápase, menu bez předvyplněné adresy. Testy `test_lobby_validator` (5) a `test_input_buffer::test_long_silence_stops_the_player`.
 - **2026-11-04, M4 fronta vstupů + ping/FPS, verze 0.1.3 (Claude):**
@@ -208,6 +210,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, M5.1 (0.1.6):** 95/95 unit testů (limity knockbacku všech zbraní, 4 postavy × 2 unikátní zbraně, přepnutí a blokace střelby, klávesy, přenos zbraně ve vstupu i snapshotu), lokalizace 122 klíčů OK. Síťový test host + klient: brokovnice 6 broků, Q přepne klienta na pistoli u hosta i klienta, HUD text správně. **Neověřeno:** ruční hraní a pocit z balancu zbraní, kolečko myši ručně, Windows.
 - **2026-11-04, log `[net]` (0.1.5):** 91/91 unit testů, lokalizace OK; síťový test host + klient (fake lag 100 ms/5 %) zapsal řádky `[net]` u obou. Že release build zapisuje `print` do `godot.log`, ověří až další ostré hraní (release log z 18:54 obsahoval jen úvodní řádky enginu).
 - **2026-11-04, validace + odpojení (0.1.4):** 89/89 unit testů, lokalizace OK. 6 scénářů odpojení se skutečnými procesy (viz „Kde jsme skončili“) bez chyb skriptů; test zastavení postavy po pádu klienta ukázal rozdíl proti kódu bez opravy (zastaví se po ~0,25 s místo běhu dál). Menu: pole prázdné, příklad zmizí po kliknutí a vrátí se po odchodu z pole, adresa se neukládá. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.3 → 0.1.4.
 - **2026-11-04, fronta vstupů + ping/FPS (0.1.3):** 83/83 unit testů (nové `test_input_buffer`: pořadí/duplikáty/opakování, strop se sloučením skoku, dohánění trvalé fronty, žádné přeskočení při trhaném doručování; `test_net_stats` upraven na ping), lokalizace OK, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 % na novém i starém kódu (srovnání viz „Kde jsme skončili“), bez chyb skriptů. Screenshot: ukazatel čitelný vlevo dole. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.2 → 0.1.3.

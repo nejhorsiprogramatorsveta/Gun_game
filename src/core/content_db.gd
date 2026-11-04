@@ -42,12 +42,20 @@ static func get_character(id: StringName) -> CharacterData:
 
 static func character_ids() -> Array[StringName]:
 	var ids: Array[StringName] = _characters.keys()
-	ids.sort()
+	# StringName.sort() orders by internal address, which differs between computers.
+	ids.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
 	return ids
 
 
 static func get_weapon(id: StringName) -> WeaponData:
 	return _weapons.get(id)
+
+
+## TEMPORARY until the lobby character choice (PLAN.md M5.3): network players get the
+## characters in alphabetical order by slot, so all four can be tried.
+static func character_for_slot(slot: int) -> CharacterData:
+	var ids := character_ids()
+	return _characters[ids[slot % ids.size()]] if not ids.is_empty() else null
 
 
 static func default_character() -> CharacterData:

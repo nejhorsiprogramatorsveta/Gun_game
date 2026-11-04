@@ -22,19 +22,29 @@ func setup(net: Node) -> void:
 ## Authority: called every tick after the player moved.
 func try_fire(player: Player, input: InputFrame, delta: float) -> void:
 	player.fire_cooldown = maxf(player.fire_cooldown - delta, 0.0)
+	_switch_weapon(player, 1 if input.is_held(InputFrame.WEAPON_2) else 0)
 	var weapon := player.current_weapon()
 	if weapon == null or not input.is_held(InputFrame.FIRE) or player.fire_cooldown > 0.0:
 		return
 	player.fire_cooldown = CombatRules.fire_interval(weapon)
 	var aim_direction := InputFrame.aim_to_vector(input.aim)
-	var direction := CombatRules.spread_direction(aim_direction, weapon, randf())
 	var origin := player.global_position + aim_direction * Player.GUN_LENGTH
 	player.velocity += CombatRules.recoil(aim_direction, weapon)
-	var id := _next_id
-	_next_id += 1
-	_spawn(id, origin, direction, weapon, player)
-	if _net:
-		_net.send_projectile_spawned(id, origin, direction, weapon.id)
+	for pellet in weapon.pellets:
+		var direction := CombatRules.spread_direction(aim_direction, weapon, randf())
+		var id := _next_id
+		_next_id += 1
+		_spawn(id, origin, direction, weapon, player)
+		if _net:
+			_net.send_projectile_spawned(id, origin, direction, weapon.id)
+
+
+## Authority: the input carries the wanted weapon; switching blocks firing for a moment.
+func _switch_weapon(player: Player, wanted_slot: int) -> void:
+	if wanted_slot == player.weapon_slot or player.character == null or wanted_slot >= player.character.weapons.size():
+		return
+	player.weapon_slot = wanted_slot
+	player.fire_cooldown = maxf(player.fire_cooldown, CombatRules.WEAPON_SWITCH_SECONDS)
 
 
 func _spawn(id: int, origin: Vector2, direction: Vector2, weapon: WeaponData, shooter: Player) -> void:
