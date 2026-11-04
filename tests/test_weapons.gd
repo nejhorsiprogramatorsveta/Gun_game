@@ -60,3 +60,9 @@ func test_local_weapon_keys() -> void:
 	check_eq(player.wanted_weapon_slot, 1, "2 selects the second weapon")
 	check(not player.handle_weapon_input(InputEventAction.new()), "other input not handled")
 	player.free()
+
+
+func test_practice_character_falls_back_to_default() -> void:
+	check_eq(ContentDB.practice_character("stin").id, &"stin", "chosen character")
+	check_eq(ContentDB.practice_character("").id, ContentDB.DEFAULT_CHARACTER_ID, "nothing chosen yet")
+	check_eq(ContentDB.practice_character("removed_character").id, ContentDB.DEFAULT_CHARACTER_ID, "unknown id from old settings")

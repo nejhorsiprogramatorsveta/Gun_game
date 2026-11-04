@@ -67,6 +67,11 @@ static func character_for_slot(slot: int) -> CharacterData:
 	return _characters[ids[slot % ids.size()]] if not ids.is_empty() else null
 
 
+## Practice: the character chosen in the menu, or the default one.
+static func practice_character(id: String) -> CharacterData:
+	return _characters.get(StringName(id), default_character())
+
+
 static func default_character() -> CharacterData:
 	return _characters.get(DEFAULT_CHARACTER_ID)
 

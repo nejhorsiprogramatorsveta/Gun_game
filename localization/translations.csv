@@ -149,3 +149,5 @@ ABILITY_PLATFORM_DESCRIPTION,"Postaví pod sebou na 3 s plošinu, i ve vzduchu."
 CHANGELOG_KRUGERMANN,"Postava Mlha se nově jmenuje Krügermann a má zpomalovací oblak (E): zelený oblak ke kurzoru zpomalí soupeře na 3 s."
 CHANGELOG_ARCHITEKT_PLATFORM,"Architekt má plošinu (E): postaví pod sebou dočasnou plošinu, i ve vzduchu."
 CHANGELOG_RECOIL,"Rychlopalné zbraně (samopaly, kulomet, karabina, útočná puška, nýtovačka) mají znatelný zpětný ráz."
+MENU_PRACTICE_CHARACTER,Postava pro trénink
+CHANGELOG_PRACTICE_CHARACTER,V menu si vedle tlačítka Trénink vybereš postavu; volba se pamatuje.

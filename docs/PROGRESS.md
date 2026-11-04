@@ -1,22 +1,23 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M5 – krok M5.2c hotový (verze `0.1.9`): všech 6 schopností.** Plán v PLAN.md G.0a. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+**M5 – krok M5.2c hotový (0.1.9) + výběr postavy pro trénink v menu (verze `0.1.10`).** Plán v PLAN.md G.0a. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
 - **Krügermann** (přejmenovaná Mlha, `data/characters/krugermann.tres`; vlastní kreslený návrh, ne podle fotky a bez nacistické symboliky): arkádový **zpomalovací oblak** – zelený oblak 240 px ke kurzoru (zastaví se o zeď), poloměr 110 px, soupeři v něm běží ×0,5 a skáčou ×0,8, majitel imunní, zmizí po 3 s; cd 9 s.
 - **Architekt:** **plošina** – jednosměrná plošina 160 px pod nohama (i ve vzduchu) na 3 s, na konci bliká; cd 6 s.
 - Objekty ve světě (`AreaEffects`): vznikají v `AbilityData.start` u hosta i v predikci majitele, host je rozešle ostatním; bez zdvojení, pozice hostitele vyhrává. Protokol 9.
 - **Zpětný ráz:** samopal 60 → 140 (na zemi ho tření úplně pohltilo), kompaktní samopal 120, nýtovačka 110, kulomet 130, karabina 140, útočná puška 160; test hlídá minimum 100.
 - Nápověda v tréninku doplněna o E (schopnost) a Q/1/2 (zbraň).
-- **Dočasně do M5.3:** online postava podle slotu abecedně (architekt, balvan, jiskra, krugermann); trénink = Jiskra.
-- **Pozor před dalším herním commitem:** verze `0.1.10` + archivace changelogu (build z `version.json`).
+- **Trénink:** v menu vedle tlačítka Trénink rozbalovací výběr postavy (`%CharacterOption`), uloženo v `Settings.practice_character`; panák zůstává Jiskra.
+- **Budoucí práce (uživatel):** chování zbraní detailně ošetřit, ne každá zbraň s dosahem přes celou mapu (brokovnice krátce) – zapsáno v PLAN.md G.0a „BUDOUCÍ PRÁCE“.
+- **Dočasně do M5.3:** online postava podle slotu abecedně (architekt, balvan, jiskra, krugermann).
+- **Pozor před dalším herním commitem:** verze `0.1.11` + archivace changelogu (build z `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
 **M5.3 – výběr postavy v lobby** (PLAN.md T.2, G.0a: 6 postav, **každá jen jednou**).
 - Lobby: karty postav (jméno, popis, 2 zbraně, schopnost z `CharacterData`/CSV), obsazené zašedlé. Klient pošle žádost `request_character(id)`; host ověří fázi (jen lobby), existenci v `ContentDB` a že ji nemá jiný hráč, uloží do `Session.players[peer].character` a rozešle (validace i v `LobbyValidator`). Nový hráč dostane první volnou postavu.
-- `_begin_match` předá postavy; `MatchController._spawn` použije zvolenou postavu, odstranit dočasné `ContentDB.character_for_slot`. Trénink: výběr postavy v menu nebo posledně zvolená (`Settings`).
-- `session.gd` má 309 řádků → RPC výběru dát do nového skriptu (např. `src/net/lobby_choices.gd`), ne do Session.
-- Testy (validace, obsazenost, odpojení uvolní postavu), síťový test se 3 procesy, verze 0.1.10 + changelog.
+- `_begin_match` předá postavy; `MatchController._spawn` použije zvolenou postavu, odstranit dočasné `ContentDB.character_for_slot`. - `session.gd` má 309 řádků → RPC výběru dát do nového skriptu (např. `src/net/lobby_choices.gd`), ne do Session.
+- Testy (validace, obsazenost, odpojení uvolní postavu), síťový test se 3 procesy, verze 0.1.11 + changelog. Lobby může převzít seznam postav z `main_menu.gd::_fill_character_option`.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -62,6 +63,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, výběr postavy pro trénink, verze 0.1.10 (Claude):** `PracticeRow` + `CharacterOption` v `main_menu.tscn`, `Settings.practice_character`, `ContentDB.practice_character()`, test; zapsána budoucí práce na zbraních (PLAN.md G.0a).
 - **2026-11-04, M5.2c oblak + plošina, Krügermann, zpětný ráz, verze 0.1.9 (Claude):** `AreaEffects`, `SlowCloud`, `TempPlatform`, `SlowCloudAbility`, `PlatformAbility`, `data/abilities/{slow_cloud,platform}.tres`, `ContentDB` schopnosti, zpomalení v `PlayerMotor`, RPC `effect_spawned` v `match_net.gd`, přejmenování mlha → krugermann, zpětný ráz 6 zbraní + `CombatRules.MIN_RECOIL`.
 - **2026-11-04, M5.2b úskok + přesun, verze 0.1.8 (Claude):** `DashAbility`, `TeleportAbility`, `data/abilities/{dash,teleport}.tres`, `AbilityData.start()`, `Player.tick_ability()` (přesunuto z `AbilitySystem`), `PlayerMotor` stav úskoku, snapshot 39 B (cooldown v tikách, úskok), protokol 8, testy predikce úskoku a motoru.
 - **2026-11-04, M5.2a schopnosti + 2 nové postavy, verze 0.1.7 (Claude):** `AbilityData`, `ShieldAbility`, `ShockwaveAbility`, `AbilitySystem`, `data/abilities/{shield,shockwave}.tres`, `CharacterData.ability`, stav schopnosti v `Player`, snapshot 34 B (protokol 7), HUD, 4 nové zbraně (`light_machine_gun`, `revolver`, `nail_gun`, `double_barrel`), postavy `krugermann`, `architekt`, testy `test_abilities`.
@@ -217,6 +219,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, výběr postavy pro trénink (0.1.10):** 103/103 unit testů, lokalizace OK; v menu 6 postav, výběr Stína → v tréninku Stín, volba uložena; screenshot menu. **Neověřeno:** ruční klikání v rozbalovacím seznamu.
 - **2026-11-04, M5.2c (0.1.9):** 102/102 unit testů (zpomalení běhu/skoku v motoru, oblak: majitel imunní, mimo oblak nic, bez zdvojení, pozice hostitele; minimum zpětného rázu), lokalizace OK. Online host + klient (lag 100 ms / 5 %): Architekt postaví plošinu ve vzduchu a 3 s na ní stojí u hosta i klienta, korekce max. 24 px; oblak Krügermanna u obou právě jednou. Trénink: měření rázu (samopal dřív 0,7 px / 0,5 s), screenshot oblaku a plošiny. **Neověřeno:** zpomalení soupeře v online hře ručně, ruční hraní, Windows.
 - **2026-11-04, M5.2b (0.1.8):** 100/100 unit testů (úskok v motoru, predikce úskoku včetně replay ze snapshotu uprostřed úskoku bez korekce, přenos stavu úskoku a cooldownu), lokalizace OK. Trénink: přesun 250 px ke kurzoru, úskok ~210 px, cooldown blokuje. Online host + klient (lag 100 ms / 5 %): korekce max. 23 px (úskok) / 14 px (přesun). **Neověřeno:** ruční hraní, pocit z ovládání, Windows.
 - **2026-11-04, M5.2a (0.1.7):** 98/98 unit testů (aktivace na stisk a cooldown, štít ×0,2 + zákaz střelby, tlaková vlna jen v okruhu, ne chráněné/sebe, v limitu knockbacku a připsání zásahu, 6 postav × 2 unikátní zbraně, limity knockbacku všech 12 zbraní, přenos cooldownu/příznaku), lokalizace 136 klíčů OK. Síťový test: klient (Balvan) zmáčkne E → host i klient: štít 1,5 s, cooldown se odpočítává, HUD text. **Neověřeno:** tlaková vlna online (jen unit test, Vichr se online zatím nedostane do slotu), ruční hraní, balanc.

@@ -10,6 +10,7 @@ const INFO_COLOR := Color(0.75, 0.78, 0.85)
 @onready var _name_edit: LineEdit = %NameEdit
 @onready var _address_edit: LineEdit = %AddressEdit
 @onready var _practice_button: Button = %PracticeButton
+@onready var _character_option: OptionButton = %CharacterOption
 @onready var _host_button: Button = %HostButton
 @onready var _join_button: Button = %JoinButton
 @onready var _changelog_button: Button = %ChangelogButton
@@ -37,7 +38,8 @@ func _ready() -> void:
 	# placeholder disappears as soon as the field is clicked.
 	_address_edit.focus_entered.connect(func() -> void: _address_edit.placeholder_text = "")
 	_address_edit.focus_exited.connect(func() -> void: _address_edit.placeholder_text = tr("MENU_ADDRESS_PLACEHOLDER"))
-	_practice_button.pressed.connect(get_tree().change_scene_to_file.bind(PRACTICE_SCENE_PATH))
+	_fill_character_option()
+	_practice_button.pressed.connect(_on_practice_pressed)
 	_host_button.pressed.connect(_on_host_pressed)
 	_join_button.pressed.connect(_on_join_pressed)
 	_address_edit.text_submitted.connect(func(_text: String) -> void: _on_join_pressed())
@@ -107,6 +109,23 @@ func _on_update_failed(message: String) -> void:
 	_update_panel.show()
 
 
+## Practice character choice (PLAN.md M5): every character from ContentDB, remembered.
+func _fill_character_option() -> void:
+	for id in ContentDB.character_ids():
+		var character := ContentDB.get_character(id)
+		_character_option.add_item(tr(character.name_key))
+		var index := _character_option.item_count - 1
+		_character_option.set_item_metadata(index, String(id))
+		_character_option.set_item_tooltip(index, tr(character.description_key))
+		if String(id) == Settings.practice_character or (Settings.practice_character.is_empty() and id == ContentDB.DEFAULT_CHARACTER_ID):
+			_character_option.select(index)
+
+
+func _on_practice_pressed() -> void:
+	_remember_inputs()
+	get_tree().change_scene_to_file(PRACTICE_SCENE_PATH)
+
+
 func _on_host_pressed() -> void:
 	_remember_inputs()
 	Session.host_game(_name_edit.text)
@@ -119,6 +138,8 @@ func _on_join_pressed() -> void:
 
 func _remember_inputs() -> void:
 	Settings.player_name = _name_edit.text.strip_edges()
+	if _character_option.selected >= 0:
+		Settings.practice_character = str(_character_option.get_item_metadata(_character_option.selected))
 	Settings.save()
 
 
