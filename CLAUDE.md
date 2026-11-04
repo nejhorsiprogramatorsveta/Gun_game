@@ -10,16 +10,14 @@ PROGRESS.md "Další krok" – nothing more. If "Další krok" is unclear, block
 If PROGRESS.md and git disagree (e.g. uncommitted changes, task half-done), report it first.
 
 ## End-of-task protocol (mandatory after EVERY task, also when interrupted or unfinished)
-**Git permission (user 2026-11-04): Codex must NEVER push without new explicit consent from the user.
-No consent is currently granted. Leave this task's changes local; do not commit or push.
-The earlier automatic push permission (2026-11-03) does not authorize Codex to push.**
+Codex has its own rules in codex.md (loaded via AGENTS.md): it must NEVER push; the user pushes its work.
 
 1. Update docs/PROGRESS.md: "Kde jsme skončili" (what part of which milestone is done / half-done, uncommitted files),
    "Další krok" (one concrete next task, specific enough to start without asking), "Poslední změny", "Stav testů", "Známé problémy".
-2. Follow the Git permission above. When a commit/push is explicitly authorized for the acting agent,
-   use Conventional Commits, push only finished, tested work, and check that the GitHub Actions run succeeded.
+2. Claude Code: commit (Conventional Commits) and PUSH to origin main yourself – the user allowed this permanently
+   (2026-11-03). Only push finished, tested work; then check that the GitHub Actions run succeeded.
 3. Give the user a Czech overview: which part of the plan (milestone/step) was completed, what remains in the milestone,
-   changed files, how to test, what was NOT tested, commit hash + CI result if a push was authorized and performed.
+   changed files, how to test, what was NOT tested, commit hash + CI result.
 4. Stop. Do not start the next step on your own.
 If the user says "ulož progress", do step 1 immediately.
 
@@ -72,6 +70,7 @@ alongside position/velocity, last_seq and kills/deaths: 6-byte header + 33 bytes
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
 move_and_slide() must use the physics delta during replay. Remote players still interpolate with a 100 ms delay.
 Small corrections use a visual offset; combat, knockback, recoil, respawns, countdown and lives remain host-authoritative.
+Changelog "Co je nového" shows ONLY the newest (highest) patch version (user 2026-11-04); release notes the same.
 Changelog is implemented: data/changelog.tres + localization CSV are shared by src/core/changelog.gd,
 the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
