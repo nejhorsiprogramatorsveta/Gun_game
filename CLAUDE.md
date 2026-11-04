@@ -41,6 +41,7 @@ All verified in M1 on macOS arm64:
 - Run game: `tools/godot --path .`   Editor: `tools/godot --path . --editor`
 - Tests: `tools/godot --headless --path . -s tests/run_tests.gd` (exit 1 on failure)
 - Loc check: `tools/godot --headless --path . -s tools/check_localization.gd` (exit 1 on missing key)
+- Release notes (local preview): `tools/godot --headless --path . -s tools/write_release_notes.gd -- --output=res://.tools/notes.md`
 - Export: `tools/godot --headless --path . --export-release "<Windows Desktop|macOS|Linux>" build/<os>/<file>`
 - Smoke tests of scenes: write a throwaway `extends SceneTree` script (outside the repo) and run it with `-s`;
   `Input.action_press()` simulates keys. Run without `--headless` to take screenshots (opens a window).
@@ -68,7 +69,12 @@ alongside position/velocity, last_seq and kills/deaths: 6-byte header + 33 bytes
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
 move_and_slide() must use the physics delta during replay. Remote players still interpolate with a 100 ms delay.
 Small corrections use a visual offset; combat, knockback, recoil, respawns, countdown and lives remain host-authoritative.
-Next (M4): complete validation/RTT debug overlay and assess field feedback on latency/corrections (see PROGRESS.md).
+Changelog is implemented: data/changelog.tres + localization CSV are shared by src/core/changelog.gd,
+the offline menu "Co je nového", and tools/write_release_notes.gd (CI's release-notes step only).
+Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
+archive that entry under its published version/build and add a new current entry. Do not guess the next build number.
+Next (M4): debug RTT/correction measurements (see PROGRESS.md); keep Wi-Fi fixes deferred until separately requested.
+Preserve the release/update order, channels, URLs and build numbering; game files upload before version.json.
 User report (2026-11-04): severe stutter on the same Wi-Fi for clients while the host remains smooth.
 Root cause is unmeasured. PLAN.md M4.1 records investigation and later fixes; do not change networking,
 movement prediction or interpolation to address it in the current combat/scoreboard task.

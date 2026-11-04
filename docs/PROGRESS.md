@@ -1,20 +1,23 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Silnější odhoz pistole, scoreboard a kill hlášky jsou implementované lokálně.** Předchozí M4 predikce zůstává v pracovním stromu; nahlášené sekání klientů na stejné Wi-Fi je výslovně odložené do PLAN.md M4.1, nyní se neopravovalo.
+**Kadence pistole je lokálně zvýšená z 3 na 9 ran/s (trojnásobek) a přidaná do aktuálního changelogu.** Changelog z předchozího úkolu také zůstává lokálně: „Co je nového“ v menu, offline historie a stejné texty v poznámkách vydání. Bez commitu a bez pushe. Poslední publikovaný herní commit zůstává `da40eac` (dev sestavení 27, push provedl uživatel). Sekání Wi-Fi klientů je stále odložené do PLAN.md M4.1.
+- Ověřeno: **74/74 unit testů, 35/35 kontrol dialogu, 18/18 kontrol samostatného exportovaného balíčku**, lokalizace a lokální generátor dev/stable poznámek. Otevření: hlavní menu → „Co je nového“; zavření tlačítkem nebo Esc.
+- Changelog používá `data/changelog.tres` a české texty v CSV. Aktuální záznam převezme skutečnou verzi/build; historie obsahuje sestavení 27, 26 a 25. Starší build nezobrazuje budoucí změny. Před další obsahovou změnou archivovat aktuální záznam pod jeho skutečným vydaným buildem a založit nový.
 - Pistole: odhoz 550 → 800 (přibližně +45 %). Scoreboard vedle jmen ukazuje životy/zabití/smrti, stejné skóre je ve výsledcích. Každá smrt se připíše poslednímu účinnému střelci; bez zásahu jen smrt. Série stejného střelce do 2 s zobrazí DOUBLE/TRIPLE/MULTI KILL.
 - Klient ihned simuluje vlastní pohyb, obnovuje úplný stav z hostu a přehrává nepotvrzené vstupy. Malé korekce vyhlazuje pouze vizuálně; vzdálení hráči dál interpolují.
 - Ověřeno pro skóre: **65/65 unit testů, lokalizace, 225/225 kontrol UI a 38/38 síťových kontrol se čtyřmi skutečnými procesy**. Předchozí M4: 57/57 lokálních síťových kontrol včetně +100 ms/5 % a +200 ms/10 %; tato měření nenahrazují nynější hlášení uživatele o sekání na skutečné Wi-Fi.
-- **Codex nesmí pushovat bez nového výslovného souhlasu; uživatel jej NEUDĚLIL (2026-11-04).** Změny zůstávají bez commitu a bez pushe. CI této změny neběželo.
+- **Publikace a aktualizátor se nemění:** `main` → stejný `dev`, tag `v*` → stable, rostoucí buildy a soubory hry před `version.json`. CI nově pouze generuje poznámky přes `tools/write_release_notes.gd`. Porovnáním workflow ověřeno, že mimo tento krok je totožné; updater, `BuildInfo`, export presety, kanály/URL a SHA-256 zůstávají bez změn.
+- **Codex nesmí pushovat bez nového výslovného souhlasu; uživatel jej NEUDĚLIL (2026-11-04).** Codex nic necommitnul ani nepushnul. Nové změny zůstávají lokálně; jejich CI neběželo.
 - **Pozor:** verze bez aktualizátoru (0.1.0, sestavení 23–24) si hráči musí **naposledy stáhnout ručně**. Od verze s aktualizátorem se nabídka objeví sama.
-- Necommitnuté soubory: `CLAUDE.md`, `docs/{PLAN,ARCHITECTURE,PROGRESS}.md`, `data/weapons/pistol.tres`, `localization/translations.csv`, `src/core/build_info.gd`, `src/combat/{projectile,weapon_system}.gd`, `src/match/{match_controller,match_net,match_score}.gd`, `src/match/match.tscn`, `src/player/{client_prediction,player,player_motor,remote_interpolator}.gd`, `src/ui/{match_hud,results}.gd`, `tests/test_{client_prediction,combat_rules,match_score,net_codec}.gd` a UID nových skriptů. Obsahuje i předchozí lokální M4.
+- Necommitnuté soubory: `.github/workflows/build.yml` (jen generování poznámek), `CLAUDE.md`, `docs/{PLAN,ARCHITECTURE,PROGRESS}.md`, `data/weapons/pistol.tres`, `localization/translations.csv`, `src/ui/main_menu.{gd,tscn}`, nové `data/changelog.tres`, `src/core/changelog.gd`, `src/data_types/changelog_data.gd`, `tools/write_release_notes.gd`, `tests/test_changelog.gd` a jejich UID.
 
 ## Další krok
 **M4: doplnit debug měření RTT a velikosti korekcí** (PLAN.md K, M4).
-- Přidat debug ukazatel RTT a korekcí vlastní postavy do HUD, texty přes CSV. Ověřit s `--fake-lag=100/200` a ztrátami paketů.
-- Predikce je implementovaná; další změny ladění dělat podle měření a zpětné vazby hráčů. Podrobné měření mezi počítači/Tailscale a ruční Windows test zůstávají odložené níže.
-- Uživatel nahlásil výrazné sekání všech klientů kromě hosta na stejné Wi-Fi. Postup reprodukce/měření/budoucí opravy je v PLAN.md M4.1. **Opravu nyní nespouštět; vyžaduje samostatné zadání.**
-- Žádný automatický push z Codexu. Vydání `v0.2.0` je samostatný pozdější krok.
+- Přidat debug ukazatel RTT a korekcí vlastní postavy do HUD, texty přes CSV; ověřit s `--fake-lag=100/200` a ztrátami paketů. Changelog už je hotový.
+- Zachovat dosavadní vydávání (`main` → `dev`, `v*` → stable), rostoucí buildy, kanály/URL a aktualizátor; soubory hry před manifestem.
+- Sekání skutečných Wi-Fi klientů je v PLAN.md M4.1; **opravu nyní nespouštět, vyžaduje samostatné zadání.**
+- Žádný commit ani push bez nového výslovného souhlasu. Vydání `v0.2.0` je samostatný pozdější krok.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -29,7 +32,7 @@
 - Do té doby se hra na Macu spouští lokálně: `tools/godot --path .` z kořene projektu.
 
 ## Aktuální stav
-- **Milník:** M3 a M3U hotové; M4 predikce implementovaná lokálně. Zbývá debug měření a zpětná vazba ze skutečného připojení. Odložené ruční testy viz výše.
+- **Milník:** M3 a M3U hotové; M4 predikce a skóre vydané jako dev sestavení 27. Changelog hotový lokálně, navazuje debug měření. Odložené ruční testy viz výše.
 - **Dodatek dle zadání 2026-11-04:** silnější pistole, scoreboard životů/zabití/smrtí a kill hlášky; autorita skóre je na hostu, síťový protokol 5. Sekání reálných Wi-Fi klientů není vyřešené.
 - **Funguje** (ověřeno lokálně na macOS arm64):
   - menu s verzí, jménem a českými texty
@@ -45,7 +48,7 @@
   - Esc v zápase = odejít
 - **Simulace sítě pro testy (M2 krok 5):** `-- --fake-lag=100 --fake-loss=5 [--fake-jitter=10]` (jen debug buildy, v zápase ukazuje [TEST] nápis).
 - **Střelba (M3 krok 1):**
-  - pistole (`data/weapons/pistol.tres`), drž levé tlačítko = 3 rány/s
+  - pistole (`data/weapons/pistol.tres`), drž levé tlačítko = 9 ran/s (původně 3)
   - střela letí ke kurzoru a prolétá tenkými plošinami
   - zásah odhodí soupeře, výstřel dá zpětný ráz
   - online zásahy počítá jen host, klienti střely vidí (spolehlivé události)
@@ -60,6 +63,19 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, trojnásobná kadence (lokálně, bez commitu/pushe):** `data/weapons/pistol.tres` má `shots_per_second = 9.0` místo `3.0`; ostatní parametry zbraně a střelecká logika se nemění. Novinka přidaná do aktuálního, dosud nepublikovaného záznamu changelogu a CSV.
+- **2026-11-04, implementace changelogu (lokálně, bez commitu/pushe):**
+  - Tlačítko „Co je nového“ otevírá rolovací offline dialog, záznamy nejnovější první; překlady v CSV.
+  - `Changelog` a `ChangelogData` načítají historii z `.tres`, aktuální metadata z `BuildInfo`, filtrují budoucí záznamy a sdílejí text s generátorem poznámek.
+  - `tools/write_release_notes.gd` zapisuje poznámky přímo do souboru v češtině; CI volá tento nástroj místo původního heredocu. Zbytek workflow/publikace, updater, číslování a export presety beze změny.
+  - Dev i stable generátor ověřen v izolované kopii projektu s testovacími metadaty (nejde o skutečně publikované sestavení/verzi). Ověřen samostatný exportovaný PCK bez dostupného zdrojového projektu.
+  - 9 testů changelogu; celkem 74/74 testů OK včetně dosavadních testů aktualizátoru. Lokalizace: 93 klíčů, 0 chybějících.
+  - Dialog ověřen při 1280×720 a 640×360: posuvný obsah, správné rozměry a oddělené tlačítko Zavřít, Esc a návrat fokusu. Changelog nespojuje žádnou novou HTTP komunikaci.
+- **2026-11-04, plán changelogu a kontrola vydávání (jen dokumentace):**
+  - Changelog nastaven jako nejbližší úkol v PLAN.md K, této sekci „Další krok“ a `CLAUDE.md`. Zatím pouze plán, žádná implementace.
+  - Po uživatelově pushi commitu `da40eac` ověřen úspěšný [CI běh](https://github.com/nejhorsiprogramatorsveta/Gun_game/actions/runs/41836731732), aktualizované soubory releasu `dev` a manifest dev sestavení 27. Datum vytvoření rolling releasu zůstává původní; stabilní `v0.1.0` se pushem na main nemění.
+  - Workflow, aktualizátor, menu a export presety se od předchozího vydání `a067293` nezměnily. Zůstává pořadí soubory hry → manifest, výběr dev/stable URL, kontrola vyššího sestavení a SHA-256. End-to-end instalace aktualizace se nyní neopakovala.
+  - Žádný commit ani push od Codexu; kontrola rozdílů a `git diff --check`.
 - **2026-11-04, silnější odhoz a skóre (lokálně, bez commitu/pushe):**
   - Pistole má `knockback = 800` místo 550; kadence, rychlost střely a zpětný ráz se neměnily.
   - **`MatchScore`:** poslední účinný zásah určuje autora každého zabití bez časového limitu do smrti. Po smrti se přiřazení smaže; nezranitelnost ani vlastní zásah jej nepřepíší. Odpojený střelec nedostane kredit, posmrtné zabití se počítá.
@@ -166,6 +182,7 @@
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
+- **Changelog je zatím jen lokální změna.** V aktuálním veřejném sestavení 27 ještě není; publikace čeká na uživatele, bez automatického commitu/pushe od Codexu.
 - **Stejná Wi-Fi: výrazné sekání všech klientů kromě hosta** (nahlášeno uživatelem 2026-11-04). Příčina neměřená, oprava výslovně odložená; viz PLAN.md M4.1. Lokální headless síťové testy tento problém nevyvracejí.
 - **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
 - **`session.gd` má 306 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
@@ -182,6 +199,13 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, kadence 3 → 9:** 6/6 stávajících combat testů OK; přímá runtime kontrola `ContentDB.default_character()` → `Player.current_weapon()` potvrzuje pistoli s `shots_per_second = 9.0` a intervalem `1/9 s`. Import, lokalizace 94 klíčů / 0 chybějících a `git diff --check` OK. Ověřovací skript `.tools/verify_pistol_rate.gd`; žádná změna logiky střelby ani nový test ve sledovaných souborech.
+- **2026-11-04, changelog:** 74/74 unit testů OK (9 nových: aktuální metadata, lokální dev, filtrování budoucích záznamů, shoda menu/poznámek, pořadí a úplnost textů, izolace dat a formátování). Dosavadní testy aktualizátoru součástí běhu. Import a lokalizace 93 klíčů / 0 chybějících OK.
+- **Dialog changelogu:** 35/35 kontrol OK při 1280×720 (dialog 840×560) a 640×360 (576×324): otevření tlačítkem, shoda se společným formátovačem, pořadí, čeština, doslovné zobrazení bez BBCode, rolování a návrat na začátek, zavření tlačítkem/Esc, vrácení fokusu, prázdný stav a oddělení obsahu od tlačítka. Updater zůstává odpojený. Skript `.tools/changelog_ui_smoke.gd`; headless, nikoli ruční test stažené hry.
+- **Poznámky vydání:** skutečný headless generátor ověřen lokálně pro syntetické dev i stable metadata v `.tools/changelog_release_validation/`, správná verze/build, jen nejnovější změny, stejné názvy souborů a odkaz na README. Žádná publikace se neprováděla.
+- **Export a offline data:** Windows `--export-pack` bez stahování šablon, samostatný PCK běh z adresáře bez zdrojového projektu: 18/18 kontrol OK (zabalená historie a čeština, nadpisy/odrážky všech záznamů, offline session). Report `.tools/changelog_offline_run/changelog_pack_results.json`.
+- **Distribuce:** programově porovnáno celé workflow s HEAD po vynechání kroku Release notes — shodné. Žádné změny updateru, číslování ani export presetů. Skutečný CI běh a nová end-to-end instalace aktualizace se neprováděly; nic nebylo pushnuté.
+- **2026-11-04, dokumentace/plán:** ověřeno, že release workflow, updater, menu a export presety nemají rozdíl mezi `a067293` a `da40eac` ani lokální změny. `git diff --check` OK; herní testy se pro pouhou dokumentaci neopakovaly. CI pro `da40eac` dříve ověřeno jako úspěšné, manifest dev má build 27; nová end-to-end instalace aktualizace neproběhla.
 - **2026-11-04, skóre/odhoz, automaticky lokálně na Windows, Godot 4.7.2:** **65/65 unit testů OK**. Přibylo 9 testů přiřazení zabití/sérií (včetně odpojení, respawnu a poslední kulky), test skutečného signálu zásahu/nezranitelnosti a test přenosu rozsahu skóre. Snapshot roundtrip ověřuje i K/D a odmítnutí starého formátu.
 - **UI skóre:** **225/225 kontrol OK** na skutečných scénách při 1280×720: čtyři šestnáctiznaková česká jména, seřazení a barvy slotů, životy/vypadnutí, tréninkové ∞, počty zabití/smrtí, hlášky/časování a výsledky. Buňky a výsledky se nepřekrývají. Skript lokálně `.tools/ui_score_smoke.gd`.
 - **Síťové skóre:** **38/38 kontrol OK**, host + 3 skuteční ENet klienti na localhostu (14 kontrol hosta, po 8 na klienta). Skutečně vystřelené projektily zasáhly tři cíle; jejich pády v jednom ticku připsaly hostovi 3 zabití. Všichni klienti obdrželi po řadě KILL / DOUBLE KILL / TRIPLE KILL, stejné K/D ve snapshotech, HUD i výsledcích a vrátili se do stejného lobby se čtyřmi hráči. Reporty/logy lokálně `.tools/score_smoke_20261104_140132/`, skripty `.tools/{score_smoke.gd,run_score_smoke.ps1}`. Bez funkčních/scriptových/síťových chyb; přetrvávají známé zprávy sandboxu o certifikátech a ukončovací resource warnings.
@@ -199,7 +223,7 @@
   - Ve všech případech jde o **první fyzikální snímek**. Časy jsou jednotlivá měření při souběhu headless procesů, nikoli statistický benchmark nebo měření zobrazení na monitoru.
   - Testovací skripty, JSON výsledky a logy jsou lokálně v gitignored `.tools/`: `m4_smoke.gd`, `run_smoke.ps1`, `m4_validation_summary.json`, `m4_final_*`. Původní dočasný měřicí skript z M2 není v repozitáři; použit nový ekvivalent.
   - Logy bez `SCRIPT ERROR` nebo síťových chyb. Sandbox hlásí nedostupný systémový seznam certifikátů; testovací procesy při ukončení také známá varování o neuvolněných prostředcích/časovačích.
-- **CI nové změny:** nespouštěno; nic není pushnuté. Ruční Windows testy a Tailscale zůstávají odložené.
+- **CI publikovaných herních změn:** commit `da40eac`, úspěšný běh a dev sestavení 27 (push provedl uživatel). Nový changelog není commitnutý ani pushnutý. Ruční Windows testy a Tailscale zůstávají odložené.
 - **Dříve:** 44/44 OK (+ aréna: otevřený horní okraj, volný spawn)
 - **Dříve:** 42/42 OK (+ updater: manifest, výměna souboru, obnova při chybě, Linux ZIP, Mac `.app` a ochrana proti `..` v ZIPu)
 - **Dříve:** 37/37 OK (+ snapshot s životy a odpočtem)
@@ -268,6 +292,7 @@
   - podrobné měření/ověření opravy sekání mezi počítači; Tailscale (Wi-Fi problém pouze nahlášen uživatelem)
 
 ## Rozhodnutí
+- **Changelog (uživatel 2026-11-04) je implementovaný lokálně před dalším M4.** Menu a poznámky používají společné texty; zachovat pořadí releasů a mechanismus aktualizací, CI mění pouze generování poznámek.
 - **Codex nesmí pushovat bez nového výslovného souhlasu (2026-11-04); nyní žádný souhlas není.** Všechny změny této session zůstávají bez commitu a bez pushe.
 - **Skóre (2026-11-04):** zabití podle poslední účinné kulky před každou smrtí, bez timeoutu do pádu; série zabití stejného střelce do 2 s. Skóre pouze host, protokol 5. Silnější pistole 550 → 800. Oprava Wi-Fi sekání je nyní pouze v plánu.
 - **M4:** vlastní pohyb se predikuje sdíleným motorem, opravy se přehrávají pouze během fyziky; odhoz, střelba a průběh zápasu zůstávají na hostu. Snapshot používá protokol 4.

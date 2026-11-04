@@ -685,6 +685,14 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 
 ## K. Roadmapa
 
+### Changelog – implementováno lokálně (zadání uživatele 2026-11-04)
+- **Stav:** offline „Co je nového“ v menu a společný generátor poznámek vydání jsou implementované a otestované; zatím bez commitu/pushe. Navazuje debug měření RTT/korekcí v M4.
+- **Funkce:** přehled „Co je nového“ dostupný z hlavního menu, přiřazený ke konkrétní verzi a číslu sestavení. Česky stručně uvést novinky, opravy a změny ovládání; nejnovější změny zobrazit první. Stejný přehled použít v poznámkách odpovídajícího vydání.
+- **Data a údržba:** `data/changelog.tres` uchovává aktuální záznam (`build = 0`) a historii od sestavení 25; texty jsou v CSV. Aktuální záznam přebírá skutečnou verzi/sestavení z `BuildInfo`. Před další obsahovou změnou archivovat tento záznam pod skutečně publikovaným buildem a založit nový aktuální záznam. Starší build nesmí zobrazovat budoucí změny.
+- **Zachovat distribuci:** push na `main` dál aktualizuje stejný vývojový release `dev`, tag `v*` vydává stabilní verzi. Zachovat rostoucí čísla sestavení, kanály dev/stable, stávající adresy souborů a aktualizátoru, SHA-256 a pořadí nahrávání: nejdřív soubory hry, poslední `version.json`.
+- **Ověření:** changelog odpovídá zobrazené verzi/sestavení a je dostupný i bez internetu; české texty a zobrazení projdou kontrolami. Ověřit poznámky vydání a regresi aktualizátoru. Nic nepublikovat ani nepushovat bez nového výslovného souhlasu.
+- **Odložené:** opravu sekání na stejné Wi-Fi (M4.1) nyní nespouštět.
+
 ### M1 – Kostra, lokální pohyb, CI s ZIPy *(střední)*
 - **Cíl:** spustitelná hra stažitelná z GitHubu.
 - **Funkce:** projekt, `.gitignore`, README, CLAUDE.md, PROGRESS.md, LICENSE a CREDITS; hlavní menu s verzí; jedna testovací aréna; `PlayerMotor` a postava ovládaná klávesnicí (lokálně, bez sítě); lokalizace CSV a font; `build_info`; testovací runner; workflow s exporty a prereleasem `dev`.

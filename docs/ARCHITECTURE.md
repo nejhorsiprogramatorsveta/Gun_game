@@ -14,8 +14,9 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 |---|---|
 | `src/core/build_info.gd` | verze, číslo sestavení a commit buildu (z `build_info.json`, který zapisuje CI), `PROTOCOL_VERSION = 5` |
 | `src/core/updater.gd` | automatické aktualizace: `version.json` z GitHubu, stažení, SHA-256, výměna exe/.app, restart, úklid |
+| `src/core/changelog.gd`, `data/changelog.tres` | společná historie změn pro offline menu a poznámky vydání; aktuální záznam podle `BuildInfo`, starší buildy nezobrazí budoucí změny |
 | `src/core/content_db.gd` | načte `data/characters/*.tres`, `data/weapons/*.tres` a `data/match_rules.tres`, vyhledávání podle id |
-| `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `WeaponData`, `MatchRules`) |
+| `src/data_types/*.gd` | definice datových Resource (`CharacterData`, `WeaponData`, `MatchRules`, `ChangelogData`) |
 | `src/player/input_frame.gd` | vstup hráče za jeden tick: směr, tlačítka, úhel míření ke kurzoru (u16), pořadové číslo. Klienti ho posílají hostu. |
 | `src/player/remote_interpolator.gd` | plynulé zobrazení vzdálených postav na klientovi: snapshoty se zpožděním 100 ms a prolínáním; při výpadku drží poslední stav |
 | `src/player/client_prediction.gd` | okamžitý vlastní pohyb, historie až 120 nepotvrzených vstupů a stavů, obnova stavu hosta a přehrání vstupů; malé korekce vyhlazuje vizuální offset |
@@ -31,7 +32,7 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, spolehlivé události střel a kill hlášek, „loaded“, rate-limit |
 | `src/net/lag_simulator.gd` | jen pro vývoj: simulace zpoždění a ztrát paketů (`-- --fake-lag=100 --fake-loss=5`) |
 | `src/net/net_codec.gd` | binární protokol 5: vstup 14 B, snapshot 6 B + 33 B na hráče včetně stavu motoru a počtů zabití/smrtí; kontrola velikosti, slotů a konečných hodnot, `seq_newer()` |
-| `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, chybové hlášky (`Session.last_end_message`) |
+| `src/ui/main_menu.gd/.tscn` | hlavní menu: jméno, trénink, Hostovat, adresa + Připojit, offline dialog „Co je nového“, chybové hlášky (`Session.last_end_message`) |
 | `src/ui/match_hud.gd` | scoreboard vedle jmen: životy, zabití, smrti; odpočet a hlášky KILL / DOUBLE / TRIPLE / MULTI KILL; v tréninku nekonečné životy |
 | `src/ui/results.gd/.tscn` | výsledky po zápase včetně zabití/smrtí, návrat do stejného lobby (tlačítko hostitele nebo za 8 s) |
 | `src/ui/lobby.gd/.tscn` | lobby: seznam hráčů, u hostitele adresy ke sdílení s tlačítkem Kopírovat, Odejít |
@@ -41,7 +42,13 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/net/connectors/enet_direct_connector.gd` | přímé UDP spojení (ENet) přes IP:port, rozbor adresy (IPv4, IPv6, hostname), timeouty peerů, `share_addresses()` (jen Tailscale a LAN, Tailscale se pozná podle rozhraní) |
 | `src/net/handshake.gd` | `Handshake`: zprávy handshaku (sestavení, dekódování s limitem velikosti, kontrola verze a kódu hry), generování kódu hry |
 | `tests/` | vlastní mini test runner (`run_tests.gd`, `TestCase`) |
-| `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd` |
+| `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd`, `write_release_notes.gd` (stejný changelog do poznámek vydání) |
+
+## Changelog a vydávání
+
+- Texty změn jsou jen v `localization/translations.csv`, metadata a pořadí v `data/changelog.tres`. `build = 0` označuje aktuální zdrojový strom a při zobrazení/generování převezme skutečnou verzi a build. Před další změnou se aktuální záznam archivuje pod již publikovaným buildem a založí se nový.
+- Menu zobrazí aktuální a dostupné starší záznamy, nejnovější první. `tools/write_release_notes.gd` po vytvoření `build_info.json` zapíše stejné nejnovější změny a dosavadní instrukce ke stažení do `notes.md`.
+- CI se změnilo pouze ve vytváření textu poznámek. Spouštěče, číslování, kanály, exporty, adresy a publikace zůstávají stejné; soubory hry před `version.json`. Aktualizátor ani síťový protokol se nemění.
 
 ## Handshake (kontrola verze)
 1. Klient se připojí. Než se stane plnohodnotným peerem, pošle přes **autentizaci SceneMultiplayer** (surová data, ne RPC) zprávu `{protocol, build, code, name}`.

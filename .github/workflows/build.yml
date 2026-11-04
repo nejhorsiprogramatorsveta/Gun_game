@@ -111,19 +111,10 @@ jobs:
           cat version.json
 
       - name: Release notes
-        run: |
-          cat > notes.md <<EOF
-          **Verze:** \`${{ steps.info.outputs.build_id }}\` (je vidět vlevo dole v menu – všichni hráči musí mít stejnou)
-
-          ### Co stáhnout
-          - **Windows:** \`${GAME_NAME}-windows.exe\` → stáhnout a spustit
-          - **macOS:** \`${GAME_NAME}-macos.zip\` → rozbalit → otevřít \`${GAME_NAME}.app\`
-          - **Linux:** \`${GAME_NAME}-linux.zip\`
-
-          ⚠️ „Source code (zip)“ jsou zdrojové kódy, ne hra.
-
-          Návod (SmartScreen, macOS, hraní s kamarády): https://github.com/${{ github.repository }}#readme
-          EOF
+        run: >-
+          tools/godot --headless --path . -s tools/write_release_notes.gd --
+          --output=res://notes.md --game-name="$GAME_NAME"
+          --repository-url="https://github.com/${{ github.repository }}"
 
       - name: Publish rolling dev prerelease
         if: github.ref == 'refs/heads/main'

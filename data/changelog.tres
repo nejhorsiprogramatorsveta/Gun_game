@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ChangelogData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/changelog_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+entries = Array[Dictionary]([{
+"build": 0,
+"version": "",
+"change_keys": PackedStringArray("CHANGELOG_HISTORY", "CHANGELOG_RELEASE_NOTES", "CHANGELOG_FIRE_RATE")
+}, {
+"build": 27,
+"version": "0.1.0",
+"change_keys": PackedStringArray("CHANGELOG_PREDICTION", "CHANGELOG_KNOCKBACK", "CHANGELOG_SCOREBOARD", "CHANGELOG_MULTIKILLS")
+}, {
+"build": 26,
+"version": "0.1.0",
+"change_keys": PackedStringArray("CHANGELOG_HEAD_SLIDE", "CHANGELOG_FREE_SPAWN", "CHANGELOG_OPEN_ARENA", "CHANGELOG_MAXIMIZED")
+}, {
+"build": 25,
+"version": "0.1.0",
+"change_keys": PackedStringArray("CHANGELOG_AUTO_UPDATE")
+}])

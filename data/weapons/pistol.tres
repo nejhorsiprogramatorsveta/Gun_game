@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = &"pistol"
 name_key = "WEAPON_PISTOL_NAME"
-shots_per_second = 3.0
+shots_per_second = 9.0
 projectile_speed = 1000.0
 max_range = 1400.0
 spread_degrees = 1.5

@@ -12,7 +12,10 @@ const INFO_COLOR := Color(0.75, 0.78, 0.85)
 @onready var _practice_button: Button = %PracticeButton
 @onready var _host_button: Button = %HostButton
 @onready var _join_button: Button = %JoinButton
+@onready var _changelog_button: Button = %ChangelogButton
 @onready var _quit_button: Button = %QuitButton
+@onready var _changelog_dialog: AcceptDialog = %ChangelogDialog
+@onready var _changelog_text: RichTextLabel = %ChangelogText
 @onready var _status_label: Label = %StatusLabel
 @onready var _version_label: Label = %VersionLabel
 @onready var _update_panel: PanelContainer = %UpdatePanel
@@ -35,6 +38,8 @@ func _ready() -> void:
 	_host_button.pressed.connect(_on_host_pressed)
 	_join_button.pressed.connect(_on_join_pressed)
 	_address_edit.text_submitted.connect(func(_text: String) -> void: _on_join_pressed())
+	_changelog_button.pressed.connect(_on_changelog_pressed)
+	_changelog_dialog.visibility_changed.connect(_on_changelog_visibility_changed)
 	_quit_button.pressed.connect(get_tree().quit)
 	Session.phase_changed.connect(_on_session_phase_changed)
 	Session.ended.connect(_show_status.bind(ERROR_COLOR))
@@ -42,6 +47,24 @@ func _ready() -> void:
 	Session.last_end_message = ""
 	_practice_button.grab_focus()
 	_setup_updater()
+
+
+func _on_changelog_pressed() -> void:
+	var sections: PackedStringArray = []
+	for entry: Dictionary in Changelog.history():
+		sections.append(Changelog.format_entry(entry))
+	_changelog_text.text = "\n\n".join(sections) if not sections.is_empty() else tr("CHANGELOG_EMPTY")
+	_changelog_text.scroll_to_line(0)
+	# Scrolling text does not contribute a useful minimum size to AcceptDialog.
+	var available_size := Vector2i(Vector2(get_window().size) * 0.9)
+	_changelog_dialog.min_size = Vector2i(clampi(available_size.x, 280, 840), clampi(available_size.y, 180, 560))
+	_changelog_dialog.popup_centered_clamped(_changelog_dialog.min_size, 0.9)
+	_changelog_text.grab_focus()
+
+
+func _on_changelog_visibility_changed() -> void:
+	if not _changelog_dialog.visible:
+		_changelog_button.grab_focus.call_deferred()
 
 
 func _setup_updater() -> void:
