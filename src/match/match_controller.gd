@@ -21,6 +21,7 @@ const PRACTICE_DUMMY_ID := -1
 
 var _arena: Arena
 var _weapons := WeaponSystem.new()
+var _abilities := AbilitySystem.new()
 var _score := MatchScore.new()
 var _rules: MatchRules = ContentDB.match_rules()
 var _networked := false
@@ -58,6 +59,7 @@ func _ready() -> void:
 	add_child(_weapons)
 	_weapons.setup(_net if _networked else null)
 	_weapons.player_hit.connect(_on_player_hit)
+	_abilities.player_hit.connect(_on_player_hit)
 	_is_authority = not _networked or multiplayer.is_server()
 	if _networked:
 		for peer_id: int in Session.match_slots:
@@ -151,6 +153,7 @@ func _simulate_tick(delta: float) -> void:
 		player.invulnerable_time = maxf(player.invulnerable_time - delta, 0.0)
 		player.invulnerable = player.invulnerable_time > 0.0
 		_weapons.try_fire(player, input, delta)
+		_abilities.tick(player, input, delta, _players.values())
 		if _arena.is_out_of_bounds(player.position):
 			player.out_of_bounds_time += delta
 			if player.out_of_bounds_time >= _rules.out_of_bounds_grace:

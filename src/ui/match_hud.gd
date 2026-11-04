@@ -50,6 +50,7 @@ func _ready() -> void:
 	_weapon_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 16)
 	_weapon_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_weapon_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_weapon_label.add_theme_font_size_override("font_size", 20)
 	_weapon_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_weapon_label.add_theme_constant_override("outline_size", 4)
@@ -121,6 +122,16 @@ func _show_local_weapon(players: Array) -> void:
 			var weapon := player.current_weapon()
 			_weapon_label.visible = weapon != null and player.visible
 			if weapon:
-				_weapon_label.text = tr("HUD_WEAPON").format({"weapon": tr(weapon.name_key)})
+				_weapon_label.text = tr("HUD_WEAPON").format({"weapon": tr(weapon.name_key)}) + _ability_text(player)
 			return
 	_weapon_label.visible = false
+
+
+func _ability_text(player: Player) -> String:
+	var ability := player.character.ability if player.character else null
+	if ability == null:
+		return ""
+	var ability_name := tr(ability.name_key)
+	if player.ability_cooldown <= 0.0:
+		return "\n" + tr("HUD_ABILITY_READY").format({"ability": ability_name})
+	return "\n" + tr("HUD_ABILITY_COOLDOWN").format({"ability": ability_name, "seconds": ("%.1f" % player.ability_cooldown).replace(".", ",")})

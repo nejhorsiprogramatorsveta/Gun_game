@@ -121,3 +121,19 @@ CHARACTER_STIN_NAME,Stín
 CHARACTER_STIN_DESCRIPTION,"Lehký ninja se šurikenem: rychlý, ale snadno odletí. Odstřelovačka a kompaktní samopal."
 CHANGELOG_WEAPONS,"Čtyři postavy a osm zbraní: každá postava má dvě vlastní zbraně (samopal, pistole, brokovnice, útočná a bojová puška, karabina, odstřelovačka, kompaktní samopal)."
 CHANGELOG_WEAPON_SWITCH,"Přepínání zbraní klávesou Q, 1 / 2 nebo kolečkem myši. Dokud nepřibude výběr v lobby, dostane každý hráč postavu podle pořadí."
+HUD_ABILITY_READY,"{ability}: připraveno (E / pravé tlačítko myši)"
+HUD_ABILITY_COOLDOWN,"{ability}: {seconds} s"
+ABILITY_SHIELD_NAME,Štít
+ABILITY_SHIELD_DESCRIPTION,"Na 1,5 s skoro žádný odhoz, ale nejde střílet."
+ABILITY_SHOCKWAVE_NAME,Tlaková vlna
+ABILITY_SHOCKWAVE_DESCRIPTION,Odhodí soupeře v blízkosti od sebe.
+WEAPON_LIGHT_MACHINE_GUN_NAME,Lehký kulomet
+WEAPON_REVOLVER_NAME,Revolver
+WEAPON_NAIL_GUN_NAME,Nýtovačka
+WEAPON_DOUBLE_BARREL_NAME,Dvouhlavňová brokovnice
+CHARACTER_MLHA_NAME,Mlha
+CHARACTER_MLHA_DESCRIPTION,"Kunoichi alchymistka: vyvážená. Lehký kulomet a revolver."
+CHARACTER_ARCHITEKT_NAME,Architekt
+CHARACTER_ARCHITEKT_DESCRIPTION,"Stavitel chrámů: spíš těžší a pomalejší. Nýtovačka a dvouhlavňová brokovnice."
+CHANGELOG_NEW_CHARACTERS,"Dvě nové postavy: Mlha (lehký kulomet, revolver) a Architekt (nýtovačka, dvouhlavňová brokovnice)."
+CHANGELOG_ABILITIES,"Speciální schopnosti (E nebo pravé tlačítko myši): Balvan má štít, Vichr tlakovou vlnu. Další schopnosti přibudou."

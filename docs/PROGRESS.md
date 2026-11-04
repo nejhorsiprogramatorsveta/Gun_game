@@ -1,18 +1,18 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M5 – krok M5.1 hotový (verze `0.1.6`): 4 postavy, 8 zbraní, přepínání zbraní.** Rozhodnutí uživatele v PLAN.md G.0a. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
-- Postavy: Jiskra (samopal + pistole), Balvan (brokovnice 6 broků + útočná puška), Vichr (bojová puška + karabina), Stín (odstřelovačka + kompaktní samopal); každá jiné pohybové hodnoty a váhu.
-- Přepínání Q / 1 / 2 / kolečko: vstup nese zvolenou zbraň (bit `WEAPON_2`), host přepne a 0,3 s nestřílí, snapshot nese `weapon_slot`. HUD dole uprostřed ukazuje zbraň. Protokol 6.
-- **Dočasně do M5.3:** v online zápase dostane hráč postavu podle slotu (abecedně: balvan, jiskra, stin, vichr); v tréninku Jiskra.
-- Knockback hlídají limity v `CombatRules` + test (pokyn uživatele).
-- Opravena chyba: `ContentDB.character_ids()` neřadilo `StringName` abecedně (pořadí podle adresy se může lišit mezi počítači).
-- **Uživatel poslal nové schopnosti a fotky** (viz PLAN.md G.0a „Rozpracované zadání“) – postavu „Krügermann“ podle fotky v nacistické uniformě s plynem Claude odmítl; fotky reálných lidí se jako předloha nepoužijí. Mechaniky (zpomalovací plyn, dočasná plošina) lze použít pro originální postavy – čeká na rozhodnutí.
-- **Pozor před dalším herním commitem:** verze `0.1.7` + archivace changelogu (zjistit build z `version.json`).
+**M5 – krok M5.2a hotový (verze `0.1.7`): 6 postav, systém schopností, štít a tlaková vlna.** Plán a rozhodnutí v PLAN.md G.0a. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+- Nové originální postavy (uživatel zvolil „2 originální postavy“): **Mlha** (lehký kulomet + revolver) a **Architekt** (nýtovačka + dvouhlavňová brokovnice). Jejich schopnosti (zpomalovací oblak, dočasná plošina) jsou krok M5.2c.
+- Schopnosti: E / pravé tlačítko, aktivace na stisk, cooldown u hosta, ve snapshotu (desetiny s + příznak aktivní), HUD řádek „Štít: připraveno / 6,4 s“, kruh kolem postavy při aktivní schopnosti. **Balvan – štít** (1,5 s, odhoz ×0,2, nestřílí, cd 8 s), **Vichr – tlaková vlna** (okruh 160 px, síla 1100 v limitu knockbacku, počítá se jako zásah pro skóre, cd 10 s). Jiskra, Stín, Mlha, Architekt zatím schopnost nemají.
+- **Dočasně do M5.3:** online postava podle slotu abecedně (architekt, balvan, jiskra, mlha) – Stín a Vichr se online zatím nedostanou ke slovu; trénink = Jiskra.
+- **Pozor před dalším herním commitem:** verze `0.1.8` + archivace changelogu (build z `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**M5.2 – schopnosti, až uživatel rozhodne o soupisce schopností.** Otázka: nahradit některé z výchozích schopností (úskok, štít, tlaková vlna, přesun) novými mechanikami „zpomalovací plyn ke kurzoru (3 s)“ a „dočasná plošina pod sebou“, a u kterých postav? Potom: `AbilityData` + podtřídy (G.1), bit `ABILITY` už ve vstupu je, cooldown ve snapshotu, ukazatel v HUD, testy; pohybové schopnosti simulovat v `PlayerMotor` kvůli predikci.
+**M5.2b – úskok (Jiskra) a přesun (Stín) s predikcí** (PLAN.md G.3, G.0a).
+- `DashAbility` (0,15 s rychlý přesun ve směru pohybu, i ve vzduchu, cd 4 s) a `TeleportAbility` (~250 px směrem ke kurzoru, ne do zdi/mimo arénu, cd 7 s) jako podtřídy `AbilityData` + `.tres`.
+- Pohyb musí počítat i klient při predikci: dash jako stav v `PlayerMotor.State` (časovač, směr) a v snapshotu; klient při predikci aktivuje podle stisku a cooldownu ze snapshotu – navrhnout tak, aby host a klient počítali stejně (sdílená funkce), jinak velké korekce.
+- Testy (motor dash, teleport do volného místa, predikce s dash bez korekce), síťový test, verze 0.1.8 + changelog.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -58,6 +58,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, M5.2a schopnosti + 2 nové postavy, verze 0.1.7 (Claude):** `AbilityData`, `ShieldAbility`, `ShockwaveAbility`, `AbilitySystem`, `data/abilities/{shield,shockwave}.tres`, `CharacterData.ability`, stav schopnosti v `Player`, snapshot 34 B (protokol 7), HUD, 4 nové zbraně (`light_machine_gun`, `revolver`, `nail_gun`, `double_barrel`), postavy `mlha`, `architekt`, testy `test_abilities`.
 - **2026-11-04, M5.1 zbraně + přepínání, verze 0.1.6 (Claude):** 7 nových `data/weapons/*.tres`, 3 nové postavy, `WeaponData.pellets`, akce `weapon_switch`/`weapon_1`/`weapon_2`, `Player.weapon_slot`/`wanted_weapon_slot`/`handle_weapon_input`, `WeaponSystem._switch_weapon` + broky, `NetCodec.FLAG_WEAPON_2`, HUD zbraň, `ContentDB.character_for_slot` (dočasné) a oprava řazení, `tests/test_weapons.gd`.
 - **2026-11-04, M4.1 test přes Tailscale + log `[net]`, verze 0.1.5 (Claude):** nové `src/net/net_log.gd` + napojení v `match_controller.gd` (289 řádků), test `tests/test_net_log.gd`, zápis zjištění do PLAN.md M4.1.
 - **2026-11-04, M4 validace + odpojení + pole adresy, verze 0.1.4 (Claude):** nové `src/net/lobby_validator.gd` (+ `clean_name` přesunuto ze Session, konstanty MAX_PLAYERS/MAX_NAME_LENGTH odtud), kontroly fází v Session, `InputBuffer.STALE_TICKS`, kontrola konečných čísel u střel od hostitele, `_client_loaded` jen v zápase, menu bez předvyplněné adresy. Testy `test_lobby_validator` (5) a `test_input_buffer::test_long_silence_stops_the_player`.
@@ -210,6 +211,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, M5.2a (0.1.7):** 98/98 unit testů (aktivace na stisk a cooldown, štít ×0,2 + zákaz střelby, tlaková vlna jen v okruhu, ne chráněné/sebe, v limitu knockbacku a připsání zásahu, 6 postav × 2 unikátní zbraně, limity knockbacku všech 12 zbraní, přenos cooldownu/příznaku), lokalizace 136 klíčů OK. Síťový test: klient (Balvan) zmáčkne E → host i klient: štít 1,5 s, cooldown se odpočítává, HUD text. **Neověřeno:** tlaková vlna online (jen unit test, Vichr se online zatím nedostane do slotu), ruční hraní, balanc.
 - **2026-11-04, M5.1 (0.1.6):** 95/95 unit testů (limity knockbacku všech zbraní, 4 postavy × 2 unikátní zbraně, přepnutí a blokace střelby, klávesy, přenos zbraně ve vstupu i snapshotu), lokalizace 122 klíčů OK. Síťový test host + klient: brokovnice 6 broků, Q přepne klienta na pistoli u hosta i klienta, HUD text správně. **Neověřeno:** ruční hraní a pocit z balancu zbraní, kolečko myši ručně, Windows.
 - **2026-11-04, log `[net]` (0.1.5):** 91/91 unit testů, lokalizace OK; síťový test host + klient (fake lag 100 ms/5 %) zapsal řádky `[net]` u obou. Že release build zapisuje `print` do `godot.log`, ověří až další ostré hraní (release log z 18:54 obsahoval jen úvodní řádky enginu).
 - **2026-11-04, validace + odpojení (0.1.4):** 89/89 unit testů, lokalizace OK. 6 scénářů odpojení se skutečnými procesy (viz „Kde jsme skončili“) bez chyb skriptů; test zastavení postavy po pádu klienta ukázal rozdíl proti kódu bez opravy (zastaví se po ~0,25 s místo běhu dál). Menu: pole prázdné, příklad zmizí po kliknutí a vrátí se po odchodu z pole, adresa se neukládá. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.3 → 0.1.4.

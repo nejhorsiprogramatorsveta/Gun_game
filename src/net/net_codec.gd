@@ -11,8 +11,9 @@ const INPUT_PACKET_BYTES := 2 + INPUT_HISTORY * INPUT_FRAME_BYTES
 
 const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown seconds left
 ## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives,
-## u8 previous buttons, u8 jumps left, f32 jump buffer timer, f32 drop timer, u16 kills, u16 deaths.
-const SNAPSHOT_PLAYER_BYTES := 33
+## u8 previous buttons, u8 jumps left, f32 jump buffer timer, f32 drop timer, u16 kills, u16 deaths,
+## u8 ability cooldown in tenths of a second.
+const SNAPSHOT_PLAYER_BYTES := 34
 const MAX_SNAPSHOT_PLAYERS := 4
 
 const FLAG_FACING_RIGHT := 1
@@ -20,6 +21,7 @@ const FLAG_ACTIVE := 2
 const FLAG_INVULNERABLE := 4
 const FLAG_ON_FLOOR := 8
 const FLAG_WEAPON_2 := 16
+const FLAG_ABILITY_ACTIVE := 32
 
 
 ## frames[0] is the newest; older frames must have seq = newest.seq - index.
@@ -65,7 +67,8 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		var velocity: Vector2 = state.velocity
 		var flags := (FLAG_FACING_RIGHT if state.facing > 0 else 0) | (FLAG_ACTIVE if state.active else 0) \
 				| (FLAG_INVULNERABLE if state.invulnerable else 0) | (FLAG_ON_FLOOR if state.get("on_floor", false) else 0) \
-				| (FLAG_WEAPON_2 if state.get("weapon_slot", 0) == 1 else 0)
+				| (FLAG_WEAPON_2 if state.get("weapon_slot", 0) == 1 else 0) \
+				| (FLAG_ABILITY_ACTIVE if state.get("ability_active", false) else 0)
 		data.encode_u8(offset, state.slot)
 		data.encode_float(offset + 1, position.x)
 		data.encode_float(offset + 5, position.y)
@@ -81,6 +84,7 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		data.encode_float(offset + 25, state.get("drop_timer", 0.0))
 		data.encode_u16(offset + 29, clampi(state.get("kills", 0), 0, 65535))
 		data.encode_u16(offset + 31, clampi(state.get("deaths", 0), 0, 65535))
+		data.encode_u8(offset + 33, clampi(_tenths_up(float(state.get("ability_cooldown", 0.0))), 0, 255))
 	return data
 
 
@@ -123,6 +127,8 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"drop_timer": drop_timer,
 			"kills": data.decode_u16(offset + 29),
 			"deaths": data.decode_u16(offset + 31),
+			"ability_cooldown": data.decode_u8(offset + 33) / 10.0,
+			"ability_active": flags & FLAG_ABILITY_ACTIVE != 0,
 		})
 	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "states": states}
 
@@ -130,3 +136,8 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 ## True if u16 sequence number `a` is newer than `b` (handles wrap-around at 65535).
 static func seq_newer(a: int, b: int) -> bool:
 	return a != b and ((a - b) & 0xFFFF) < 0x8000
+
+
+## Cooldown seconds -> whole tenths, rounded up so "ready" (0) is never shown too early.
+static func _tenths_up(seconds: float) -> int:
+	return ceili(seconds * 10.0 - 0.001)

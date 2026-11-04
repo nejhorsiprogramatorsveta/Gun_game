@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ShieldAbility" format=3]
+
+[ext_resource type="Script" path="res://src/abilities/shield_ability.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shield"
+name_key = "ABILITY_SHIELD_NAME"
+description_key = "ABILITY_SHIELD_DESCRIPTION"
+cooldown = 8.0
+duration = 1.5
+knockback_multiplier = 0.2

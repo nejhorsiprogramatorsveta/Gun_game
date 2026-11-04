@@ -12,9 +12,10 @@ func test_every_weapon_stays_within_knockback_limits() -> void:
 		check(weapon.pellets >= 1 and weapon.shots_per_second > 0.0, "%s: valid pellets and fire rate" % weapon.id)
 
 
-func test_four_characters_with_two_own_weapons_each() -> void:
+func test_six_characters_with_two_own_weapons_each() -> void:
 	var ids := ContentDB.character_ids()
-	check_eq(ids, [&"balvan", &"jiskra", &"stin", &"vichr"] as Array[StringName], "the four characters (PLAN.md G.0)")
+	check_eq(ids, [&"architekt", &"balvan", &"jiskra", &"mlha", &"stin", &"vichr"] as Array[StringName],
+			"the six characters (PLAN.md G.0a)")
 	var used: Dictionary[StringName, StringName] = {}
 	for id in ids:
 		var character := ContentDB.get_character(id)

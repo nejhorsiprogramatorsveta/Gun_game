@@ -24,7 +24,7 @@ func try_fire(player: Player, input: InputFrame, delta: float) -> void:
 	player.fire_cooldown = maxf(player.fire_cooldown - delta, 0.0)
 	_switch_weapon(player, 1 if input.is_held(InputFrame.WEAPON_2) else 0)
 	var weapon := player.current_weapon()
-	if weapon == null or not input.is_held(InputFrame.FIRE) or player.fire_cooldown > 0.0:
+	if weapon == null or not input.is_held(InputFrame.FIRE) or player.fire_cooldown > 0.0 or not player.can_fire():
 		return
 	player.fire_cooldown = CombatRules.fire_interval(weapon)
 	var aim_direction := InputFrame.aim_to_vector(input.aim)
@@ -59,7 +59,7 @@ func _spawn(id: int, origin: Vector2, direction: Vector2, weapon: WeaponData, sh
 func _on_hit(projectile: Projectile, target: Player) -> void:
 	if not projectile.authoritative or not target.visible or target.invulnerable:
 		return
-	target.velocity += CombatRules.knockback(projectile.direction, projectile.weapon, target.character.weight)
+	target.velocity += CombatRules.knockback(projectile.direction, projectile.weapon, target.character.weight) * target.knockback_scale()
 	player_hit.emit(projectile.shooter_peer_id, target)
 
 

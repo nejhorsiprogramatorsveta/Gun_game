@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/character_data.gd" id="1"]
+[ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="2"]
+[ext_resource type="Resource" path="res://data/weapons/nail_gun.tres" id="3"]
+[ext_resource type="Resource" path="res://data/weapons/double_barrel.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"architekt"
+name_key = "CHARACTER_ARCHITEKT_NAME"
+description_key = "CHARACTER_ARCHITEKT_DESCRIPTION"
+color = Color(0.85, 0.75, 0.55, 1)
+move_speed = 380.0
+ground_acceleration = 3600.0
+air_acceleration = 2200.0
+ground_friction = 3200.0
+air_friction = 500.0
+knockback_friction = 900.0
+jump_velocity = 780.0
+air_jumps = 1
+gravity = 2400.0
+max_fall_speed = 1400.0
+jump_buffer_time = 0.1
+drop_through_time = 0.25
+weight = 1.2
+weapons = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4")])

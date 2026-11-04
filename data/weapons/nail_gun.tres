@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"nail_gun"
+name_key = "WEAPON_NAIL_GUN_NAME"
+shots_per_second = 11.0
+projectile_speed = 900.0
+max_range = 900.0
+spread_degrees = 3.0
+knockback = 500.0
+recoil = 50.0
+pellets = 1

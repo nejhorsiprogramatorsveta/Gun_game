@@ -30,6 +30,10 @@ var fire_cooldown := 0.0
 var weapon_slot := 0
 ## Local player only: the weapon chosen with Q / 1 / 2 / wheel, sent in every input.
 var wanted_weapon_slot := 0
+## Ability runtime state (authority decides; clients receive it in snapshots).
+var ability_cooldown := 0.0
+var ability_time_left := 0.0
+var ability_was_held := false
 ## Authority: seconds of respawn protection left.
 var invulnerable_time := 0.0
 ## Authority: how long the player has been outside the arena (see out_of_bounds_grace).
@@ -74,6 +78,19 @@ func current_weapon() -> WeaponData:
 	return character.weapons[clampi(weapon_slot, 0, character.weapons.size() - 1)]
 
 
+func ability_active() -> bool:
+	return ability_time_left > 0.0
+
+
+## Knockback multiplier from an active ability (e.g. shield).
+func knockback_scale() -> float:
+	return character.ability.knockback_scale() if ability_active() and character and character.ability else 1.0
+
+
+func can_fire() -> bool:
+	return not (ability_active() and character and character.ability and not character.ability.allows_firing())
+
+
 ## Local player: Q / wheel toggles, 1 / 2 select directly.
 func handle_weapon_input(event: InputEvent) -> bool:
 	if event.is_action_pressed("weapon_switch"):
@@ -92,7 +109,8 @@ func snapshot_state() -> Dictionary:
 			"active": visible, "invulnerable": invulnerable, "aim": aim, "last_seq": last_input_seq, "lives": lives,
 			"on_floor": motor_state.on_floor, "prev_buttons": motor_state.prev_buttons,
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
-			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths, "weapon_slot": weapon_slot}
+			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths, "weapon_slot": weapon_slot,
+			"ability_cooldown": ability_cooldown, "ability_active": ability_active()}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -141,6 +159,9 @@ func _apply_state(state: Dictionary) -> void:
 	kills = state.get("kills", 0)
 	deaths = state.get("deaths", 0)
 	weapon_slot = state.get("weapon_slot", 0)
+	ability_cooldown = state.get("ability_cooldown", 0.0)
+	# Clients only need "active or not" for drawing; the exact time stays on the host.
+	ability_time_left = 1.0 if state.get("ability_active", false) else 0.0
 	invulnerable = state.invulnerable
 	queue_redraw()
 
@@ -152,6 +173,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	visual_offset = Vector2.ZERO
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, true)
 	fire_cooldown = 0.0
+	ability_time_left = 0.0
 	invulnerable_time = 0.0
 	invulnerable = false
 	out_of_bounds_time = 0.0
@@ -170,3 +192,5 @@ func _draw() -> void:
 	var eye := Vector2(8.0 * facing, -BODY_SIZE.y / 4.0)
 	draw_rect(Rect2(eye - Vector2(4, 4), Vector2(8, 8)), Color(0.1, 0.1, 0.12))
 	draw_line(Vector2.ZERO, InputFrame.aim_to_vector(aim) * GUN_LENGTH, Color(0.15, 0.15, 0.18), 6.0)
+	if ability_active():
+		draw_arc(Vector2.ZERO, BODY_SIZE.y * 0.75, 0.0, TAU, 32, Color(0.6, 0.85, 1.0, 0.8), 3.0)

@@ -32,7 +32,7 @@ func test_snapshot_roundtrip() -> void:
 	var states: Array[Dictionary] = [
 		{"slot": 0, "position": Vector2(400.5, -20.25), "velocity": Vector2(120, -820), "facing": -1, "active": true, "invulnerable": true, "aim": 32768, "last_seq": 65535, "lives": 5,
 				"on_floor": true, "prev_buttons": InputFrame.JUMP | InputFrame.DOWN, "jumps_left": 2, "jump_buffer_timer": 0.125, "drop_timer": 0.25,
-				"kills": 7, "deaths": 3, "weapon_slot": 1},
+				"kills": 7, "deaths": 3, "weapon_slot": 1, "ability_cooldown": 3.21, "ability_active": true},
 		{"slot": 3, "position": Vector2(1, 2), "velocity": Vector2(99999, 0), "facing": 1, "active": false, "invulnerable": false, "aim": 0, "last_seq": 7, "lives": 0},
 	]
 	var data := NetCodec.encode_snapshot(1234, 3, states)
@@ -51,6 +51,8 @@ func test_snapshot_roundtrip() -> void:
 	check_eq([b.on_floor, b.prev_buttons, b.jumps_left, b.jump_buffer_timer, b.drop_timer],
 			[false, 0, 0, 0.0, 0.0], "missing movement memory has neutral defaults")
 	check_eq([a.weapon_slot, b.weapon_slot], [1, 0], "selected weapon survives encoding")
+	check_eq([a.ability_cooldown, a.ability_active, b.ability_cooldown, b.ability_active], [3.3, true, 0.0, false],
+			"ability cooldown in tenths (rounded up) and active flag")
 
 
 func test_snapshot_rejects_malformed() -> void:
