@@ -2,19 +2,18 @@
 
 Rychlá 2D plošinovková střílečka pro 2–4 hráče. Zásahy soupeře neubírají životy, ale **odhazují** ho. Cílem je shodit ostatní z arény. Každý pád stojí život a vyhrává poslední, kdo v aréně zůstane.
 
-> **Stav vývoje: verze 0.1.0 – první hratelná verze.** Hostování a připojení, zápas pro 2–4 hráče s pistolí, životy, výsledky a návrat do lobby. Trénink s cvičným panákem. Aktuální stav je v [docs/PROGRESS.md](docs/PROGRESS.md).
+> **Stav vývoje:** hostování a připojení, zápas pro 2–4 hráče s pistolí, životy, výsledky a návrat do lobby. Trénink s cvičným panákem. Aktuální vydanou verzi najdeš na [stránce vydání](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest), stav práce v [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Stažení (hotová hra, bez instalace)
 
-| Systém | Nejnovější vývojová verze |
+| Systém | Nejnovější verze |
 |---|---|
 | **Windows 10/11** | [gun_game-windows.exe](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-windows.exe) |
 | macOS (Apple Silicon i Intel) | [gun_game-macos.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-macos.zip) |
 | Linux | [gun_game-linux.zip](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/gun_game-linux.zip) |
 
 - **Automatické aktualizace:** když vyjde nová verze, hra ji po spuštění sama nabídne v menu (*Aktualizovat*), stáhne a restartuje se. Ručně je potřeba stáhnout jen první verzi s touto funkcí.
-- Všechny vývojové buildy: [releases/tag/dev](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/tag/dev). Tento build se aktualizuje po každé změně.
-- Stabilní verze: [releases/latest](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest) (od `v0.1.0`).
+- [Stránka vydání](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest) se průběžně aktualizuje. Verze postupují `0.1.1`, `0.1.2` atd.; číslo najdeš také v menu hry.
 
 > ⚠️ **Nestahuj** zelené tlačítko *Code → Download ZIP* ani *Source code (zip)*. To jsou zdrojové kódy a bez Godotu je nespustíš. Stahuj soubor `gun_game-windows.exe` (Windows) nebo `gun_game-macos.zip` / `gun_game-linux.zip`.
 
@@ -92,6 +91,7 @@ tools/godot --path . -- --fake-lag=100 --fake-loss=5            # test: simulace
 - Architektura: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Průběh vývoje: [docs/PROGRESS.md](docs/PROGRESS.md)
 - Buildy vytváří GitHub Actions ([.github/workflows/build.yml](.github/workflows/build.yml)) po každém pushi na `main`.
+- Před další změnou hry zvýšit `application/config/version` v `project.godot` (nyní `0.1.1`, příště `0.1.2`) a archivovat vydaný záznam changelogu. CI aktualizuje stále stejné vydání; opakované spuštění stejného sestavení je povolené. Tagy se neposouvají a další vydání se nevytvářejí.
 
 ## Licence
 

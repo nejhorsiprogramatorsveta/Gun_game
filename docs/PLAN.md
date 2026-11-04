@@ -534,30 +534,35 @@ Bude obsahovat návody:
 
 ## I. Distribuce a buildy
 
+**Rozhodnutí uživatele 2026-11-04 nahrazuje původní rozdělení dev/stable:** jediné průběžně aktualizované
+vydání, nyní `v0.1.1`, poté `v0.1.2` atd. Verze je výslovně uložená v `project.godot`; před novým
+vydáním ji zvýšit. Číslo sestavení dál slouží pořadí aktualizací, nikoli jako veřejná verze.
+Následující I.1–I.3 popisují aktuální postup; historické zmínky o dvou kanálech níže již neplatí.
+
 ### I.1 Workflow `.github/workflows/build.yml`
-- **Spouštěče:** `push` na `main`, `push` tagů `v*`, ruční `workflow_dispatch`.
-- **Rušení starých běhů:** `concurrency: { group: build-${{ github.ref }}, cancel-in-progress: true }`.
+- **Spouštěče:** `push` na `main`, ruční `workflow_dispatch` pouze pro main. Dokumentace nadále nevydává build.
+- **Serializace:** jedna skupina `publish-game`, `cancel-in-progress: false`, aby se publikace nepřerušila mezi soubory a manifestem.
 - **Jeden job na `ubuntu-latest`** (stačí pro všechny exporty, macOS runner nepotřebujeme, minuty jsou levné):
-  1. `actions/checkout` s `fetch-depth: 0` (kvůli `git describe`).
+  1. `actions/checkout` s `fetch-depth: 0` (kvůli rostoucímu číslu sestavení).
   2. Stažení **Godot 4.7.2** (linux headless binár) a **export templates** přímo z oficiálních GitHub releases Godotu. Uložení do `actions/cache` podle verze.
      - Proč bez actions třetích stran: méně závislostí a nečekáme, až je někdo aktualizuje na novou verzi Godotu. Alternativa je `chickensoft-games/setup-godot`.
   3. `godot --headless --import`, tedy kontrola parse a importu.
   4. Spuštění `tests/run_tests.gd` a `tools/check_localization.gd`.
-  5. Vygenerování `build_info.json` (`version` z posledního tagu nebo `0.0.0`, `commit` = krátký hash, `channel` = dev/stable).
+  5. `tools/write_build_info.gd` vygeneruje `build_info.json`: verze z projektu, build z počtu commitů, krátký commit, kanál stable. Stejnou verzi nastaví i do macOS exportních metadat. Testy `tests/test_release_workflow.py` prověří publikaci bez přístupu k GitHubu.
   6. Export presetů: *Windows Desktop* (x86_64, PCK zabalené do exe), *macOS* (universal, ad-hoc podpis vestavěným codesignem Godotu) a volitelně *Linux*.
-  7. Zabalení do `gun_game-windows.zip`, `gun_game-macos.zip` a `gun_game-linux.zip`. Export pro macOS do `.zip` zachová práva, takže ho nebalíme podruhé, jen přejmenujeme.
-  8. **Push na `main`:** přesune tag `dev` na aktuální commit a nahraje assety do **prerelease „Nejnovější vývojová verze“** (`gh release upload --clobber`, bez dalších actions).
-  9. **Tag `vX.Y.Z`:** vytvoří normální release s automatickými poznámkami (`gh release create --generate-notes`).
+  7. Windows jako jediný `gun_game-windows.exe`, macOS a Linux jako ZIP; manifest obsahuje jejich SHA-256. Poznámky vznikají ze společného changelogu.
+  8. `tools/publish_release.sh` vyžaduje existující release `dev`, následující patch/minor/major a vyšší build (nebo opakování stejné dvojice). Přeskakování verzí nepovolí. Nahraje soubory hry a pak `version.json`; stávající vydání označí stable/latest s názvem `gun_game vX.Y.Z`.
+  9. Po ověření úspěchu skryje staré `v0.1.0` jako koncept, bez smazání vydání či tagu. Nové release ani tagy nevytváří a existující tagy neposouvá.
 - **Odhad doby:** ~3–6 min na běh. Pro veřejné repo jsou minuty zdarma.
 
-### I.2 Pozor na název tagu
-URL `github.com/<user>/<repo>/releases/latest` vždy vede na **nejnovější stabilní** release, nikdy na prerelease. Proto rolling build pojmenujeme **`dev`**, aby se to nepletlo. Pevné odkazy:
-- vývojová verze: `.../releases/tag/dev`, přímý download `.../releases/download/dev/gun_game-windows.zip`
-- stabilní verze: `.../releases/latest`
+### I.2 Pevné adresy a kompatibilita
+- Jediná veřejná stránka: `.../releases/latest`; původní interní tag `dev` zůstává kvůli již staženým hrám.
+- `.../releases/download/dev/version.json` i `.../releases/latest/download/version.json` vedou na stejný manifest. Starý dev klient nainstaluje novější build a přejde na stable/latest.
+- Tag `dev` se již neposouvá, aby nevznikaly konflikty při pullu. Automatické archivy zdrojů u tagu proto zůstávají historické; poznámky vydání odkazují na skutečný commit aktuální hry.
 
 ### I.3 Verzování
-- SemVer, tagy `v0.1.0` (= MVP), `v0.2.0` atd.
-- Menu ukazuje `v0.1.0+a1b2c3d (dev)`.
+- SemVer uložené v projektu: `0.1.1` → `0.1.2` → `0.1.3`; větší změny mohou výslovně zvýšit minor/major. Verze se neodvozuje z náhodného nebo nejbližšího tagu.
+- Menu ukazuje stejnou verzi jako vydání, navíc rostoucí číslo sestavení.
 - Kontrolu kompatibility v síti dělá `build_id` (D.8) a navíc `PROTOCOL_VERSION` v `build_info.gd`.
 
 ### I.4 Windows
@@ -590,12 +595,12 @@ Zelené tlačítko „Code → Download ZIP“ a „Source code (zip)“ u relea
 **Cíl:** hráči nemusí po každé změně ručně stahovat hru a znovu ji povolovat. Hra po spuštění sama zjistí, že na GitHubu je nová verze, nabídne aktualizaci, stáhne ji a restartuje se. Tím zmizí i chyba „Máš jinou verzi hry“.
 
 **Postup:**
-1. **CI** ke každému buildu publikuje malý soubor `version.json` (v release `dev` a ve stabilních releasech):
-   - `build_id`, `version`, `commit`, `protocol`
+1. **CI** ke každému buildu publikuje malý soubor `version.json` v jediném vydání:
+   - `version`, `build`, `channel`
    - pro každý systém URL souboru a jeho **SHA-256**
 2. **Hra při startu v hlavním menu** stáhne přes `HTTPRequest` (HTTPS) `version.json` z pevné adresy tohoto repozitáře:
    - `https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/download/dev/version.json`
-   - Pokud se `build_id` liší od vlastního, menu ukáže: *„Je dostupná nová verze X. [Aktualizovat] [Později]“*.
+   - Pokud je číslo sestavení vyšší než vlastní, menu ukáže: *„Je dostupná nová verze X. [Aktualizovat] [Později]“*.
    - Bez internetu nebo při chybě se nic nestane a hra jde normálně hrát.
 3. **Aktualizace:** stažení s ukazatelem průběhu do dočasného souboru a ověření SHA-256. Pak záměna:
    - **Windows:** běžící `.exe` nejde přepsat, ale jde přejmenovat. `gun_game.exe` → `gun_game.old.exe`, nový soubor → `gun_game.exe`, spustit nový proces (`OS.create_process`) a ukončit se. Starý soubor smaže nová verze při startu. Funguje, pokud hra leží ve složce s právem zápisu (Plocha, Stažené soubory, Dokumenty). Jinak záložní řešení: otevřít stránku ke stažení.
@@ -603,7 +608,7 @@ Zelené tlačítko „Code → Download ZIP“ a „Source code (zip)“ u relea
      - Omezení: pokud macOS spouští aplikaci z „translokované“ kopie (nebyla přesunutá z Downloads), výměna nejde. Pak hra poradí přesunout aplikaci do *Aplikací*, případně otevře stránku ke stažení.
    - **Linux:** jako Windows (jeden binární soubor).
 4. Aktualizace se nabízí **jen v menu, nikdy během hry nebo v lobby**.
-5. Čísla verzí jsou zatím `0.0.0+commit`. Porovnává se shoda `build_id` (jiný = nabídnout), ne „vyšší“. Kanál `dev` vs. stabilní: hra ze stabilního releasu kontroluje `releases/latest`, vývojová kontroluje `dev`.
+5. Pořadí aktualizací hlídá vyšší číslo sestavení. Nové hry kontrolují stable/latest; dosavadní dev klienti zůstávají kompatibilní díky zachované adrese `dev`.
 
 **Bezpečnost (sekce S):**
 - Stahuje se jen z pevné HTTPS adresy tohoto repozitáře a ověřuje se SHA-256.
@@ -685,11 +690,11 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 
 ## K. Roadmapa
 
-### Changelog – implementováno lokálně (zadání uživatele 2026-11-04)
-- **Stav:** offline „Co je nového“ v menu a společný generátor poznámek vydání jsou implementované a otestované; zatím bez commitu/pushe. Navazuje debug měření RTT/korekcí v M4.
+### Changelog – vydáno v sestavení 28 (zadání uživatele 2026-11-04)
+- **Stav:** offline „Co je nového“ v menu a společný generátor poznámek vydání jsou implementované, otestované a publikované uživatelovým pushem `2560ebb`. Navazuje sjednocení vydávání na `0.1.1`, potom debug měření RTT/korekcí v M4.
 - **Funkce:** přehled „Co je nového“ dostupný z hlavního menu, přiřazený ke konkrétní verzi a číslu sestavení. Česky stručně uvést novinky, opravy a změny ovládání; nejnovější změny zobrazit první. Stejný přehled použít v poznámkách odpovídajícího vydání.
 - **Data a údržba:** `data/changelog.tres` uchovává aktuální záznam (`build = 0`) a historii od sestavení 25; texty jsou v CSV. Aktuální záznam přebírá skutečnou verzi/sestavení z `BuildInfo`. Před další obsahovou změnou archivovat tento záznam pod skutečně publikovaným buildem a založit nový aktuální záznam. Starší build nesmí zobrazovat budoucí změny.
-- **Zachovat distribuci:** push na `main` dál aktualizuje stejný vývojový release `dev`, tag `v*` vydává stabilní verzi. Zachovat rostoucí čísla sestavení, kanály dev/stable, stávající adresy souborů a aktualizátoru, SHA-256 a pořadí nahrávání: nejdřív soubory hry, poslední `version.json`.
+- **Distribuce dle nového zadání:** jediné vydání s výslovně rostoucí verzí (`0.1.1`, `0.1.2` atd.), viz I.1–I.3. Zachovat stávající adresy aktualizátoru, SHA-256, rostoucí buildy a pořadí nahrávání: nejdřív soubory hry, poslední `version.json`.
 - **Ověření:** changelog odpovídá zobrazené verzi/sestavení a je dostupný i bez internetu; české texty a zobrazení projdou kontrolami. Ověřit poznámky vydání a regresi aktualizátoru. Nic nepublikovat ani nepushovat bez nového výslovného souhlasu.
 - **Odložené:** opravu sekání na stejné Wi-Fi (M4.1) nyní nespouštět.
 

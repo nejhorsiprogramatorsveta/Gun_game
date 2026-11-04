@@ -49,7 +49,10 @@ All verified in M1 on macOS arm64:
   (autoloads ARE loaded with `-s`), run as separate background processes on 127.0.0.1, logs to files (not pipes).
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
-- CI: .github/workflows/build.yml (push main -> prerelease tag `dev`; tag v* -> stable release).
+- CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.1, next 0.1.2).
+  Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
+  A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
 ## Architecture (see docs/ARCHITECTURE.md for what exists, docs/PLAN.md section F for the target)
 Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player,client_prediction}.gd,
@@ -70,11 +73,16 @@ MatchController queues the newest snapshot and reconciles ONLY in _physics_proce
 move_and_slide() must use the physics delta during replay. Remote players still interpolate with a 100 ms delay.
 Small corrections use a visual offset; combat, knockback, recoil, respawns, countdown and lives remain host-authoritative.
 Changelog is implemented: data/changelog.tres + localization CSV are shared by src/core/changelog.gd,
-the offline menu "Co je nového", and tools/write_release_notes.gd (CI's release-notes step only).
+the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
 archive that entry under its published version/build and add a new current entry. Do not guess the next build number.
 Next (M4): debug RTT/correction measurements (see PROGRESS.md); keep Wi-Fi fixes deferred until separately requested.
-Preserve the release/update order, channels, URLs and build numbering; game files upload before version.json.
+The user replaced the previous dev/stable split (2026-11-04): keep ONE existing release `dev`,
+promoted to stable/latest, and change its visible version/title and assets. The `dev` slug is retained for
+installed clients. Do not create releases or move/push tags. Hide old `v0.1.0` as a draft only after successful
+publication and verification. Never delete it. New builds use channel stable; old dev clients still update
+from the unchanged dev URL, then use latest. Game files upload before version.json; build numbers keep growing.
+The fixed dev tag's automatic source archives remain historical; release notes link to the actual build commit.
 User report (2026-11-04): severe stutter on the same Wi-Fi for clients while the host remains smooth.
 Root cause is unmeasured. PLAN.md M4.1 records investigation and later fixes; do not change networking,
 movement prediction or interpolation to address it in the current combat/scoreboard task.

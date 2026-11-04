@@ -1,14 +1,12 @@
 # Builds ready-to-play ZIPs for friends.
-# - push to main  -> rolling prerelease "dev" (always the newest build, fixed URL)
-# - push tag v*   -> stable GitHub Release
+# Updates the existing release; its title follows project.godot's version.
 name: Build
 
 on:
   push:
     branches: [main]
-    tags: ["v*"]
     # Docs-only commits must not publish a new build: every build has its own version and
-    # players on different versions cannot play together. (Ignored for tag pushes.)
+    # players on different versions cannot play together.
     paths-ignore:
       - "docs/**"
       - "**/*.md"
@@ -18,8 +16,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
+  group: publish-game
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -29,12 +27,13 @@ env:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # needed for version tags
+          fetch-depth: 0 # needed for the monotonically increasing build number
 
       - name: Cache Godot downloads
         uses: actions/cache@v6
@@ -57,21 +56,16 @@ jobs:
       - name: Localization check
         run: tools/godot --headless --path . -s tools/check_localization.gd
 
+      - name: Release workflow tests
+        run: python3 -B -m unittest discover -s tests -p 'test_release_workflow.py'
+
       - name: Write build info
-        id: info
         run: |
-          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-            version="${GITHUB_REF_NAME#v}"; channel="stable"
-          else
-            last_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo v0.0.0)"
-            version="${last_tag#v}"; channel="dev"
-          fi
-          commit="$(git rev-parse --short=7 HEAD)"
           # Friendly, ever-growing build number shown to players (commit count on main).
           build="$(git rev-list --count HEAD)"
-          printf '{"version":"%s","build":%s,"commit":"%s","channel":"%s"}\n' "$version" "$build" "$commit" "$channel" > build_info.json
+          commit="$(git rev-parse --short=7 HEAD)"
+          tools/godot --headless --path . -s tools/write_build_info.gd -- --build="$build" --commit="$commit"
           cat build_info.json
-          echo "build_id=${version} (sestavení ${build})" >> "$GITHUB_OUTPUT"
 
       - name: Export
         run: |
@@ -95,8 +89,7 @@ jobs:
       - name: Write update manifest (version.json)
         # Read by the in-game updater (src/core/updater.gd): newest build + file checksums.
         run: |
-          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then release="$GITHUB_REF_NAME"; else release="dev"; fi
-          base="https://github.com/${{ github.repository }}/releases/download/${release}"
+          base="https://github.com/${{ github.repository }}/releases/download/dev"
           python3 - "$base" <<'PY'
           import hashlib, json, sys
           base = sys.argv[1]
@@ -116,27 +109,7 @@ jobs:
           --output=res://notes.md --game-name="$GAME_NAME"
           --repository-url="https://github.com/${{ github.repository }}"
 
-      - name: Publish rolling dev prerelease
-        if: github.ref == 'refs/heads/main'
+      - name: Update existing release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          git tag -f dev
-          git push -f origin refs/tags/dev
-          if ! gh release view dev >/dev/null 2>&1; then
-            gh release create dev --prerelease --title "Nejnovější vývojová verze" --notes-file notes.md
-          fi
-          gh release edit dev --prerelease --title "Nejnovější vývojová verze" --notes-file notes.md
-          gh release upload dev dist/* --clobber
-          # The manifest goes last, so the updater never sees it before the new files exist.
-          gh release upload dev version.json --clobber
-          # Older builds shipped Windows as a ZIP; remove it so nobody downloads a stale copy.
-          gh release delete-asset dev "${GAME_NAME}-windows.zip" --yes || true
-
-      - name: Publish stable release
-        if: github.ref_type == 'tag'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" dist/* --title "${GAME_NAME} ${GITHUB_REF_NAME}" --notes-file notes.md --generate-notes
-          gh release upload "$GITHUB_REF_NAME" version.json
+        run: bash tools/publish_release.sh

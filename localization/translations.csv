@@ -12,6 +12,7 @@ CHANGELOG_EMPTY,Pro toto sestavení zatím není dostupný přehled změn.
 CHANGELOG_HISTORY,Přehled novinek a oprav podle verzí a sestavení přímo v hlavním menu. Funguje i bez internetu.
 CHANGELOG_RELEASE_NOTES,Stejný přehled změn také v poznámkách vydání ke stažení.
 CHANGELOG_FIRE_RATE,Trojnásobná kadence pistole z 3 na 9 ran za sekundu.
+CHANGELOG_RELEASE_VERSION,Jedno průběžně aktualizované vydání s verzemi 0.1.1 a dalšími. Zachované automatické aktualizace.
 CHANGELOG_PREDICTION,Predikce vlastního pohybu klienta s korekcemi podle hostitele.
 CHANGELOG_KNOCKBACK,Silnější odhoz pistole z 550 na 800 (přibližně +45 %).
 CHANGELOG_SCOREBOARD,Scoreboard se životy a počtem zabití a smrtí vedle jmen. Skóre je i ve výsledcích.
@@ -26,7 +27,8 @@ RELEASE_DOWNLOADS,Co stáhnout
 RELEASE_WINDOWS,- **Windows:** `{file}` → stáhnout a spustit
 RELEASE_MACOS,- **macOS:** `{file}` → rozbalit → otevřít aplikaci
 RELEASE_LINUX,- **Linux:** `{file}`
-RELEASE_SOURCE_NOTICE,⚠️ „Source code (zip)“ jsou zdrojové kódy a ne hra.
+RELEASE_SOURCE_NOTICE,⚠️ Automatické archivy „Source code“ patří k historickému tagu. Hra ke stažení je v souborech výše.
+RELEASE_SOURCE_COMMIT,Zdrojové kódy tohoto sestavení: {url}
 RELEASE_GUIDE,"Návod (SmartScreen, macOS, hraní s kamarády): {url}"
 PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · Esc: odejít (hostitel: konec zápasu)"
 CHARACTER_JISKRA_NAME,Jiskra

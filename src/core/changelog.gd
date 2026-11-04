@@ -45,6 +45,7 @@ static func release_notes(game_name: String, repository_url: String) -> String:
 			TranslationServer.translate("RELEASE_WINDOWS").format({"file": game_name + "-windows.exe"}),
 			TranslationServer.translate("RELEASE_MACOS").format({"file": game_name + "-macos.zip"}),
 			TranslationServer.translate("RELEASE_LINUX").format({"file": game_name + "-linux.zip"}),
-			"", TranslationServer.translate("RELEASE_SOURCE_NOTICE"), "",
+			"", TranslationServer.translate("RELEASE_SOURCE_NOTICE"),
+			TranslationServer.translate("RELEASE_SOURCE_COMMIT").format({"url": repository_url + "/tree/" + BuildInfo.commit}), "",
 			TranslationServer.translate("RELEASE_GUIDE").format({"url": repository_url + "#readme"})])
 	return "\n".join(lines) + "\n"

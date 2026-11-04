@@ -42,13 +42,16 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/net/connectors/enet_direct_connector.gd` | přímé UDP spojení (ENet) přes IP:port, rozbor adresy (IPv4, IPv6, hostname), timeouty peerů, `share_addresses()` (jen Tailscale a LAN, Tailscale se pozná podle rozhraní) |
 | `src/net/handshake.gd` | `Handshake`: zprávy handshaku (sestavení, dekódování s limitem velikosti, kontrola verze a kódu hry), generování kódu hry |
 | `tests/` | vlastní mini test runner (`run_tests.gd`, `TestCase`) |
-| `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd`, `write_release_notes.gd` (stejný changelog do poznámek vydání) |
+| `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd`, `write_build_info.gd` (verze projektu + identita sestavení), `write_release_notes.gd`, `publish_release.sh` (aktualizace jediného vydání) |
 
 ## Changelog a vydávání
 
 - Texty změn jsou jen v `localization/translations.csv`, metadata a pořadí v `data/changelog.tres`. `build = 0` označuje aktuální zdrojový strom a při zobrazení/generování převezme skutečnou verzi a build. Před další změnou se aktuální záznam archivuje pod již publikovaným buildem a založí se nový.
 - Menu zobrazí aktuální a dostupné starší záznamy, nejnovější první. `tools/write_release_notes.gd` po vytvoření `build_info.json` zapíše stejné nejnovější změny a dosavadní instrukce ke stažení do `notes.md`.
-- CI se změnilo pouze ve vytváření textu poznámek. Spouštěče, číslování, kanály, exporty, adresy a publikace zůstávají stejné; soubory hry před `version.json`. Aktualizátor ani síťový protokol se nemění.
+- Verze pochází z `application/config/version` v `project.godot`: nyní `0.1.1`, příště `0.1.2`. Před novým vydáním se mění výslovně; nesouvisí s počtem commitů. Samostatné číslo sestavení dál roste podle počtu commitů na main a hlídá pořadí aktualizací.
+- CI po pushi na main aktualizuje jediné existující vydání s interním tagem `dev`, názvem `gun_game vX.Y.Z` a příznakem stable/latest. Nevytváří vydání ani neposouvá tagy. Původní `v0.1.0` převede na koncept až po úspěšné publikaci a ověření nového vydání.
+- Adresy `releases/download/dev/*` zůstávají funkční pro staré klienty; `releases/latest/download/*` vede na stejné vydání. Nové sestavení má kanál stable, takže starý dev klient po aktualizaci přejde na latest. Aktualizátor ani síťový protokol se nemění.
+- Před publikací se ověřuje následující patch/minor/major i vyšší build, případně opakování stejné dvojice. Přeskakování verzí je zakázané. Soubory hry se nahrávají před `version.json`; souběžné publikace jsou zakázané. Pevný historický tag není zdrojem aktuálního sestavení: poznámky odkazují na jeho skutečný commit.
 
 ## Handshake (kontrola verze)
 1. Klient se připojí. Než se stane plnohodnotným peerem, pošle přes **autentizaci SceneMultiplayer** (surová data, ne RPC) zprávu `{protocol, build, code, name}`.

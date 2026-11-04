@@ -180,6 +180,7 @@ func test_release_notes_use_current_metadata_and_only_latest_changes() -> void:
 	for file_name in ["gun_game-windows.exe", "gun_game-macos.zip", "gun_game-linux.zip"]:
 		check(notes.contains(file_name), "release notes preserve the download filename: " + file_name)
 	check(notes.contains("https://example.test/repo#readme"), "release notes use the supplied repository guide link")
+	check(notes.contains("https://example.test/repo/tree/test123"), "release notes link to this build's actual source commit instead of the fixed release tag")
 	_restore_build(saved)
 
 
