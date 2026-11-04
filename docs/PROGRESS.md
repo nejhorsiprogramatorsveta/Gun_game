@@ -1,6 +1,7 @@
 # Stav projektu
 
 ## Kde jsme skončili
+**Dnešní práce (2026-11-04) je hotová.** Poslední rozhodnutí uživatele: odstranit dvě zbraně, každá postava bude mít jen jednu (zatím jen zapsáno, kód beze změny – viz Další krok).
 **M5 – krok M5.3 hotový (verze `0.1.11`): výběr postavy v lobby, každá postava jen jednou.** Zbývá M5.4. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
 - Lobby: karty 6 postav (jméno, 2 zbraně, schopnost; popis v tooltipu), obsazené zašedlé „obsazeno: jméno“, vlastní zvýrazněná; v seznamu hráčů „jméno – postava“. Host ověřuje vše (`CharacterChoice`), klient jen žádá. Nový hráč dostane první volnou postavu, pak si zažádá o oblíbenou z menu (`Settings.practice_character`, výběr v lobby ji také uloží). Odchod hráče postavu uvolní.
 - Zápas používá zvolené postavy; dočasné `ContentDB.character_for_slot` odstraněno. Protokol 10.
@@ -10,10 +11,10 @@
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**M5.4 – `docs/EDITING_GUIDE.md` (česky) a ladění** (PLAN.md H.5, G.0a).
-- Návod: přidat/upravit postavu (`data/characters/*.tres` + CSV), zbraň (`data/weapons/*.tres`, limity knockbacku a minimum zpětného rázu hlídané testy), schopnost (`data/abilities/*.tres`, nový druh = podtřída `AbilityData`), text (CSV, uvozovky u čárek), pravidlo stejné verze a zvýšení verze/changelogu při vydání.
-- Ověřit, že nová postava jde přidat jen přes `.tres` + CSV (akceptace M5): vytvořit dočasnou testovací postavu v testu nebo ručně a ukázat ji v lobby.
-- Potom s uživatelem rozhodnout balanc zbraní / „budoucí práce – chování zbraní“ (PLAN.md G.0a) nebo přejít na M6.
+**M5 – přechod na JEDNU zbraň na postavu** (rozhodnutí uživatele 2026-11-04, PLAN.md G.0a „ZMĚNA“). Dnešní práce skončila; začít až v nové session.
+- Nejdřív se uživatele zeptat, kterou zbraň si každá postava ponechá (dnes: Architekt nýtovačka/dvouhlavňová brokovnice, Balvan brokovnice/útočná puška, Jiskra samopal/pistole, Krügermann lehký kulomet/revolver, Stín odstřelovačka/kompaktní samopal, Vichr bojová puška/karabina) a zda nepoužité zbraně smazat, nebo nechat pro budoucnost.
+- Pak odstranit přepínání: akce `weapon_switch`/`weapon_1`/`weapon_2` v `project.godot`, `InputFrame.WEAPON_2`, `Player.weapon_slot`/`wanted_weapon_slot`/`handle_weapon_input`, `WeaponSystem._switch_weapon` a `CombatRules.WEAPON_SWITCH_SECONDS`, `NetCodec.FLAG_WEAPON_2` (protokol +1), přepínání v `match_controller._unhandled_input`, text přepnutí v HUD (`HUD_WEAPON`), nápovědu `PRACTICE_HINT`, karty v lobby (jedna zbraň), `CharacterData.weapons` → jedna zbraň (nebo pole s 1 prvkem – rozhodnout podle jednoduchosti), testy (`test_weapons`, `test_net_codec`, `test_combat_rules`), dokumentaci (PLAN G.0a, ARCHITECTURE, CLAUDE.md) a changelog. Verze `0.1.12`.
+- Potom M5.4 (`docs/EDITING_GUIDE.md` a ladění) – viz PLAN.md G.0a.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -59,6 +60,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04 večer, rozhodnutí uživatele (jen dokumentace):** každá postava bude mít jen jednu zbraň, přepínání zbraní se odstraní; zapsáno do PLAN.md G.0a a „Další krok“.
 - **2026-11-04, M5.3 výběr postavy v lobby + plyn jako pás, verze 0.1.11 (Claude):** `src/net/character_choice.gd`, postava v `Session.players`, `LobbyValidator` kontroluje postavy, karty v `lobby.gd`, `MatchController` bere zvolenou postavu, odstraněno `character_for_slot`, `SlowCloud` jako obdélníkový pás, `SlowCloudAbility` (délka/výška/mezera).
 - **2026-11-04, výběr postavy pro trénink, verze 0.1.10 (Claude):** `PracticeRow` + `CharacterOption` v `main_menu.tscn`, `Settings.practice_character`, `ContentDB.practice_character()`, test; zapsána budoucí práce na zbraních (PLAN.md G.0a).
 - **2026-11-04, M5.2c oblak + plošina, Krügermann, zpětný ráz, verze 0.1.9 (Claude):** `AreaEffects`, `SlowCloud`, `TempPlatform`, `SlowCloudAbility`, `PlatformAbility`, `data/abilities/{slow_cloud,platform}.tres`, `ContentDB` schopnosti, zpomalení v `PlayerMotor`, RPC `effect_spawned` v `match_net.gd`, přejmenování mlha → krugermann, zpětný ráz 6 zbraní + `CombatRules.MIN_RECOIL`.

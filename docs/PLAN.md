@@ -473,6 +473,7 @@ Menu → Hostovat/Připojit → LOBBY ──(host: Začít zápas)──► ZÁP
 
 
 ### G.0a Rozhodnutí uživatele 2026-11-04 (M5)
+- **ZMĚNA (uživatel 2026-11-04, večer): odstraníme možnost dvou zbraní – každá postava bude mít jen JEDNU zbraň.** Má přednost před bodem „2 vlastní zbraně“ níže i v G.0. Přepínání zbraní (Q / 1 / 2 / kolečko) zmizí. Která zbraň u které postavy zůstane, se rozhodne s uživatelem na začátku dalšího kroku.
 - **Soupiska (zatím, data v `data/characters/`):** Jiskra (róninka, lehká) – samopal + pistole, úskok; Balvan (samuraj, těžký) – brokovnice + útočná puška, štít; Vichr (ninja s kusarigamou) – bojová puška + karabina, tlaková vlna; Stín (ninja se šurikenem, lehký) – odstřelovačka + kompaktní samopal, přesun (teleport ~250 px ke kurzoru, cd 7 s).
 - **Každá postava má 2 vlastní zbraně (8 celkem).** Přepínání: Q, 1 / 2 a kolečko myši; po přepnutí 0,3 s bez střelby.
 - **Stejnou postavu nesmí mít dva hráči** v jednom zápase (výběr v lobby M5.3 obsazené postavy zablokuje).
