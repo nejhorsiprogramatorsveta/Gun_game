@@ -15,6 +15,7 @@ CHANGELOG_FIRE_RATE,Trojnásobná kadence pistole z 3 na 9 ran za sekundu.
 CHANGELOG_RELEASE_VERSION,Jedno průběžně aktualizované vydání s verzemi 0.1.1 a dalšími. Zachované automatické aktualizace.
 CHANGELOG_LATEST_ONLY,„Co je nového“ ukazuje jen změny nejnovější verze.
 CHANGELOG_NET_DEBUG,"Klávesa F3 v zápase zobrazí měření sítě: FPS, odezvu vstupu a velikost korekcí vlastní postavy."
+CHANGELOG_NET_LOG,"Hra během online zápasu každých 5 sekund zapíše do logu ping a FPS, aby šlo zjistit, proč se hra seká."
 CHANGELOG_ADDRESS_EXAMPLE,"Pole pro adresu hostitele už není předvyplněné, jen ukazuje příklad, který po kliknutí zmizí."
 CHANGELOG_STALE_INPUT,"Když se připojenému hráči přeruší spojení, jeho postava se zastaví, místo aby sama běžela dál."
 CHANGELOG_VALIDATION,Hra je odolnější vůči poškozeným síťovým zprávám a odchodům hráčů během zápasu.

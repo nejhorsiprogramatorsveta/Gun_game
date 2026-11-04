@@ -45,6 +45,7 @@ var _prediction := ClientPrediction.new()
 var _last_snapshot_tick := -1
 var _pending_snapshot: Dictionary = {}
 var _stats := NetStats.new()
+var _net_log := NetLog.new()
 
 @onready var _net: Node = $MatchNet
 @onready var _hud: MatchHud = $Hud/MatchHud
@@ -99,6 +100,11 @@ func _physics_process(delta: float) -> void:
 		_send_local_input(delta)
 	_hud.show_state(_players.values(), _countdown_display, _networked)
 	_hud.show_ping(_stats.ping_ms() if not _is_authority else -1)
+	if _networked:
+		var report := _net_log.tick(Time.get_ticks_msec(), _is_authority, Engine.get_frames_per_second(),
+				_stats.ping_ms(), _inputs, _players)
+		if not report.is_empty():
+			print(report)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -254,6 +260,7 @@ func _on_snapshot_received(snapshot: Dictionary) -> void:
 	if _last_snapshot_tick >= 0 and (tick == _last_snapshot_tick or ((tick - _last_snapshot_tick) & 0xFFFFFFFF) >= 0x80000000):
 		return
 	_last_snapshot_tick = tick
+	_net_log.record_snapshot_arrival(Time.get_ticks_msec())
 	_pending_snapshot = snapshot
 
 
@@ -265,7 +272,7 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 		for player in _players.values():
 			if player.slot == state.slot:
 				if player.peer_id == multiplayer.get_unique_id():
-					_prediction.reconcile(player, state)
+					_net_log.record_correction(_prediction.reconcile(player, state))
 					_stats.record_ack(state.last_seq, now)
 				else:
 					player.receive_state(state, now)

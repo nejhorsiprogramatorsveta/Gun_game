@@ -1,18 +1,17 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M4 dokončený (kromě ručního hodnocení s kamarády) + úprava pole adresy, verze `0.1.4`.** Sekání Wi-Fi klientů zůstává v PLAN.md M4.1 (čeká na měření uživatele s kamarádem).
-- **Pole adresy v menu** (pokyn uživatele 2026-11-04): už se nepředvyplňuje poslední adresou (`Settings.last_address` odstraněno), ukazuje šedý příklad `100.101.102.103:24642#K7Q2MX`, který po kliknutí zmizí.
-- **Zpevnění validace:** `LobbyValidator` kontroluje na klientech data od hostitele (seznam hráčů, sloty zápasu, výsledky – počty, typy, rozsahy, délky jmen); fázové RPC (`_begin_match`, `_end_match`, `_return_to_lobby`) se přijmou jen ve správné fázi; `_client_loaded` jen během zápasu; střely od hostitele s nekonečnými souřadnicemi se zahodí. Vstupy od klientů na hostu už kontrolované byly (velikost, typy, rate limit, odesílatel).
-- **Odpojení:** po 0,25 s bez vstupu host postavu zastaví (dřív opakoval poslední vstup až do časového limitu ENetu ~5 s, takže postava spadlého klienta mohla sama vyběhnout z mapy).
-- Ověřené scénáře se skutečnými procesy: odchod 1 ze 3 hráčů (zápas pokračuje), odchod jediného soupeře (výsledky → lobby), pád klienta bez rozloučení (host to pozná za ~5 s, postava mezitím stojí), odchod hostitele (klient v menu s hláškou), odchod během odpočtu, odchod během výsledků (ostatní pokračují do lobby).
-- **Pozor před dalším herním commitem:** verze `0.1.5` a archivace changelogu pod skutečně vydaným sestavením (zjistit z `version.json`).
+**M4.1: zapsaný první test přes Tailscale a přidaný zápis měření do logu, verze `0.1.5`.** M4 jinak hotový (viz níže).
+- **Test 2026-11-04 (0.1.4, tvůj Mac host + kamarád klient):** nejdřív se nešlo připojit – každý měl vlastní Tailscale síť; po **Share** Macu funguje, spojení přímé (IPv6). `tailscale ping` 26–51 ms, občas ~110–125 ms. Herní ping klienta ~100–150 ms, FPS v pořádku. Kamarád: „občas lag, spíš zpožděný pohyb“ (neupřesněno, čí pohyb). Podrobnosti a kandidáti na opravu v PLAN.md M4.1.
+- **Log:** od 0.1.5 každých 5 s online zápasu řádek `[net]` v logu hry (klient: ping/max, FPS/min, nejdelší pauza snapshotů, největší korekce vlastní postavy; host: FPS/min, největší fronta vstupů po slotech). Bez adres a jmen. Mac: `~/Library/Application Support/Godot/app_userdata/gun_game/logs/godot.log`; Windows: `%APPDATA%\Godot\app_userdata\gun_game\logs\godot.log` (posledních 5 spuštění).
+- Dříve v M4 (0.1.4): validace dat od hostitele, zastavení postavy po 0,25 s bez vstupu, ověřené scénáře odpojení, pole adresy bez předvyplnění.
+- **Pozor před dalším herním commitem:** verze `0.1.6` a archivace changelogu pod skutečně vydaným sestavením (zjistit z `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**Čeká na uživatele: M4.1 měření na Wi-Fi.** Uživatel s kamarádem zahraje 0.1.4 na stejné Wi-Fi a pošle ping/FPS z levého dolního rohu (klient i host) + kdy se to seká. Agent čísla zapíše do PLAN.md M4.1 a navrhne opravu (spustit až na výslovné zadání).
-- Pokud uživatel chce pokračovat bez měření: další milník je **M5 – postavy a schopnosti** (PLAN.md K, M5; G.0, T.2) – před začátkem se zeptat, zda začít M5, nebo M6.
-- `session.gd` má 309 řádků (limit ~300): při další změně Session přesunout fázové RPC do samostatného skriptu.
+**Čeká na rozhodnutí uživatele (M4.1).** Navrženo: zrychlit zobrazení postav ostatních hráčů – snapshoty 60 Hz místo 30 Hz a interpolační zpoždění ~50 ms místo 100 ms (`SNAPSHOT_EVERY_TICKS` v `match_controller.gd`, `INTERPOLATION_DELAY_MS` v `remote_interpolator.gd`), ověřit fake lagem a pak logem `[net]` z dalšího hraní. Spustit až po souhlasu.
+- Po dalším hraní: přečíst `[net]` řádky z logu hostitele (Mac) a nechat kamaráda poslat jeho `godot.log`; zapsat do PLAN.md M4.1.
+- Jinak další milník M5 (postavy) nebo M6 (obsah) – zeptat se.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -58,6 +57,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-04, M4.1 test přes Tailscale + log `[net]`, verze 0.1.5 (Claude):** nové `src/net/net_log.gd` + napojení v `match_controller.gd` (289 řádků), test `tests/test_net_log.gd`, zápis zjištění do PLAN.md M4.1.
 - **2026-11-04, M4 validace + odpojení + pole adresy, verze 0.1.4 (Claude):** nové `src/net/lobby_validator.gd` (+ `clean_name` přesunuto ze Session, konstanty MAX_PLAYERS/MAX_NAME_LENGTH odtud), kontroly fází v Session, `InputBuffer.STALE_TICKS`, kontrola konečných čísel u střel od hostitele, `_client_loaded` jen v zápase, menu bez předvyplněné adresy. Testy `test_lobby_validator` (5) a `test_input_buffer::test_long_silence_stops_the_player`.
 - **2026-11-04, M4 fronta vstupů + ping/FPS, verze 0.1.3 (Claude):**
   - `src/match/input_buffer.gd` (nový): logika fronty přesunuta z `match_controller.gd` (282 řádků), dohánění po 0,5 s, sloučení tlačítek přeskočených vstupů, čtení vstupu i u neaktivního hráče.
@@ -195,7 +195,7 @@
 - **Stejná Wi-Fi: výrazné sekání všech klientů kromě hosta** (nahlášeno uživatelem 2026-11-04). Příčina neměřená, oprava výslovně odložená; viz PLAN.md M4.1. Lokální headless síťové testy tento problém nevyvracejí.
 - **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
 - **`session.gd` má 309 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
-- **Tailscale postup v README** (Share počítače, firewall na Windows) je napsaný podle dokumentace, prakticky zatím neověřený. Ověřit při prvním testu s kamarádem.
+- **Tailscale:** Share ověřen 2026-11-04 (Mac host, přímé spojení). Bez Share se připojení nepovede oběma směry – hra hlásí jen obecnou chybu připojení. Firewall na Windows při hostování zatím neověřen.
 - **Predikce je zatím ověřená automaticky lokálně.** Skutečný internet a ruční hodnocení plynulosti korekcí čekají na hráče. Střelbu, zpětný ráz a odhoz dál potvrzuje host; M4 predikuje jen pohyb.
 - **Kolize s pohybujícími se soupeři při replay používají jejich aktuální interpolované pozice.** Mohou vyvolat korekce od hostu; historické přetáčení soupeřů není součást M4.
 - **Hostitel nemá zpoždění** (výhoda hostitele, PLAN.md M).
@@ -208,6 +208,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-04, log `[net]` (0.1.5):** 91/91 unit testů, lokalizace OK; síťový test host + klient (fake lag 100 ms/5 %) zapsal řádky `[net]` u obou. Že release build zapisuje `print` do `godot.log`, ověří až další ostré hraní (release log z 18:54 obsahoval jen úvodní řádky enginu).
 - **2026-11-04, validace + odpojení (0.1.4):** 89/89 unit testů, lokalizace OK. 6 scénářů odpojení se skutečnými procesy (viz „Kde jsme skončili“) bez chyb skriptů; test zastavení postavy po pádu klienta ukázal rozdíl proti kódu bez opravy (zastaví se po ~0,25 s místo běhu dál). Menu: pole prázdné, příklad zmizí po kliknutí a vrátí se po odchodu z pole, adresa se neukládá. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.3 → 0.1.4.
 - **2026-11-04, fronta vstupů + ping/FPS (0.1.3):** 83/83 unit testů (nové `test_input_buffer`: pořadí/duplikáty/opakování, strop se sloučením skoku, dohánění trvalé fronty, žádné přeskočení při trhaném doručování; `test_net_stats` upraven na ping), lokalizace OK, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 % na novém i starém kódu (srovnání viz „Kde jsme skončili“), bez chyb skriptů. Screenshot: ukazatel čitelný vlevo dole. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.2 → 0.1.3.
 - **2026-11-04, F3 + 0.1.2:** 80/80 unit testů (nové: 3× `test_net_stats`, chyba predikce v `test_client_prediction`, jen nejnovější verze v `test_changelog`, sloupce CSV – ověřeno, že selže na chybném řádku), lokalizace 104 klíčů / 0 chybějících, 9/9 Python testů workflow. Síťový test host + klient s fake lag 0, 100/5 %, 200/10 %: bez chyb skriptů, hodnoty viz „Kde jsme skončili“. Screenshot ukazatele (okno 1280×720 na Retině): čitelné vlevo dole, nepřekrývá scoreboard. Menu: „Co je nového“ ukazuje jen aktuální verzi; generátor poznámek ověřen. **Neověřeno:** ruční hraní, skutečná Wi-Fi/internet, Windows, aktualizace 0.1.1 → 0.1.2 (ověřit po CI).

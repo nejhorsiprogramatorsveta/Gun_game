@@ -48,7 +48,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.4, next 0.1.5).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.5, next 0.1.6).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
@@ -64,6 +64,7 @@ src/ui/{match_hud,results}.gd (lives/K/D scoreboard, kill notices, results -> sa
 src/match/match_score.gd (host-owned last-bullet attribution and 2-second multikill window).
 src/net/net_stats.gd (client ping from input ack, shown with FPS bottom-left in match_hud, F3 toggles).
 src/match/input_buffer.gd (host per-client input queue with catch-up so it does not add constant delay; neutral input after 0.25 s silence).
+src/net/net_log.gd (every 5 s of a network match a `[net]` line in user://logs/godot.log; read it after real play tests).
 src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cleans names; used by session.gd).
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,

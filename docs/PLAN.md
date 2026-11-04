@@ -743,6 +743,12 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Reprodukce:** stejný build na 2–4 počítačích ve stejné LAN/Wi-Fi, vystřídat hostitele a porovnat klid, pohyb, skoky, střelbu a zásahy. Zaznamenat konfiguraci, počet hráčů a přesný scénář; porovnat s localhostem a podle dostupnosti s kabelovou LAN.
 - **Měření na hostu i klientech:** časy renderovacích a fyzikálních snímků (včetně špiček), RTT/jitter/ztráty a intervaly příchozích vstupů a snapshotů; délku a stáří front vstupů, potvrzování `last_input_seq`, historii predikce a četnost/velikost korekcí. Ověřit také zaplnění a výpadky interpolačního bufferu.
 - **Izolace a následná oprava:** porovnat měření bez simulovaného zpoždění se stejnými scénáři při přidaném lagu a ztrátě paketů. Určit, zda zasekávání souvisí s výkonem snímků, doručováním, frontami nebo korekcemi, a až podle prokázané příčiny provést nejmenší opravu v navazujícím úkolu.
+- **První test přes Tailscale (2026-11-04, verze 0.1.4, Mac host + kamarád klient, každý na své Wi-Fi):**
+  - Připojení nejdřív selhalo oběma směry: každý byl ve vlastní Tailscale síti (`tailscale status` bez dalších zařízení). Po nasdílení Macu hostitele (Share) připojení funguje, spojení bylo **přímé** (IPv6, ne relay).
+  - `tailscale ping`: 26–51 ms, občas 104–125 ms (výkyvy Wi-Fi). Herní ping u klienta ~100–150 ms, FPS v pořádku u obou.
+  - Klient: „občas lag, spíš byl pohyb zpožděný“. Neupřesněno, zda vlastní postava, nebo postavy ostatních. Log hostitele bez chyb (hra do logu tehdy síťová čísla nezapisovala).
+  - Od 0.1.5 hra každých 5 s zapisuje do logu řádek `[net]` (klient: ping, FPS, nejdelší pauza snapshotů, největší korekce vlastní postavy; host: FPS, fronta vstupů po slotech). Log: macOS `~/Library/Application Support/Godot/app_userdata/gun_game/logs/`, Windows `%APPDATA%\Godot\app_userdata\gun_game\logs\`.
+  - **Kandidáti na opravu (zatím neschválené):** (a) postavy ostatních jsou zobrazené o RTT/2 + 100 ms interpolace pozadu → snapshoty 60 Hz místo 30 Hz a interpolace ~50 ms (data ~8 kB/s na klienta); (b) pokud jde o vlastní postavu, jsou to korekce predikce (odhoz, zpětný ráz, střelba se nepredikují) → zjistit z `correction_max` v logu.
 - **Ověření budoucí opravy:** zopakovat původní reprodukci i lag/loss scénáře, porovnat metriky před/po, ověřit autoritu hostitele a plynulost místní i vzdálených postav při 2–4 hráčích. Samotný průchod headless testy nenahrazuje praktické ověření na stejné Wi-Fi.
 
 ### M5 – Postavy a schopnosti *(střední)*
