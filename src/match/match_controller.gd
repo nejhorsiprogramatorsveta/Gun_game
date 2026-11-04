@@ -153,7 +153,7 @@ func _simulate_tick(delta: float) -> void:
 		player.invulnerable_time = maxf(player.invulnerable_time - delta, 0.0)
 		player.invulnerable = player.invulnerable_time > 0.0
 		_weapons.try_fire(player, input, delta)
-		_abilities.tick(player, input, delta, _players.values())
+		_abilities.tick(player, _players.values())
 		if _arena.is_out_of_bounds(player.position):
 			player.out_of_bounds_time += delta
 			if player.out_of_bounds_time >= _rules.out_of_bounds_grace:

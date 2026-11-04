@@ -137,3 +137,8 @@ CHARACTER_ARCHITEKT_NAME,Architekt
 CHARACTER_ARCHITEKT_DESCRIPTION,"Stavitel chrámů: spíš těžší a pomalejší. Nýtovačka a dvouhlavňová brokovnice."
 CHANGELOG_NEW_CHARACTERS,"Dvě nové postavy: Mlha (lehký kulomet, revolver) a Architekt (nýtovačka, dvouhlavňová brokovnice)."
 CHANGELOG_ABILITIES,"Speciální schopnosti (E nebo pravé tlačítko myši): Balvan má štít, Vichr tlakovou vlnu. Další schopnosti přibudou."
+ABILITY_DASH_NAME,Úskok
+ABILITY_DASH_DESCRIPTION,"Bleskový přesun do strany, i ve vzduchu."
+ABILITY_TELEPORT_NAME,Přesun
+ABILITY_TELEPORT_DESCRIPTION,"Přenese se kousek směrem ke kurzoru a zastaví se."
+CHANGELOG_DASH_TELEPORT,"Jiskra má úskok (E): rychlý přesun do strany i ve vzduchu. Stín má přesun (E): teleport směrem ke kurzoru."

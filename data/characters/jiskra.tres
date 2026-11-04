@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://src/data_types/character_data.gd" id="1"]
 [ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="2"]
+[ext_resource type="Resource" path="res://data/abilities/dash.tres" id="5"]
 [ext_resource type="Resource" path="res://data/weapons/smg.tres" id="3"]
 [ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="4"]
 
@@ -25,3 +26,4 @@ jump_buffer_time = 0.1
 drop_through_time = 0.25
 weight = 0.9
 weapons = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4")])
+ability = ExtResource("5")

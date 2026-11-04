@@ -33,7 +33,8 @@ var wanted_weapon_slot := 0
 ## Ability runtime state (authority decides; clients receive it in snapshots).
 var ability_cooldown := 0.0
 var ability_time_left := 0.0
-var ability_was_held := false
+## True on the tick the ability was activated (host applies effects on others).
+var ability_started := false
 ## Authority: seconds of respawn protection left.
 var invulnerable_time := 0.0
 ## Authority: how long the player has been outside the arena (see out_of_bounds_grace).
@@ -65,6 +66,7 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 
 ## One shared movement tick, also used during client prediction and replay.
 func simulate(input: InputFrame, delta: float) -> void:
+	tick_ability(input, delta)
 	PlayerMotor.step(self, input, motor_state, character, delta)
 	aim = input.aim
 	last_input_seq = input.seq
@@ -76,6 +78,19 @@ func current_weapon() -> WeaponData:
 	if character == null or character.weapons.is_empty():
 		return null
 	return character.weapons[clampi(weapon_slot, 0, character.weapons.size() - 1)]
+
+
+## Cooldowns and activation on press (not while held); shared by host and prediction.
+func tick_ability(input: InputFrame, delta: float) -> void:
+	ability_cooldown = maxf(ability_cooldown - delta, 0.0)
+	ability_time_left = maxf(ability_time_left - delta, 0.0)
+	var ability := character.ability if character else null
+	var pressed := input.is_held(InputFrame.ABILITY) and not motor_state.prev_buttons & InputFrame.ABILITY
+	ability_started = ability != null and pressed and ability_cooldown <= 0.0
+	if ability_started:
+		ability_cooldown = ability.cooldown
+		ability_time_left = ability.duration
+		ability.start(self, input)
 
 
 func ability_active() -> bool:
@@ -110,7 +125,8 @@ func snapshot_state() -> Dictionary:
 			"on_floor": motor_state.on_floor, "prev_buttons": motor_state.prev_buttons,
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
 			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths, "weapon_slot": weapon_slot,
-			"ability_cooldown": ability_cooldown, "ability_active": ability_active()}
+			"ability_cooldown": ability_cooldown, "ability_active": ability_active(),
+			"dash_time_left": motor_state.dash_time_left, "dash_direction": motor_state.dash_direction}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -124,6 +140,8 @@ func restore_state(state: Dictionary) -> void:
 	motor_state.jumps_left = state.jumps_left
 	motor_state.jump_buffer_timer = state.jump_buffer_timer
 	motor_state.drop_timer = state.drop_timer
+	motor_state.dash_time_left = state.get("dash_time_left", 0.0)
+	motor_state.dash_direction = state.get("dash_direction", 1)
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, visible and motor_state.drop_timer <= 0.0)
 
 

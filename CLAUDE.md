@@ -48,7 +48,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.7, next 0.1.8).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.8, next 0.1.9).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
@@ -79,7 +79,7 @@ Changelog is implemented: data/changelog.tres + localization CSV are shared by s
 the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
 archive that entry under its published version/build and add a new current entry. Do not guess the next build number.
-M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons/switching and M5.2a ability system (shield, shockwave) done; knockback limits in CombatRules are a user requirement. Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
+M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons/switching, M5.2a ability system (shield, shockwave) and M5.2b predicted dash/teleport done (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement. Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
 The user replaced the previous dev/stable split (2026-11-04): keep ONE existing release `dev`,
 promoted to stable/latest, and change its visible version/title and assets. The `dev` slug is retained for
 installed clients. Do not create releases or move/push tags. Hide old `v0.1.0` as a draft only after successful

@@ -5,6 +5,7 @@ const DT := 1.0 / 60.0
 ## Reconciliation uses the real motor rules; physics-world contacts have separate smoke tests.
 class TestPlayer extends Player:
 	func simulate(input: InputFrame, delta: float) -> void:
+		tick_ability(input, delta)
 		velocity = PlayerMotor.compute_velocity(velocity, motor_state.on_floor, input, motor_state, character, delta)
 		position += velocity * delta
 		aim = input.aim
@@ -191,3 +192,25 @@ func test_snapshot_delivery_defers_replay_and_rejects_old_ticks() -> void:
 	check_eq(controller._last_snapshot_tick, 0, "late match packets ignored during scene transition")
 	session.phase = previous_phase
 	controller.free()
+
+
+func test_dash_is_predicted_without_correction() -> void:
+	var host := _player()
+	host.character = ContentDB.get_character(&"jiskra")
+	var client := _player()
+	client.character = host.character
+	var prediction := ClientPrediction.new()
+	prediction.reconcile(client, host.snapshot_state())
+	var confirmed := {}
+	for seq in range(1, 13):
+		var buttons := InputFrame.ABILITY if seq >= 3 and seq <= 5 else 0
+		var input := InputFrame.create(1, buttons, 0, seq)
+		host.simulate(input, DT)
+		prediction.predict(client, input, DT, false)
+		if seq == 4:
+			confirmed = NetCodec.decode_snapshot(NetCodec.encode_snapshot(1, 0, [host.snapshot_state()] as Array[Dictionary])).states[0]
+	check(host.ability_cooldown > 0.0, "the dash was used")
+	check(client.position.is_equal_approx(host.position), "prediction matches the host")
+	check(is_equal_approx(prediction.reconcile(client, confirmed), 0.0), "replay from a mid-dash snapshot needs no correction")
+	host.free()
+	client.free()

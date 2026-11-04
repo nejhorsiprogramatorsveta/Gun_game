@@ -14,7 +14,14 @@ extends Resource
 @export var duration: float = 0.0
 
 
-## Authority: apply the instant part of the ability. `players` = everyone in the match.
+## Shared by the host and client prediction (runs inside Player.simulate): changes to the
+## user's OWN movement only, so the client predicts them exactly (dash, teleport).
+func start(_user: Player, _input: InputFrame) -> void:
+	pass
+
+
+## Authority only: effects on OTHER players (e.g. shockwave), after the user moved.
+## Apply the instant part of the ability. `players` = everyone in the match.
 ## Return the players that were pushed, so the score can credit the user.
 func activate(_user: Player, _players: Array) -> Array[Player]:
 	return []

@@ -22,6 +22,9 @@ class State:
 	var on_floor: bool = false
 	## 1 = right, -1 = left: the side the player aims at.
 	var facing: int = 1
+	## Dash ability (DashAbility.start): seconds left and side (1 / -1).
+	var dash_time_left: float = 0.0
+	var dash_direction: int = 1
 
 
 static func step(body: CharacterBody2D, input: InputFrame, state: State, stats: CharacterData, delta: float) -> void:
@@ -51,6 +54,8 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	var just_pressed := input.buttons & ~state.prev_buttons
 	state.prev_buttons = input.buttons
 	_update_timers(on_floor, just_pressed, state, stats, delta)
+	if state.dash_time_left > 0.0:
+		return _dash(state, stats, delta)
 
 	velocity.x = _horizontal(velocity.x, on_floor, input.move_x, stats, delta)
 	# The character looks where the player aims (mouse cursor), not where it runs.
@@ -72,6 +77,17 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	if on_floor and just_pressed & InputFrame.DOWN:
 		state.drop_timer = stats.drop_through_time
 	return velocity
+
+
+## A dash moves straight sideways at the ability's speed, without gravity; afterwards the
+## player keeps normal running speed instead of sliding far.
+static func _dash(state: State, stats: CharacterData, delta: float) -> Vector2:
+	var dash := stats.ability as DashAbility
+	state.dash_time_left = maxf(state.dash_time_left - delta, 0.0)
+	var speed := dash.speed if dash else stats.move_speed
+	if state.dash_time_left <= 0.0:
+		speed = stats.move_speed
+	return Vector2(state.dash_direction * speed, 0.0)
 
 
 static func _update_timers(on_floor: bool, just_pressed: int, state: State, stats: CharacterData, delta: float) -> void:
