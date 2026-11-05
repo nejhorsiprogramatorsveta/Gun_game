@@ -60,6 +60,10 @@ postav jsou v něm (`CHARACTERS`, `WEAPONS`). Po úpravě spusť `python3 tools/
 import Godotu a PNG soubory commitni. Novou postavu do skriptu přidej se stejným id jako v `data/characters/`.
 Hotový obrázek z jiného programu (např. Aseprite) jde použít taky – stačí dodržet rozměry snímků.
 
+Krügermanna ve svetru a Architekta s knírem v obleku kreslí samostatně `tools/art/reference_characters.py`.
+Skript `generate_sprites.py` tento modul používá při tvorbě sprite sheetů. Jejich návrhy vycházejí ze stylizovaných předloh od uživatele; samotné
+referenční obrázky nejsou součástí hry. Zůstává 10 snímků 32 × 40 px a stejné animace.
+
 Mapy, pozadí a UI kreslí `tools/art/generate_world.py` (dlaždice plošin, pozadí map 480 × 270, mraky, logo, rámečky
 tlačítek). Pozadí mapy je uzel `Background` ve scéně arény (pole `scene`). Vzhled tlačítek a textů je ve společném
 tématu `assets/ui/theme.tres`.

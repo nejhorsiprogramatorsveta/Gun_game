@@ -86,6 +86,8 @@ func update_look(facing: int, aim_direction: Vector2, on_floor: bool, velocity: 
 func _update_ability(active: bool, facing: int) -> void:
 	if _ability_loop:
 		_ability_loop.visible = active
+		if _ability is JetpackAbility:  # the pack is on her back: follow the facing side
+			_ability_loop.position = Vector2(AbilityFx.JET_OFFSET.x * facing, AbilityFx.JET_OFFSET.y)
 	if active and not _was_ability_active and _ability:
 		var burst := AbilityFx.make_burst(_ability, facing)
 		if not burst.is_empty():

@@ -8,9 +8,11 @@ Každý cizí asset musí mít v tomto souboru uvedený zdroj a licenci. Vlastn�
 | Font Noto Sans (variabilní, dřívější písmo, zůstává v projektu) | `assets/fonts/NotoSans.ttf` | The Noto Project Authors, https://github.com/google/fonts/tree/main/ofl/notosans | SIL Open Font License 1.1 (`assets/fonts/OFL.txt`) |
 | Herní engine Godot | (součást každého buildu) | Juan Linietsky, Ariel Manzur a přispěvatelé Godotu, https://godotengine.org | MIT, https://godotengine.org/license |
 
-| Pixel art postav a zbraní | `assets/sprites/characters/*.png`, `assets/sprites/weapons/*.png` | vlastní tvorba projektu, generuje `tools/art/generate_sprites.py` (kreslí pixel po pixelu, bez cizích obrázků) | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
+| Pixel art postav a zbraní | `assets/sprites/characters/*.png`, `assets/sprites/weapons/*.png` | vlastní pixelová kresba projektu, generuje `tools/art/generate_sprites.py`; Krügermanna ve svetru a Architekta v obleku kreslí `tools/art/reference_characters.py` podle stylizovaných předloh dodaných uživatelem | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 
 | Pixel art efektů schopností (plyn, štít, tlaková vlna, úskok, kouř) | `assets/sprites/effects/*.png` | vlastní tvorba projektu, generuje `tools/art/generate_effects.py` | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 | Pixel art map, pozadí a UI (dlaždice, 3 pozadí, mraky, logo, rámečky tlačítek a panelů) | `assets/sprites/tiles/*.png`, `assets/backgrounds/*.png`, `assets/ui/*.png`, `assets/ui/theme.tres` | vlastní tvorba projektu, generuje `tools/art/generate_world.py` (procedurálně, pevná semínka, bez cizích obrázků) | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 
-Postavy, mapy i UI jsou originální návrhy; nic nevychází z fotografií skutečných lidí ani z cizí grafiky.
+Postavy nevycházejí z fotografií skutečných lidí. Krügermann a Architekt jsou samostatné pixelové kresby
+podle stylizovaných předloh dodaných uživatelem; referenční obrázky se do hry nebalí. Ostatní postavy,
+mapy a UI jsou originální návrhy projektu.

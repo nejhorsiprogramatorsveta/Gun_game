@@ -1,6 +1,6 @@
 class_name ShockwaveAbility
 extends AbilityData
-## Vichr: pushes every opponent within `radius` away from the user (slightly upwards).
+## Vichr: pushes every opponent (not teammates) within `radius` away from the user (slightly upwards).
 ## A long reach (320 px, user 2026-11-05) so it is a ranged move, not melee.
 ## `strength` follows the same knockback limit as weapons (CombatRules).
 
@@ -13,7 +13,7 @@ extends AbilityData
 func activate(user: Player, players: Array) -> Array[Player]:
 	var pushed: Array[Player] = []
 	for other: Player in players:
-		if other == user or not other.visible or other.invulnerable:
+		if other == user or not other.visible or other.invulnerable or Teams.allies(user.team, other.team):
 			continue
 		var offset := other.global_position - user.global_position
 		if offset.length() > radius:

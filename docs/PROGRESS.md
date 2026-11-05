@@ -1,7 +1,20 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Grafika a kompletní validace hotové; efekty schopností v pixel artu (verze `0.2.5`).** Pixel art postav (0.2.1), map/pozadí/menu (0.2.2), opravy z validace (0.2.3), pixelové písmo + scoreboard + „KILL!“ nad hráčem (0.2.4), efekty schopností + tlaková vlna 320 px (0.2.5).
+**Režim 2 v 2 hotový a vydaný spolu s vzhledy a jetpackem jako `0.2.6` (Claude, 2026-11-05).** Uživatel: „do hostovacího lobby přidej novou možnost hry – 2v2 místo každý proti každému, hráči si vyberou týmy; ve hře má každý tým svůj scoreboard – jeden vlevo, druhý vpravo. Pak to pushni.“
+- Hostitel v lobby volí „Režim: Každý proti každému / 2 v 2 (týmy)“; všichni vidí tlačítka Červený tým / Modrý tým (počet x/2). Nový hráč jde do menšího týmu; přejít se dá kamkoli (i do plného – jinak by se 4 hráči nemohli prohodit), start povolí jen 1–2 hráče v každém týmu (2v2, 2v1, 1v1), jinak hláška `LOBBY_NEED_TEAMS`.
+- Ve hře: červení začínají vlevo (sloty 0, 2), modří vpravo (1, 3); jména v barvě týmu; **bez friendly fire** (střely spoluhráčem proletí, tlaková vlna ho neodhodí, plyn ho nezpomalí). Vyhrává poslední tým se životy; výsledky: „Vyhrál Červený tým!“ a celý vítězný tým na 1. místě. HUD: scoreboard Červeného týmu vlevo nahoře, Modrého vpravo nahoře; v režimu každý proti každému beze změny.
+- Nové soubory: `src/match/{teams,match_ranking}.gd`, `src/net/team_choice.gd`, `src/ui/score_table.gd`, `tests/test_teams.gd`. Změny: `session.gd`, `lobby_validator.gd`, `lobby.gd`, `match_controller.gd`, `match_hud.gd` + `match.tscn`, `results.gd`, `player.gd`, `projectile.gd`, `shockwave_ability.gd`, `area_effects.gd`, CSV, changelog, dokumentace. Protokol zůstává 15 (verze 0.2.6 dosud nevydaná).
+
+**Předchozí (Codex):** vzhled Krügermanna a Architekta podle předloh + jetpack Jiskry, níže.
+**Vzhled Krügermanna a Architekta podle uživatelových předloh hotový, lokálně verze `0.2.6`, bez commitu/pushe.** Krügermann má hnědé vlasy, tmavý svetr se světlým zipem a červeným znakem; Architekt střapaté vlasy, knír, tmavý oblek, světlou košili a kravatu. Zachováno 10 snímků 32 × 40 px, samostatná zbraň, kolize, pohyb a obě schopnosti. Předchozí rozpracovaný jetpack Jiskry zachován.
+- **2026-11-05 (Codex):** přečteny projektové pokyny a společně s agenty všechny projektové zdrojové, datové, testovací a dokumentační soubory; `git fetch` potvrdil `main == origin/main` (`500f0d0`). Žádný commit ani push.
+- **Soubory změněné v tomto úkolu:** `assets/sprites/characters/{krugermann,architekt}.png`, `tools/art/generate_sprites.py`, nový `tools/art/reference_characters.py`, `tests/test_player_visual.gd`, `project.godot`, `data/changelog.tres`, `localization/translations.csv`, `export_presets.cfg`, `CREDITS.md`, `CLAUDE.md`, `docs/{ARCHITECTURE,EDITING_GUIDE,PROGRESS}.md`. Generátor zůstává reprodukovatelný; ostatní postavy i zbraně se proti začátku úkolu nezměnily. Staré `art_reference/*` se při lokálním exportu přibíraly do hry; všechny tři presety je nyní vylučují.
+- **Již existující necommitnutá práce při zahájení:** Jiskřin jetpack místo úskoku (sprite Jiskry, `jet_flame.png` + import, `jetpack.tres`, `jetpack_ability.gd` + UID; změny `jiskra.tres`, `build_info.gd`, `ability_data.gd`, `net_codec.gd`, `ability_fx.gd`, `player.gd`, `player_motor.gd`, `player_visual.gd`, testů schopností/predikce/kodeku a generátoru efektů; odstraněný dash včetně efektu/importu a skriptu/UID). Existovaly i předchozí úpravy obou nyní přepracovaných spriteů, generátoru, CSV a vizuálních testů. Tato práce nebyla vrácena ani přestagována.
+- **Verzování:** patch navýšen jednou `0.2.5 → 0.2.6`; skutečný publikovaný `version.json` i GitHub release potvrdily `0.2.5`, build `53`, stable. Tento changelog archivován jako 0.2.5/53; nový build 0 obsahuje nové vzhledy a již rozpracovaný jetpack. Nové číslo buildu není odhadováno.
+- **Lokální výstupy:** `build/windows/gun_game.exe` (107,34 MiB), `build/linux/gun_game.x86_64` (73,25 MiB), náhled `build/character_preview.png`; pomocné ověřovací skripty a mezivýsledky v `/tmp/gun_game_reference_check/`. Žádné stahování enginu ani šablon. Nový macOS export nebyl spuštěn: žádost o jeho spuštění byla zamítnuta. Staré macOS výstupy nejsou ověřením 0.2.6.
+
+**Předchozí stav 0.2.5:** pixel art postav (0.2.1), map/pozadí/menu (0.2.2), opravy z validace (0.2.3), pixelové písmo + scoreboard + „KILL!“ nad hráčem (0.2.4), efekty schopností + tlaková vlna 320 px (0.2.5).
 - **Validace část 1 (2026-11-05):** připojovací chyby (špatný kód, jiná verze, plné lobby, zápas běží – správné české hlášky), 6 scénářů odpojení, 4 boti na mapách, výkon (0 pomalých snímků) – vše OK. Nezávislá kontrola kódu (agent) našla 7 problémů, všechny ověřeny a opraveny:
   1. Esc hostitele během 0,5 s po konci zápasu → všichni uvízli ve výsledcích (reprodukováno na starém kódu, opraveno: scéna podle aktuální fáze, jediné přepnutí; výsledky/lobby po načtení kontrolují fázi).
   2. Lobby po načtení nepřešlo do už běžícího zápasu → opraveno.
@@ -15,11 +28,11 @@
 - **0.2.4:** písmo Pixelify Sans (OFL, celá čeština) bez vyhlazování v celé hře; scoreboard v panelu s ikonami hlav; „KILL!“ / „DOUBLE KILL!“ … nad hráčem, který zabil (`kill_popup.gd`); číslo verze v menu se už neuřízne.
 - `session.gd` má 319 řádků (limit ~300) – přesunout handshake do `src/net/session_auth.gd`.
 - **0.2.5 (uživatel: „proč nemá Krügermann pixelartovou schopnost… a ostatní postavy“; „postavě s energetickým štítem na vystřelení větší range, ať nemusí melee“):** pixelové efekty všech schopností (`ability_fx.gd`, `generate_effects.py`); dosah tlakové vlny Vichra 160 → 320 px (výklad: „energetický štít na vystřelení“ = tlaková vlna; pokud uživatel myslel Balvanův štít, upravit).
-- **Pozor před dalším herním commitem:** verze `0.2.6` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
-- Necommitnuté změny: žádné.
+- **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
-**Zeptat se uživatele.** Nabídnout: ruční test ve 4 lidech (+ logy `[net]` pro M4.1), animace zásahu a efekty schopností (grafika), „budoucí práce – chování zbraní“ (PLAN.md G.0a), rozdělení `session.gd`, zvuky a hudba (PLAN.md M8).
+**Ruční test 2 v 2 se skutečnými hráči** (hostitel zapne „2 v 2“, rozdělit týmy, zahrát zápas: ověřit, že spoluhráče nejde shodit, scoreboardy vlevo/vpravo, výsledek týmu). Pak dle pokynu uživatele.
+Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:** `tools/godot --path .`, v menu postupně zvolit Krügermanna a Architekta a spustit trénink. Pohyb A/D, skok W/mezerník, míření myší, střelba levým tlačítkem, schopnost E/pravým tlačítkem. Aktuální implementační zadání je dokončené; další herní změny jen podle nového pokynu. macOS export neopakovat bez nového svolení po zamítnutém spuštění.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -65,6 +78,8 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, režim 2 v 2, verze 0.2.6 (Claude):** viz „Kde jsme skončili“; changelog `CHANGELOG_TEAMS` přidán do aktuálního záznamu (build 0) vedle nových vzhledů a jetpacku.
+- **2026-11-05, nové vzhledy podle předloh, lokální 0.2.6 (Codex, bez commitu/pushe):** samostatný pixelový generátor `reference_characters.py`, nové kompletní animované sheety Krügermanna a Architekta, parametrizovaný vizuální test obou postav, související texty/dokumentace a changelog 0.2.5/53 → 0.2.6/build 0. V exportech vyloučeny referenční obrázky. Již rozpracovaný jetpack zachován. Windows/Linux build a obsah balíčků ověřeny; macOS export nebyl povolen.
 - **2026-11-05, efekty schopností + delší tlaková vlna, verze 0.2.5 (Claude):** `tools/art/generate_effects.py`, `assets/sprites/effects/*`, `src/player/ability_fx.gd`, `player_visual.gd` (efekty), `slow_cloud.gd` (pixelový plyn), `shockwave.tres` radius 320, test efektů.
 - **2026-11-05, validace + opravy (0.2.3) a pixelové písmo/scoreboard/KILL (0.2.4) (Claude):** viz „Kde jsme skončili“; nové `src/ui/kill_popup.gd`, `assets/fonts/PixelifySans.ttf` (+ OFL), úpravy `match_hud.gd`, `match.tscn` (ScorePanel, bez KillLabel), CSV `POPUP_*` místo `HUD_*KILL`.
 - **2026-11-05, pixel art map/pozadí/menu, verze 0.2.2 (Claude):** `tools/art/generate_world.py`, `assets/sprites/tiles`, `assets/backgrounds`, `assets/ui` (+ `theme.tres`), `src/arenas/arena_background.gd`, `platform.gd` (dlaždice), pozadí v 3 arénách a 3 UI scénách, logo v menu, `gui/theme/custom` v `project.godot`, CREDITS, EDITING_GUIDE.
@@ -214,11 +229,12 @@
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
+- **Omezení ověření 0.2.6:** nový macOS export nebyl povolen; Windows/Linux binárky byly sestaveny a jejich balíčky načteny macOS Godotem, nikoli spuštěny nativně na cílových OS. Ruční síťová hra po této čistě vzhledové úpravě neopakována. Běžící zdrojová hra a schopnosti obou postav ověřeny na macOS.
 - **Ping ukazuje potvrzení vstupu**, tj. RTT + až ~33 ms do dalšího snapshotu + případná fronta na hostu; je tedy o něco vyšší než čistý síťový ping.
 - **Přeskočený vstup při dohánění** způsobí na klientovi malou korekci (~1 tick pohybu), vyhlazenou vizuálním offsetem.
 - **Stejná Wi-Fi: výrazné sekání všech klientů kromě hosta** (nahlášeno uživatelem 2026-11-04). Příčina neměřená, oprava výslovně odložená; viz PLAN.md M4.1. Lokální headless síťové testy tento problém nevyvracejí.
 - **Každá změna hry = nová verze:** hra ji od M3U sama nabídne v menu. Verze bez aktualizátoru (≤ sestavení 24) je potřeba naposledy stáhnout ručně.
-- **`session.gd` má 309 řádků** (limit ~300). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
+- **`session.gd` má 331 řádků** (limit ~300; 2 v 2 přidal start s týmovými sloty). Kandidát na rozdělení: přesunout fázové RPC (start, konec, návrat) do samostatného uzlu nebo skriptu.
 - **Tailscale:** Share ověřen 2026-11-04 (Mac host, přímé spojení). Bez Share se připojení nepovede oběma směry – hra hlásí jen obecnou chybu připojení. Firewall na Windows při hostování zatím neověřen.
 - **Predikce je zatím ověřená automaticky lokálně.** Skutečný internet a ruční hodnocení plynulosti korekcí čekají na hráče. Střelbu, zpětný ráz a odhoz dál potvrzuje host; M4 predikuje jen pohyb.
 - **Kolize s pohybujícími se soupeři při replay používají jejich aktuální interpolované pozice.** Mohou vyvolat korekce od hostu; historické přetáčení soupeřů není součást M4.
@@ -232,6 +248,8 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, 2 v 2 (0.2.6):** **113/113 GDScript testů** (nové `test_teams.gd`: pravidla týmů, validace `team`, tlaková vlna a plyn šetří spoluhráče, konec a pořadí týmového zápasu), lokalizace **183 klíčů, 0 chybějících**. Síťový test 4 procesů na 127.0.0.1: host zapne 2 v 2, klienti se přeskupí (Bob → červení, Cyril → modří) na 2+2, start, sloty 0/2 červení a 1/3 modří, všichni klienti vidí 2 scoreboardy „Červený tým“/„Modrý tým“ a týmy hráčů, po vyřazení modrých výsledky „červení 1. místo“ u všech. Fyzikální test: střela proletí spoluhráčem a zasáhne soupeře; bez týmů se zastaví o prvního hráče. Screenshoty lobby (2 v 2), HUD 2 v 2 a tréninku (jedna tabulka beze změny). **Neověřeno:** ruční hra 4 lidí v 2 v 2, Windows.
+- **2026-11-05, nové vzhledy (0.2.6):** **109/109 GDScript testů**, lokalizace **174 použitých klíčů, 0 chybějících**, **10/10 Python testů vydávání**, `git diff --check` OK. Pohybový vizuální test kontroluje u Balvana, Krügermanna a Architekta idle/walk/jump/fall/shoot, počty snímků 2/4/1/1/2 a zrcadlení postavy/zbraně. Dočasný integrační smoke úspěšně ověřil obě živé Player scény na podlaze, obě orientace a všechny animace, skutečné projektily/zásahy/zpětný ráz, Krügermannův plyn (imunita vlastníka, zpomalení soupeře), Architektovu plošinu a přistání na ní. Vizuální kontrola generovaných snímků a screenshot běžícího tréninku včetně HUD portrétů (`build/character_preview.png`). **Export Windows a Linux exit 0**; oba skutečné zabalené projekty načteny mimo zdrojový projekt: verze 0.2.6, shodné viditelné pixely obou sheetů a žádné referenční obrázky. Test neplatného manifestu dál záměrně vypisuje chybu JSON a runner při ukončení známá resource warnings; integrační smoke i grafické spuštění bez scriptových chyb. **Neověřeno:** nový macOS export (spuštění zamítnuto), nativní spuštění na Windows/Linuxu, ruční multiplayer/internet.
 - **2026-11-05, efekty schopností (0.2.5):** 109/109 unit testů (efekt ke každé schopnosti, prstenec přesně na dosah vlny), lokalizace OK; screenshoty všech 5 efektů v tréninku. **Neověřeno:** efekty u vzdálených hráčů ručně (náběžná hrana z příznaku ve snapshotu – stejná cesta jako dřívější kruh), ruční dojem.
 - **2026-11-05, validace (0.2.3–0.2.4):** 108/108 unit testů, lokalizace OK, 10/10 testů vydávání; síťové scénáře: 4 chyby připojení, 6+1 scénářů odpojení (vč. Esc během výsledků – reprodukováno a opraveno), 4 boti na mapách (0 pomalých snímků), korekce při GO 33–47 → 24 px; exporty 3 platforem, spuštění macOS release exportu; screenshoty HUD/scoreboard/KILL a menu. **Neověřeno:** ruční hra 4 lidí, internet, spuštění na Windows a Linuxu.
 - **2026-11-05, pixel art světa (0.2.2):** 107/107 unit testů, lokalizace OK; screenshoty 3 map v tréninku, menu, lobby hostitele (bez posuvníku), výsledků a dialogu „Co je nového“. **Neověřeno:** ruční dojem, Windows.

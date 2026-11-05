@@ -19,6 +19,8 @@ var _is_authority := true
 var _effects: Dictionary[String, Node2D] = {}
 ## Client: key -> creation time (msec) of effects predicted locally and not yet confirmed.
 var _unconfirmed: Dictionary[String, int] = {}
+## 2 v 2: peer_id -> team (set by MatchController); teammates' clouds do not slow.
+var teams: Dictionary[int, int] = {}
 
 
 func setup(net: Node, is_authority: bool) -> void:
@@ -43,7 +45,8 @@ func slow_for(player: Player) -> Vector2:
 	var scale := Vector2.ONE
 	for effect in _effects.values():
 		var cloud := effect as SlowCloud
-		if cloud and cloud.owner_peer_id != player.peer_id and cloud.contains(player.global_position):
+		if cloud and cloud.owner_peer_id != player.peer_id and cloud.contains(player.global_position) \
+				and not Teams.allies(teams.get(cloud.owner_peer_id, Teams.NONE), player.team):
 			scale = Vector2(minf(scale.x, cloud.speed_scale), minf(scale.y, cloud.jump_scale))
 	return scale
 

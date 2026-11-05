@@ -3,7 +3,7 @@
 
 Run from the project root:  python3 tools/art/generate_sprites.py   (needs Pillow)
 Writes PNG sprite sheets to assets/sprites/; commit them and run the Godot import.
-All art is drawn here pixel by pixel: original designs, no third-party images.
+Art is drawn here and in reference_characters.py pixel by pixel; no image files are copied.
 
 Character sheet: 10 frames of 32x40 px in one row, facing right, feet on the bottom row:
   0-1 idle, 2-5 walk, 6 jump, 7 fall, 8-9 shoot (recoil lean).
@@ -13,6 +13,7 @@ Weapon sheet: 2 frames of 34x12 px (normal, muzzle flash); the grip/hand is at (
 
 from pathlib import Path
 from PIL import Image
+from reference_characters import draw_reference_character
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "assets" / "sprites"
@@ -126,11 +127,11 @@ def eyes(c: Canvas, x: int, y: int, color=(30, 24, 30, 255)) -> None:
     c.px(x + 7, y + 4, color)
 
 
-def jiskra_back(c, pal, bob, lean):  # katana across the back (handle low left, tip over the shoulder), ponytail
-    for i in range(20):
-        x, y = 5 + i + lean, 31 - i - i // 3 + bob
-        c.px(x, y, pal["accent"] if i < 4 else pal["blade"])
-        c.px(x, y - 1, pal["accent"] if i < 4 else pal["blade"])
+def jiskra_back(c, pal, bob, lean):  # jetpack with two nozzles on the back, ponytail
+    c.rect(5 + lean, 18 + bob, 10 + lean, 28 + bob, pal["jetpack"])
+    c.rect(5 + lean, 21 + bob, 10 + lean, 22 + bob, pal["accent"], shaded=False)  # red stripe
+    c.rect(5 + lean, 29 + bob, 6 + lean, 30 + bob, pal["nozzle"], shaded=False)
+    c.rect(9 + lean, 29 + bob, 10 + lean, 30 + bob, pal["nozzle"], shaded=False)
     c.rect(9 + lean, 10 + bob, 11 + lean, 19 + bob, pal["hair"])
 
 
@@ -205,48 +206,11 @@ def stin_front(c, pal, tx, bob):
     pass
 
 
-def krug_back(c, pal, bob, lean):  # green pressure tank with a hose
-    c.rect(6 + lean, 18 + bob, 10 + lean, 29 + bob, pal["tank"])
-    c.rect(7 + lean, 17 + bob, 9 + lean, 17 + bob, pal["brass"], shaded=False)
-    c.px(8 + lean, 16 + bob, pal["brass"])
-
-
-def krug_head(c, pal, x, y):
-    c.rect(x - 1, y - 2, x + 8, y + 2, pal["hair"])            # wild hair
-    c.px(x - 2, y - 1, pal["hair"]); c.px(x + 9, y, pal["hair"]); c.px(x + 2, y - 3, pal["hair"]); c.px(x + 6, y - 3, pal["hair"])
-    c.rect(x + 3, y + 3, x + 8, y + 5, pal["brass"], shaded=False)  # goggles
-    c.px(x + 5, y + 4, pal["lens"]); c.px(x + 7, y + 4, pal["lens"])
-    c.rect(x + 4, y + 7, x + 6, y + 7, (120, 70, 60, 255), shaded=False)  # grin
-
-
-def krug_front(c, pal, tx, bob):
-    c.rect(tx + 4, 19 + bob, tx + 5, 30 + bob, shade(pal["body"], 0.8), shaded=False)  # coat opening
-    c.px(tx + 7, 21 + bob, pal["lens"])  # a vial in the pocket
-
-
-def arch_back(c, pal, bob, lean):  # carpenter's hammer on the back, head over the left shoulder
-    c.rect(6 + lean, 14 + bob, 7 + lean, 30 + bob, pal["wood"], shaded=False)
-    c.rect(3 + lean, 11 + bob, 10 + lean, 14 + bob, pal["iron"])
-
-
-def arch_head(c, pal, x, y):
-    c.rect(x - 3, y + 1, x + 10, y + 2, pal["hat"])            # wide straw hat (kasa)
-    c.rect(x, y - 1, x + 7, y, pal["hat"], shaded=False)
-    c.rect(x + 2, y - 2, x + 5, y - 2, shade(pal["hat"], 0.8), shaded=False)
-    eyes(c, x, y + 1)
-    c.rect(x + 4, y + 8, x + 7, y + 9, (60, 44, 34, 255), shaded=False)  # short beard
-
-
-def arch_front(c, pal, tx, bob):
-    c.rect(tx, 26 + bob, tx + 9, 27 + bob, pal["sash"], shaded=False)
-    c.px(tx + 7, 22 + bob, pal["iron"])  # a nail in the chest pocket
-
-
 SKIN = rgb("#f1c6a0")
 CHARACTERS = {
     "jiskra": {"palette": {"body": rgb("#c0392b"), "legs": rgb("#3a3a4a"), "feet": rgb("#1e1e26"),
                            "belt": rgb("#e0b84a"), "hand": SKIN, "skin": SKIN, "hair": rgb("#2b1d2e"),
-                           "mask": rgb("#f4f1ea"), "accent": rgb("#d9433b"), "blade": rgb("#c9ced6"),
+                           "mask": rgb("#f4f1ea"), "accent": rgb("#d9433b"), "jetpack": rgb("#8a8f99"), "nozzle": rgb("#3a3d44"),
                            "trim": rgb("#f4f1ea")},
                "back": jiskra_back, "head": jiskra_head, "front": jiskra_front},
     "balvan": {"palette": {"body": rgb("#3d4e66"), "legs": rgb("#2a3648"), "feet": rgb("#1b222e"),
@@ -261,14 +225,8 @@ CHARACTERS = {
                          "belt": rgb("#463d66"), "hand": rgb("#1b1729"), "skin": SKIN, "steel": rgb("#c9ced6"),
                          "accent": rgb("#8e5cd9")},
              "back": stin_back, "head": stin_head, "front": stin_front},
-    "krugermann": {"palette": {"body": rgb("#e8e6dc"), "legs": rgb("#4a4a52"), "feet": rgb("#2a2a30"),
-                               "belt": rgb("#bdb9a8"), "hand": rgb("#2a2a30"), "skin": SKIN, "hair": rgb("#e0893a"),
-                               "brass": rgb("#c9a03c"), "lens": rgb("#7ee06a"), "tank": rgb("#5aa843")},
-                   "back": krug_back, "head": krug_head, "front": krug_front},
-    "architekt": {"palette": {"body": rgb("#7a5233"), "legs": rgb("#5a3d27"), "feet": rgb("#2e2016"),
-                              "belt": rgb("#3b6ea8"), "hand": SKIN, "skin": SKIN, "hat": rgb("#d9b86a"),
-                              "sash": rgb("#3b6ea8"), "wood": rgb("#a87a4a"), "iron": rgb("#8a8f99")},
-                  "back": arch_back, "head": arch_head, "front": arch_front},
+    "krugermann": {"reference": True},
+    "architekt": {"reference": True},
 }
 
 
@@ -320,7 +278,10 @@ def main() -> None:
         sheet = Image.new("RGBA", (FW * len(FRAMES), FH), (0, 0, 0, 0))
         for i, frame in enumerate(FRAMES):
             canvas = Canvas(FW, FH)
-            draw_character(canvas, spec, frame)
+            if spec.get("reference"):
+                draw_reference_character(canvas, name, pose(frame))
+            else:
+                draw_character(canvas, spec, frame)
             sheet.paste(canvas.img, (i * FW, 0))
         sheet.save(OUT / "characters" / f"{name}.png")
     for name, spec in WEAPONS.items():

@@ -1,11 +1,13 @@
 class_name AbilityFx
 ## Pixel-art effects of abilities (tools/art/generate_effects.py), purely visual:
-## Balvan's shield bubble while active, Vichr's expanding ring, Jiskra's dash trail and
+## Balvan's shield bubble and Jiskra's jetpack flame while active, Vichr's expanding ring and
 ## Stín's smoke poof. Krügermann's gas and Architekt's platform draw themselves.
 
 const SHIELD: Texture2D = preload("res://assets/sprites/effects/shield_bubble.png")
 const RING: Texture2D = preload("res://assets/sprites/effects/shockwave_ring.png")
-const TRAIL: Texture2D = preload("res://assets/sprites/effects/dash_trail.png")
+const JET_FLAME: Texture2D = preload("res://assets/sprites/effects/jet_flame.png")
+## Jetpack nozzles relative to the player when facing right (the pack is on the back).
+const JET_OFFSET := Vector2(-14, 18)
 const SMOKE: Texture2D = preload("res://assets/sprites/effects/teleport_smoke.png")
 ## Outer ring radius in the last frame of the shockwave sheet (px of the sheet).
 const RING_RADIUS := 76.0
@@ -18,6 +20,11 @@ static func make_loop(ability: AbilityData) -> AnimatedSprite2D:
 		bubble.scale = Vector2.ONE * 2.0
 		bubble.position = Vector2(0, -2)
 		return bubble
+	if ability is JetpackAbility:
+		var flame := _sprite(JET_FLAME, 3, 16.0, true)
+		flame.scale = Vector2.ONE * 2.0
+		flame.position = JET_OFFSET
+		return flame
 	return null
 
 
@@ -28,12 +35,6 @@ static func make_burst(ability: AbilityData, facing: int) -> Dictionary:
 		var ring := _sprite(RING, 6, 24.0, false)
 		ring.scale = Vector2.ONE * ((ability as ShockwaveAbility).radius / RING_RADIUS)
 		return {"node": ring, "world": false}
-	if ability is DashAbility:
-		var trail := _sprite(TRAIL, 3, 18.0, false)
-		trail.scale = Vector2.ONE * 2.0
-		trail.flip_h = facing < 0
-		trail.position = Vector2(-28 * facing, -4)
-		return {"node": trail, "world": true}
 	if ability is TeleportAbility:
 		var poof := _sprite(SMOKE, 5, 16.0, false)
 		poof.scale = Vector2.ONE * 2.0

@@ -128,13 +128,11 @@ WEAPON_REVOLVER_NAME,Revolver
 WEAPON_NAIL_GUN_NAME,Nýtovačka
 WEAPON_DOUBLE_BARREL_NAME,Dvouhlavňová brokovnice
 CHARACTER_KRUGERMANN_NAME,Krügermann
-CHARACTER_KRUGERMANN_DESCRIPTION,"Potrhlý vynálezce: vyvážený. Lehký kulomet."
+CHARACTER_KRUGERMANN_DESCRIPTION,"Muž v tmavém svetru: vyvážený. Lehký kulomet."
 CHARACTER_ARCHITEKT_NAME,Architekt
-CHARACTER_ARCHITEKT_DESCRIPTION,"Stavitel chrámů: spíš těžší a pomalejší. Dvouhlavňová brokovnice."
+CHARACTER_ARCHITEKT_DESCRIPTION,"Střapatý muž s knírem v tmavém obleku a kravatě: spíš těžší a pomalejší. Dvouhlavňová brokovnice."
 CHANGELOG_NEW_CHARACTERS,"Dvě nové postavy: Krügermann (lehký kulomet, revolver) a Architekt (nýtovačka, dvouhlavňová brokovnice)."
 CHANGELOG_ABILITIES,"Speciální schopnosti (E nebo pravé tlačítko myši): Balvan má štít, Vichr tlakovou vlnu. Další schopnosti přibudou."
-ABILITY_DASH_NAME,Úskok
-ABILITY_DASH_DESCRIPTION,"Bleskový přesun do strany, i ve vzduchu."
 ABILITY_TELEPORT_NAME,Přesun
 ABILITY_TELEPORT_DESCRIPTION,"Přenese se kousek směrem ke kurzoru a zastaví se."
 CHANGELOG_DASH_TELEPORT,"Jiskra má úskok (E): rychlý přesun do strany i ve vzduchu. Stín má přesun (E): teleport směrem ke kurzoru."
@@ -171,3 +169,16 @@ POPUP_TRIPLE_KILL,TRIPLE KILL!
 POPUP_MULTI_KILL,MULTI KILL ×{count}!
 CHANGELOG_PIXEL_TEXT,"Pixelové písmo v celé hře, nový scoreboard s ikonami postav a nápis KILL! nad hráčem, který zrovna někoho shodil (DOUBLE / TRIPLE / MULTI KILL při sérii)."
 CHANGELOG_ABILITY_FX,"Pixelové efekty všech schopností: zelený plyn Krügermanna, energetická bublina Balvanova štítu, prstenec Vichrovy tlakové vlny, stopa Jiskřina úskoku a kouř Stínova přesunu. Tlaková vlna má dvojnásobný dosah (320 px)."
+CHANGELOG_NEW_LOOKS,"Nový vzhled podle předloh: Krügermann je muž v tmavém svetru a Architekt střapatý muž s knírem v obleku a kravatě."
+ABILITY_JETPACK_NAME,Jetpack
+ABILITY_JETPACK_DESCRIPTION,"Jetpack ji na chvíli vynese nahoru, za letu jde řídit do stran."
+CHANGELOG_JETPACK,"Jiskra má místo úskoku jetpack (E): na 0,7 s ji vynese nahoru, za letu jde řídit do stran."
+LOBBY_MODE,"Režim:"
+LOBBY_MODE_FFA,Každý proti každému
+LOBBY_MODE_TEAMS,2 v 2 (týmy)
+LOBBY_TEAM_BUTTON,"{team} ({count}/{max})"
+LOBBY_NEED_TEAMS,"V režimu 2 v 2 musí mít každý tým jednoho nebo dva hráče."
+TEAM_RED,Červený tým
+TEAM_BLUE,Modrý tým
+RESULTS_TEAM_WINNER,"Vyhrál {team}!"
+CHANGELOG_TEAMS,"Nový režim 2 v 2: hostitel ho zapne v lobby, hráči si vyberou Červený nebo Modrý tým. Spoluhráči se navzájem nezraňují a každý tým má svůj scoreboard (vlevo a vpravo)."

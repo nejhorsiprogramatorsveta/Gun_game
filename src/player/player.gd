@@ -16,6 +16,8 @@ var motor_state := PlayerMotor.State.new()
 var peer_id := 1
 var slot := 0
 var display_name := ""
+## Teams.NONE in free-for-all; teammates do not hurt each other (2 v 2).
+var team := Teams.NONE
 ## Lives left in a network match (0 = eliminated). Set by the authority, shown in the HUD.
 var lives := 0
 var kills := 0
@@ -73,6 +75,13 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 		add_child(_visual)
 
 
+## 2 v 2: the name above the character takes the team color.
+func set_team(new_team: int) -> void:
+	team = new_team
+	if _name_label and Teams.is_valid(team):
+		_name_label.add_theme_color_override("font_color", Teams.color(team).lightened(0.2))
+
+
 ## One shared movement tick, also used during client prediction and replay.
 func simulate(input: InputFrame, delta: float) -> void:
 	tick_ability(input, delta)
@@ -123,7 +132,7 @@ func snapshot_state() -> Dictionary:
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
 			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths,
 			"ability_cooldown": ability_cooldown, "ability_active": ability_active(), "firing": is_firing(),
-			"dash_time_left": motor_state.dash_time_left, "dash_direction": motor_state.dash_direction}
+			"boost_time_left": motor_state.boost_time_left}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -137,8 +146,7 @@ func restore_state(state: Dictionary) -> void:
 	motor_state.jumps_left = state.jumps_left
 	motor_state.jump_buffer_timer = state.jump_buffer_timer
 	motor_state.drop_timer = state.drop_timer
-	motor_state.dash_time_left = state.get("dash_time_left", 0.0)
-	motor_state.dash_direction = state.get("dash_direction", 1)
+	motor_state.boost_time_left = state.get("boost_time_left", 0.0)
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, visible and motor_state.drop_timer <= 0.0)
 
 

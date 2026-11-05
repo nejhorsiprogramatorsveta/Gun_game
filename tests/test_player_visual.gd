@@ -2,23 +2,27 @@ extends TestCase
 
 
 func test_animation_follows_movement_and_shooting() -> void:
-	var visual := PlayerVisual.new()
-	visual.setup(ContentDB.get_character(&"balvan"))
-	var body: AnimatedSprite2D = visual._body
-	visual.update_look(1, Vector2.RIGHT, true, Vector2.ZERO, false)
-	check_eq(body.animation, &"idle", "standing still")
-	visual.update_look(1, Vector2.RIGHT, true, Vector2(200, 0), false)
-	check_eq(body.animation, &"walk", "running")
-	visual.update_look(-1, Vector2.LEFT, false, Vector2(0, -500), false)
-	check_eq(body.animation, &"jump", "going up")
-	check(body.flip_h, "faces left")
-	check(visual._weapon.flip_v, "gun mirrored when aiming left")
-	visual.update_look(1, Vector2.RIGHT, false, Vector2(0, 300), false)
-	check_eq(body.animation, &"fall", "falling")
-	visual.update_look(1, Vector2.RIGHT, true, Vector2(200, 0), true)
-	check_eq(body.animation, &"shoot", "shooting wins over walking")
-	check_eq(body.sprite_frames.get_frame_count(&"walk"), 4, "four walk frames")
-	visual.free()
+	for id: StringName in [&"balvan", &"krugermann", &"architekt"]:
+		var visual := PlayerVisual.new()
+		visual.setup(ContentDB.get_character(id))
+		var body: AnimatedSprite2D = visual._body
+		visual.update_look(1, Vector2.RIGHT, true, Vector2.ZERO, false)
+		check_eq(body.animation, &"idle", "%s: standing still" % id)
+		visual.update_look(1, Vector2.RIGHT, true, Vector2(200, 0), false)
+		check_eq(body.animation, &"walk", "%s: running" % id)
+		visual.update_look(-1, Vector2.LEFT, false, Vector2(0, -500), false)
+		check_eq(body.animation, &"jump", "%s: going up" % id)
+		check(body.flip_h, "%s: faces left" % id)
+		check(visual._weapon.flip_v, "%s: gun mirrored when aiming left" % id)
+		visual.update_look(1, Vector2.RIGHT, false, Vector2(0, 300), false)
+		check_eq(body.animation, &"fall", "%s: falling" % id)
+		visual.update_look(1, Vector2.RIGHT, true, Vector2(200, 0), true)
+		check_eq(body.animation, &"shoot", "%s: shooting wins over walking" % id)
+		var expected_frames := {&"idle": 2, &"walk": 4, &"jump": 1, &"fall": 1, &"shoot": 2}
+		for animation: StringName in expected_frames:
+			check_eq(body.sprite_frames.get_frame_count(animation), expected_frames[animation],
+					"%s: %s frame count" % [id, animation])
+		visual.free()
 
 
 func test_snapshot_state_drives_remote_look() -> void:
@@ -43,7 +47,8 @@ func test_every_character_and_its_weapon_have_sprites() -> void:
 
 func test_every_ability_has_a_pixel_art_effect() -> void:
 	check(AbilityFx.make_loop(ContentDB.get_ability(&"shield")) != null, "shield: bubble while active")
-	for id: StringName in [&"shockwave", &"dash", &"teleport"]:
+	check(AbilityFx.make_loop(ContentDB.get_ability(&"jetpack")) != null, "jetpack: flame while flying")
+	for id: StringName in [&"shockwave", &"teleport"]:
 		var burst := AbilityFx.make_burst(ContentDB.get_ability(id), 1)
 		check(not burst.is_empty(), "%s: burst effect when it starts" % id)
 		if not burst.is_empty():

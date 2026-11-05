@@ -5,7 +5,7 @@ func test_players_accepts_valid_lobby() -> void:
 	var players := LobbyValidator.players({1: {"name": "Host", "character": "balvan"},
 			55: {"name": "Kamarád", "character": "stin", "extra": 1}})
 	check_eq(players.size(), 2, "two players")
-	check_eq(players[55], {"name": "Kamarád", "character": "stin"}, "unknown fields dropped")
+	check_eq(players[55], {"name": "Kamarád", "character": "stin", "team": 0}, "unknown fields dropped, team 0 by default")
 
 
 func test_players_rejects_malformed_lobby() -> void:
@@ -39,7 +39,7 @@ func test_results_are_limited_and_cleaned() -> void:
 		{"name": "x".repeat(40), "place": 9, "lives": -2, "kills": 70000, "deaths": "3", "evil": [1, 2]},
 	])
 	check_eq(results.size(), 1, "one row")
-	check_eq(results[0], {"name": "x".repeat(16), "place": 4, "lives": 0, "kills": 65535, "deaths": 0},
+	check_eq(results[0], {"name": "x".repeat(16), "place": 4, "lives": 0, "kills": 65535, "deaths": 0, "team": -1},
 			"only known fields, clamped")
 	check(LobbyValidator.results([{}, {}, {}, {}, {}]).is_empty(), "more rows than players")
 	check(LobbyValidator.results([{"name": "A"}, "row"]).is_empty(), "row of wrong type")

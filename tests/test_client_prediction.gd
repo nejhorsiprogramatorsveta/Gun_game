@@ -194,7 +194,7 @@ func test_snapshot_delivery_defers_replay_and_rejects_old_ticks() -> void:
 	controller.free()
 
 
-func test_dash_is_predicted_without_correction() -> void:
+func test_jetpack_is_predicted_without_correction() -> void:
 	var host := _player()
 	host.character = ContentDB.get_character(&"jiskra")
 	var client := _player()
@@ -209,8 +209,10 @@ func test_dash_is_predicted_without_correction() -> void:
 		prediction.predict(client, input, DT, false)
 		if seq == 4:
 			confirmed = NetCodec.decode_snapshot(NetCodec.encode_snapshot(1, 0, [host.snapshot_state()] as Array[Dictionary])).states[0]
-	check(host.ability_cooldown > 0.0, "the dash was used")
+	check(host.ability_cooldown > 0.0, "the jetpack was used")
 	check(client.position.is_equal_approx(host.position), "prediction matches the host")
-	check(is_equal_approx(prediction.reconcile(client, confirmed), 0.0), "replay from a mid-dash snapshot needs no correction")
+	var correction := prediction.reconcile(client, confirmed)
+	# Snapshots carry velocity as whole px/s, so a sub-pixel difference from rounding remains.
+	check(correction < 1.0, "replay from a mid-flight snapshot needs no visible correction (%.3f px)" % correction)
 	host.free()
 	client.free()

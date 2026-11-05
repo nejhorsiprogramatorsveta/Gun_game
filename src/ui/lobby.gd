@@ -1,6 +1,7 @@
 extends Control
-## Lobby: who is connected, the character choice (each character once, PLAN.md T.2) and,
-## for the host, which address to send to friends.
+## Lobby: who is connected, the character choice (each character once, PLAN.md T.2), the
+## game mode (host: free-for-all or 2 v 2) with the team choice and, for the host, which
+## address to send to friends.
 ## The host starts the match; every peer then switches to the match scene.
 
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
@@ -25,6 +26,11 @@ var _character_buttons: Dictionary[String, Button] = {}
 ## Host: arena picker; clients: read-only arena name.
 var _arena_option := OptionButton.new()
 var _arena_label := Label.new()
+## Host: game mode picker; clients: read-only mode name. Team buttons only in 2 v 2.
+var _mode_option := OptionButton.new()
+var _mode_label := Label.new()
+var _team_row := HBoxContainer.new()
+var _team_buttons: Array[Button] = []
 
 
 func _ready() -> void:
@@ -39,6 +45,7 @@ func _ready() -> void:
 		_build_address_list()
 	_build_character_cards()
 	_build_arena_choice()
+	_build_mode_choice()
 	_refresh_players()
 	if Session.phase == Session.Phase.IN_MATCH:  # the next match started while we were loading
 		get_tree().change_scene_to_file.call_deferred(MATCH_PATH)
@@ -59,15 +66,23 @@ func _refresh_players() -> void:
 		var character := ContentDB.get_character(StringName(str(Session.players[id].get("character", ""))))
 		if character:
 			text += " – " + tr(character.name_key)
+		var team := int(Session.players[id].get("team", Teams.NONE))
+		if Session.team_mode and Teams.is_valid(team):
+			text += " – " + tr(Teams.NAME_KEYS[team])
 		if id == 1:
 			text += " " + tr("LOBBY_HOST_TAG")
 		if id == multiplayer.get_unique_id():
 			text += " " + tr("LOBBY_YOU_TAG")
 		_player_list.add_child(_make_label(text))
 	_refresh_character_cards()
+	_refresh_teams()
 	_start_button.disabled = not Session.can_start_match()
 	if Session.is_host():
-		_status_label.text = "" if Session.can_start_match() else tr("LOBBY_NEED_PLAYERS").format({"min": Session.MIN_PLAYERS_TO_START})
+		_status_label.text = ""
+		if Session.players.size() < Session.MIN_PLAYERS_TO_START:
+			_status_label.text = tr("LOBBY_NEED_PLAYERS").format({"min": Session.MIN_PLAYERS_TO_START})
+		elif not Session.can_start_match():
+			_status_label.text = tr("LOBBY_NEED_TEAMS")
 	else:
 		_status_label.text = tr("LOBBY_WAITING_FOR_HOST")
 
@@ -113,6 +128,56 @@ func _build_arena_choice() -> void:
 		Session.get_node("ArenaChoice").choose(str(_arena_option.get_item_metadata(index))))
 	Session.get_node("ArenaChoice").changed.connect(_refresh_arena)
 	_refresh_arena()
+
+
+func _build_mode_choice() -> void:
+	var row := HBoxContainer.new()
+	row.add_child(_make_label(tr("LOBBY_MODE")))
+	_mode_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	row.add_child(_mode_label)
+	row.add_child(_mode_option)
+	_mode_option.add_item(tr("LOBBY_MODE_FFA"))
+	_mode_option.add_item(tr("LOBBY_MODE_TEAMS"))
+	_mode_option.visible = Session.is_host()
+	_mode_label.visible = not Session.is_host()
+	_mode_option.item_selected.connect(func(index: int) -> void:
+		Session.get_node("TeamChoice").set_team_mode(index == 1))
+	var column := _player_list.get_parent()
+	column.add_child(row)
+	column.move_child(row, _player_list.get_index())
+	_team_row.add_theme_constant_override("separation", 8)
+	for team in Teams.COUNT:
+		var button := Button.new()
+		button.toggle_mode = true
+		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		button.custom_minimum_size = Vector2(0, 40)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_color_override("font_color", Teams.color(team))
+		button.add_theme_color_override("font_pressed_color", Teams.color(team).lightened(0.4))
+		button.pressed.connect(_on_team_pressed.bind(team))
+		_team_row.add_child(button)
+		_team_buttons.append(button)
+	column.add_child(_team_row)
+	column.move_child(_team_row, row.get_index() + 1)
+	Session.get_node("TeamChoice").mode_changed.connect(_refresh_players)
+
+
+func _refresh_teams() -> void:
+	_mode_option.select(1 if Session.team_mode else 0)
+	_mode_label.text = tr("LOBBY_MODE_TEAMS" if Session.team_mode else "LOBBY_MODE_FFA")
+	_team_row.visible = Session.team_mode
+	var my_team := int(Session.players.get(multiplayer.get_unique_id(), {}).get("team", Teams.NONE))
+	for team in _team_buttons.size():
+		var members := Teams.count(Session.players, team)
+		var button := _team_buttons[team]
+		button.text = tr("LOBBY_TEAM_BUTTON").format({"team": tr(Teams.NAME_KEYS[team]),
+				"count": members, "max": Teams.MAX_PER_TEAM})
+		button.set_pressed_no_signal(team == my_team)
+
+
+func _on_team_pressed(team: int) -> void:
+	Session.get_node("TeamChoice").choose(team)
+	_refresh_teams()  # undo the toggle until the host confirms
 
 
 func _character_grid_index() -> int:

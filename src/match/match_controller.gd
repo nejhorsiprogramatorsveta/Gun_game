@@ -94,6 +94,9 @@ func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 			else (Settings.practice_character if peer_id != PRACTICE_DUMMY_ID else "")
 	var character := ContentDB.practice_character(chosen)
 	player.setup(character, slot, peer_id, display_name)
+	if _networked and Session.team_mode:
+		player.set_team(int(Session.players.get(peer_id, {}).get("team", Teams.NONE)))
+		_effects.teams[peer_id] = player.team
 	player.effects = _effects
 	add_child(player)
 	var spawns := _arena.spawn_points()
@@ -235,22 +238,20 @@ func _respawn_later(player: Player) -> void:
 	player.set_active(true)
 
 
-## The match ends when at most one player has lives left (also if the others left).
+## The match ends when at most one player (2 v 2: one team) has lives left, also if the
+## others left.
 func _check_match_end() -> void:
 	if _match_over:
 		return
 	var alive := _players.values().filter(func(player: Player) -> bool: return player.lives > 0)
-	if alive.size() > 1:
+	if not MatchRanking.is_decided(alive, Session.team_mode):
 		return
 	_match_over = true
-	var ranking: Array = alive
-	for i in range(_elimination_order.size() - 1, -1, -1):
-		if _players.has(_elimination_order[i]):
-			ranking.append(_players[_elimination_order[i]])
-	var results: Array = []
-	for i in ranking.size():
-		results.append({"name": ranking[i].display_name, "place": i + 1, "lives": ranking[i].lives,
-				"kills": ranking[i].kills, "deaths": ranking[i].deaths})
+	var eliminated: Array = []
+	for peer_id in _elimination_order:
+		if _players.has(peer_id):
+			eliminated.append(_players[peer_id])
+	var results := MatchRanking.results(alive, eliminated, Session.team_mode)
 	await get_tree().create_timer(RESULTS_DELAY).timeout
 	Session.end_match(results)
 

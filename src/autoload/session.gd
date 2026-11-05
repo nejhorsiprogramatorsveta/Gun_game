@@ -24,7 +24,7 @@ const AUTH_TIMEOUT := 5.0
 const REJECT_DISCONNECT_DELAY := 0.5
 
 var phase := Phase.OFFLINE
-## peer_id -> {"name": String, "character": String}. Identical on all peers (host broadcasts it).
+## peer_id -> {"name": String, "character": String, "team": int}. Identical on all peers (host broadcasts it).
 var players: Dictionary[int, Dictionary] = {}
 ## Why the last session ended (translated), so the main menu can show it after a
 ## scene change. The menu clears it once shown.
@@ -38,6 +38,8 @@ var match_results: Array = []
 var room_code := ""
 ## Arena of the lobby / running match (ArenaChoice in the lobby, fixed by _begin_match).
 var arena_id := ""
+## 2 v 2 instead of free-for-all (TeamChoice in the lobby, fixed by _begin_match).
+var team_mode := false
 
 var _connector: Connector = EnetDirectConnector.new()
 var _local_name := ""
@@ -57,6 +59,7 @@ func _ready() -> void:
 	api.server_relay = false
 	add_child(CharacterChoice.new())  # character choice RPCs, see character_choice.gd
 	add_child(ArenaChoice.new())  # arena choice RPCs, see arena_choice.gd
+	add_child(TeamChoice.new())  # game mode and team RPCs, see team_choice.gd
 	api.auth_callback = _on_auth_message
 	api.auth_timeout = AUTH_TIMEOUT
 	api.peer_authenticating.connect(_on_peer_authenticating)
@@ -78,7 +81,8 @@ func is_host() -> bool:
 
 
 func can_start_match() -> bool:
-	return is_host() and phase == Phase.LOBBY and players.size() >= MIN_PLAYERS_TO_START
+	return is_host() and phase == Phase.LOBBY and players.size() >= MIN_PLAYERS_TO_START \
+			and (not team_mode or Teams.ready_to_start(players))
 
 
 ## Host: starts the match for everyone in the lobby (slots by peer id, host = slot 0).
@@ -88,17 +92,25 @@ func start_match() -> void:
 	var ids := players.keys()
 	ids.sort()
 	var slots := {}
+	# Arena spawns alternate left/right: in 2 v 2 red gets slots 0 and 2, blue 1 and 3.
+	var next_team_slot: Array[int] = [0, 1]
 	for i in ids.size():
-		slots[ids[i]] = i
-	_begin_match.rpc(slots, arena_id)
+		if team_mode:
+			var team: int = players[ids[i]].team
+			slots[ids[i]] = next_team_slot[team]
+			next_team_slot[team] += 2
+		else:
+			slots[ids[i]] = i
+	_begin_match.rpc(slots, arena_id, team_mode)
 
 
 @rpc("authority", "call_local", "reliable")
-func _begin_match(slots: Dictionary, arena: String) -> void:
+func _begin_match(slots: Dictionary, arena: String, teams: bool) -> void:
 	var valid_slots := LobbyValidator.slots(slots, players)
 	if phase != Phase.LOBBY or valid_slots.is_empty() or arena.length() > ArenaChoice.MAX_ID_LENGTH:
 		return
 	match_slots = valid_slots
+	team_mode = teams
 	arena_id = String(ContentDB.arena_or_default(arena).id)
 	_set_phase(Phase.IN_MATCH)
 
@@ -142,8 +154,6 @@ func share_addresses() -> Array[Dictionary]:
 	return entries
 
 
-
-
 func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT) -> void:
 	leave()
 	var peer := _connector.host(port)
@@ -154,8 +164,9 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	host_port = port
 	room_code = Handshake.generate_room_code()
 	arena_id = String(ContentDB.arena_or_default(Settings.practice_arena).id)
+	team_mode = false
 	players = {1: {"name": LobbyValidator.clean_name(player_name, 1),
-			"character": CharacterChoice.first_free({}, Settings.practice_character)}}
+			"character": CharacterChoice.first_free({}, Settings.practice_character), "team": 0}}
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
 
@@ -193,6 +204,7 @@ func _close(message: String) -> void:
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	_connector.close()
 	room_code = ""
+	team_mode = false
 	players.clear()
 	match_slots.clear()
 	_pending_names.clear()
@@ -267,7 +279,7 @@ func _on_peer_connected(id: int) -> void:
 		var requested_name: String = _pending_names.get(id, "")
 		_pending_names.erase(id)
 		players[id] = {"name": LobbyValidator.clean_name(requested_name, players.size() + 1),
-				"character": CharacterChoice.first_free(players, "")}
+				"character": CharacterChoice.first_free(players, ""), "team": Teams.smaller_team(players)}
 		broadcast_players()
 	elif id == 1:
 		_set_phase(Phase.LOBBY)

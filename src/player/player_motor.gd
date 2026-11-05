@@ -22,9 +22,8 @@ class State:
 	var on_floor: bool = false
 	## 1 = right, -1 = left: the side the player aims at.
 	var facing: int = 1
-	## Dash ability (DashAbility.start): seconds left and side (1 / -1).
-	var dash_time_left: float = 0.0
-	var dash_direction: int = 1
+	## Movement ability running (JetpackAbility.start): seconds of thrust left.
+	var boost_time_left: float = 0.0
 	## Slowing cloud (AreaEffects.slow_for), set before each step: running and jump multipliers.
 	var speed_scale: float = 1.0
 	var jump_scale: float = 1.0
@@ -57,8 +56,8 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	var just_pressed := input.buttons & ~state.prev_buttons
 	state.prev_buttons = input.buttons
 	_update_timers(on_floor, just_pressed, state, stats, delta)
-	if state.dash_time_left > 0.0:
-		return _dash(state, stats, delta)
+	if state.boost_time_left > 0.0 and stats.ability is JetpackAbility:
+		return _jetpack(velocity, input, state, stats, delta)
 
 	velocity.x = _horizontal(velocity.x, on_floor, input.move_x, stats.move_speed * state.speed_scale, stats, delta)
 	# The character looks where the player aims (mouse cursor), not where it runs.
@@ -82,15 +81,17 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	return velocity
 
 
-## A dash moves straight sideways at the ability's speed, without gravity; afterwards the
-## player keeps normal running speed instead of sliding far.
-static func _dash(state: State, stats: CharacterData, delta: float) -> Vector2:
-	var dash := stats.ability as DashAbility
-	state.dash_time_left = maxf(state.dash_time_left - delta, 0.0)
-	var speed := dash.speed if dash else stats.move_speed
-	if state.dash_time_left <= 0.0:
-		speed = stats.move_speed
-	return Vector2(state.dash_direction * speed, 0.0)
+## Jetpack: thrust towards the ability's lift speed instead of gravity; running/steering
+## works as in the air, so the player can fly sideways onto a platform.
+static func _jetpack(velocity: Vector2, input: InputFrame, state: State, stats: CharacterData, delta: float) -> Vector2:
+	var jet := stats.ability as JetpackAbility
+	state.boost_time_left = maxf(state.boost_time_left - delta, 0.0)
+	velocity.x = _horizontal(velocity.x, false, input.move_x, stats.move_speed * state.speed_scale, stats, delta)
+	velocity.y = move_toward(velocity.y, -jet.lift_speed, jet.thrust * delta)
+	var aim_x := InputFrame.aim_to_vector(input.aim).x
+	if absf(aim_x) > 0.01:
+		state.facing = 1 if aim_x > 0.0 else -1
+	return velocity
 
 
 static func _update_timers(on_floor: bool, just_pressed: int, state: State, stats: CharacterData, delta: float) -> void:

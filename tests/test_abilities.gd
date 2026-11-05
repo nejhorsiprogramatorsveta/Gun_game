@@ -64,18 +64,24 @@ func test_shockwave_pushes_only_nearby_opponents() -> void:
 		player.free()
 
 
-func test_dash_moves_sideways_fast_without_gravity_then_runs() -> void:
+func test_jetpack_lifts_up_and_can_be_steered() -> void:
 	var jiskra := _player(&"jiskra", 1, Vector2.ZERO)
-	var dash := jiskra.character.ability as DashAbility
-	jiskra.motor_state.facing = -1
+	var jet := jiskra.character.ability as JetpackAbility
+	check(jet != null, "Jiskra has the jetpack")
 	jiskra.tick_ability(_press(true), 0.0)
-	check_eq([jiskra.motor_state.dash_direction, jiskra.motor_state.dash_time_left], [-1, dash.duration],
-			"standing still dashes to the facing side")
-	var velocity := PlayerMotor.compute_velocity(Vector2(0, 300), false, _press(true), jiskra.motor_state, jiskra.character, 1.0 / 60.0)
-	check_eq(velocity, Vector2(-dash.speed, 0), "fast and straight, gravity ignored")
-	for i in 20:
-		velocity = PlayerMotor.compute_velocity(velocity, false, _press(false), jiskra.motor_state, jiskra.character, 1.0 / 60.0)
-	check(absf(velocity.x) <= jiskra.character.move_speed + 0.01, "after the dash only running speed is left")
+	check(is_equal_approx(jiskra.motor_state.boost_time_left, jet.duration), "thrust starts")
+	var velocity := Vector2(0, 300)  # falling when it starts
+	var height := 0.0
+	var steps := int(ceil(jet.duration * 60.0))
+	for i in steps:
+		velocity = PlayerMotor.compute_velocity(velocity, false, InputFrame.create(1, InputFrame.ABILITY), jiskra.motor_state, jiskra.character, 1.0 / 60.0)
+		height -= velocity.y / 60.0
+	check(velocity.y < -jet.lift_speed * 0.9, "flying up at about the lift speed")
+	check(height > 250.0, "carries her up a good bit (%.0f px)" % height)
+	check(velocity.x > 0.0, "steerable sideways")
+	check(is_equal_approx(jiskra.motor_state.boost_time_left, 0.0), "thrust ends after the duration")
+	velocity = PlayerMotor.compute_velocity(velocity, false, InputFrame.create(0, 0), jiskra.motor_state, jiskra.character, 1.0 / 60.0)
+	check(velocity.y > -jet.lift_speed, "gravity again afterwards")
 	jiskra.free()
 
 

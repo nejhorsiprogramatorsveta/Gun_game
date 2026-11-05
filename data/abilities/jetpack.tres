@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="JetpackAbility" format=3]
+
+[ext_resource type="Script" path="res://src/abilities/jetpack_ability.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"jetpack"
+name_key = "ABILITY_JETPACK_NAME"
+description_key = "ABILITY_JETPACK_DESCRIPTION"
+cooldown = 5.0
+duration = 0.7
+lift_speed = 650.0
+thrust = 5000.0

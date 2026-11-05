@@ -4,7 +4,8 @@ extends Node2D
 ## position, so even fast bullets cannot pass through thin targets.
 ## Authoritative bullets (host/practice) hit walls and players; display-only bullets on
 ## clients only stop at walls – hits are decided by the host (PLAN.md D.5).
-## Bullets pass through one-way platforms (they are not on the "world" layer).
+## Bullets pass through one-way platforms (they are not on the "world" layer) and, in 2 v 2,
+## through the shooter's teammates.
 
 signal hit_player(projectile: Projectile, player: Player)
 signal finished(projectile: Projectile)
@@ -19,6 +20,7 @@ var direction := Vector2.RIGHT
 var weapon: WeaponData
 var authoritative := false
 var shooter_peer_id := 0
+var shooter_team := Teams.NONE
 
 var _exclude: Array[RID] = []
 var _travelled := 0.0
@@ -32,6 +34,7 @@ func setup(projectile_id: int, origin: Vector2, flight_direction: Vector2, weapo
 	authoritative = shooter != null
 	if shooter:
 		shooter_peer_id = shooter.peer_id
+		shooter_team = shooter.team
 		_exclude = [shooter.get_rid()]
 
 
@@ -42,6 +45,10 @@ func _physics_process(delta: float) -> void:
 	# The muzzle can start inside a player standing right next to the shooter; still a hit.
 	query.hit_from_inside = true
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	while not hit.is_empty() and hit.collider is Player and Teams.allies(shooter_team, hit.collider.team):
+		_exclude.append(hit.rid)  # fly through teammates (at most 3 of them)
+		query.exclude = _exclude
+		hit = get_world_2d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():
 		if hit.collider is Player:
 			hit_player.emit(self, hit.collider)

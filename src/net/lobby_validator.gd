@@ -16,8 +16,8 @@ static func clean_name(raw_name: String, number: int) -> String:
 	return cleaned
 
 
-## peer_id -> {"name": String, "character": String}; must contain the host (peer 1),
-## every character must exist and be used at most once.
+## peer_id -> {"name": String, "character": String, "team": int}; must contain the host
+## (peer 1), every character must exist and be used at most once, team 0 or 1 (missing = 0).
 static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 	var result: Dictionary[int, Dictionary] = {}
 	if raw.size() < 1 or raw.size() > MAX_PLAYERS or not raw.has(1):
@@ -36,7 +36,10 @@ static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 		if typeof(player_name) != TYPE_STRING or player_name.strip_edges().is_empty() \
 				or player_name.length() > MAX_NAME_LENGTH:
 			return {}
-		result[peer_id] = {"name": player_name, "character": character}
+		var team: Variant = entry.get("team", 0)
+		if typeof(team) != TYPE_INT or not Teams.is_valid(team):
+			return {}
+		result[peer_id] = {"name": player_name, "character": character, "team": team}
 	return result
 
 
@@ -70,10 +73,11 @@ static func results(raw: Array) -> Array[Dictionary]:
 			"lives": clampi(_int(entry, "lives"), 0, MAX_SCORE),
 			"kills": clampi(_int(entry, "kills"), 0, MAX_SCORE),
 			"deaths": clampi(_int(entry, "deaths"), 0, MAX_SCORE),
+			"team": clampi(_int(entry, "team", Teams.NONE), Teams.NONE, Teams.COUNT - 1),
 		})
 	return result
 
 
-static func _int(entry: Dictionary, key: String) -> int:
-	var value: Variant = entry.get(key, 0)
-	return value if typeof(value) == TYPE_INT else 0
+static func _int(entry: Dictionary, key: String, default: int = 0) -> int:
+	var value: Variant = entry.get(key, default)
+	return value if typeof(value) == TYPE_INT else default

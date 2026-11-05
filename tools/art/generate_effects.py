@@ -115,18 +115,18 @@ def shockwave_ring():
     return strip(frames)
 
 
-def dash_trail():
-    """3 frames 32x40: Jiskra's speed lines behind her (facing right; flipped in game)."""
+def jet_flame():
+    """3 frames 12x18: Jiskra's jetpack exhaust (two nozzles, flame pointing down)."""
     frames = []
     for f in range(3):
-        img = Image.new("RGBA", (32, 40), (0, 0, 0, 0))
-        rnd = random.Random(200 + f)
-        for i in range(7):
-            y = 10 + i * 4 + rnd.randrange(-1, 2)
-            length = 8 + rnd.randrange(0, 12) - f * 3
-            for x in range(max(0, 24 - length), 24):
-                a = int(255 * (x - (24 - length)) / max(1, length))
-                px(img, x, y, rgb("#ffd27a" if i % 2 else "#ffffff", a))
+        img = Image.new("RGBA", (12, 18), (0, 0, 0, 0))
+        for nozzle_x in (3, 8):
+            length = 9 + (f + nozzle_x) % 3 * 3
+            for y in range(length):
+                half = max(0, 2 - y // 4)
+                color = rgb("#ffffff") if y < 2 else rgb("#ffe27a") if y < length * 0.45 else rgb("#ff8a3a") if y < length * 0.8 else rgb("#c0392b", 200)
+                for dx in range(-half, half + 1):
+                    px(img, nozzle_x + dx, y, color)
         frames.append(img)
     return strip(frames)
 
@@ -155,7 +155,7 @@ def main() -> None:
     gas_puffs().save(OUT / "gas_puffs.png")
     shield_bubble().save(OUT / "shield_bubble.png")
     shockwave_ring().save(OUT / "shockwave_ring.png")
-    dash_trail().save(OUT / "dash_trail.png")
+    jet_flame().save(OUT / "jet_flame.png")
     teleport_smoke().save(OUT / "teleport_smoke.png")
     print(f"Wrote ability effects to {OUT}")
 

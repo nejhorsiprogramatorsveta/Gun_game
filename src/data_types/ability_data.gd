@@ -15,7 +15,7 @@ extends Resource
 
 
 ## Shared by the host and client prediction (runs inside Player.simulate): changes to the
-## user's OWN movement only, so the client predicts them exactly (dash, teleport).
+## user's OWN movement only, so the client predicts them exactly (jetpack, teleport).
 func start(_user: Player, _input: InputFrame) -> void:
 	pass
 
