@@ -1,7 +1,16 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Grafika – krok 2 hotový (verze `0.2.2`): pixel art map, pozadí a menu.** Rozpracováno: **kompletní validace** (zadání uživatele 2026-11-05 – bugy, animace, připojení, kompatibilita).
+**Grafika – krok 2 hotový (0.2.2); validace část 1 + opravy (verze `0.2.3`).** Rozpracováno: pixelové písmo, hezčí scoreboard, „KILL“ nad hráčem (nové zadání uživatele) a zbytek validace (exporty, kompatibilita).
+- **Validace část 1 (2026-11-05):** připojovací chyby (špatný kód, jiná verze, plné lobby, zápas běží – správné české hlášky), 6 scénářů odpojení, 4 boti na mapách, výkon (0 pomalých snímků) – vše OK. Nezávislá kontrola kódu (agent) našla 7 problémů, všechny ověřeny a opraveny:
+  1. Esc hostitele během 0,5 s po konci zápasu → všichni uvízli ve výsledcích (reprodukováno na starém kódu, opraveno: scéna podle aktuální fáze, jediné přepnutí; výsledky/lobby po načtení kontrolují fázi).
+  2. Lobby po načtení nepřešlo do už běžícího zápasu → opraveno.
+  3. Odmítnutý peer mohl během 0,5 s zkoušet další kódy hry → host ignoruje další hello od odmítnutých/čekajících.
+  4. Hráč odpojený během načítání zápasu zůstal jako „duch“ → `_remove_departed_players()` v `_ready`.
+  5. Plošina/plyn vlastníka dvakrát při dohánění fronty vstupů → párování predikce v okně 8 vstupů, nepotvrzená predikce zmizí po 1 s.
+  6. Po výpadku sítě host vyhodnotil držený skok jako nový stisk → neutrální vstup drží tlačítka kromě střelby.
+  7. Poskočení při „GO!“ → odpočet ve snapshotu v desetinách s, klient odhadne start pohybu podle pingu (korekce 33–47 → ~24 px při lagu 100 ms). Protokol 14.
+  + Visuté mosty: boční ostrovy zarovnány s mosty (dřív kolmý schod 30 px – boti se zasekli, zápas neskončil).
 - `tools/art/generate_world.py`: dlaždice (kámen s mechem / dřevěný trám), 3 pozadí map + plující mraky, logo „DOJO KNOCKOUT“, rámečky UI. `Platform` kreslí dlaždice, `ArenaBackground` v každé aréně a v menu/lobby/výsledcích (ztmavené), globální téma `assets/ui/theme.tres` (tlačítka, pole, panely, dialog, obrys všech textů – čitelnost na světlém pozadí).
 - Postavy (0.2.1) beze změny dle uživatele („nech to tak“).
 - `session.gd` má 317 řádků (limit ~300).

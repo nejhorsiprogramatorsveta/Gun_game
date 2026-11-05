@@ -38,7 +38,9 @@ func _ready() -> void:
 		row.add_child(score)
 		_ranking.add_child(row)
 	_update_status()
-	if Session.is_host():
+	if Session.phase == Session.Phase.LOBBY:  # the host ended the results while we were loading
+		get_tree().change_scene_to_file.call_deferred(LOBBY_PATH)
+	elif Session.is_host():
 		_count_down()
 
 

@@ -18,7 +18,7 @@ position = Vector2(640, 360)
 zoom = Vector2(0.6, 0.6)
 
 [node name="LeftIsland" type="StaticBody2D" parent="."]
-position = Vector2(20, 440)
+position = Vector2(20, 470)
 script = ExtResource("2")
 size = Vector2(280, 40)
 
@@ -28,7 +28,7 @@ script = ExtResource("2")
 size = Vector2(320, 40)
 
 [node name="RightIsland" type="StaticBody2D" parent="."]
-position = Vector2(980, 440)
+position = Vector2(980, 470)
 script = ExtResource("2")
 size = Vector2(280, 40)
 
@@ -65,10 +65,10 @@ one_way = true
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Spawn1" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(160, 400)
+position = Vector2(160, 430)
 
 [node name="Spawn2" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(1120, 400)
+position = Vector2(1120, 430)
 
 [node name="Spawn3" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(640, 480)

@@ -77,7 +77,12 @@ func test_long_silence_stops_the_player() -> void:
 	check_eq(frame.move_x, 1, "short gap: the last input repeats")
 	frame = buffer.next()
 	check_eq(frame.move_x, 0, "long silence: no movement")
-	check_eq(frame.buttons, 0, "long silence: no buttons")
+	check_eq(frame.buttons, 0, "long silence: no shooting")
 	check_eq(frame.seq, 3, "sequence kept, so acknowledgements stay correct")
 	buffer.push(_packet(4))
 	check_eq(buffer.next().move_x, 1, "new input takes over again")
+	var held := InputBuffer.new()
+	held.push(_packet(9, 1, InputFrame.JUMP | InputFrame.FIRE))
+	for tick in InputBuffer.STALE_TICKS + 2:
+		frame = held.next()
+	check_eq(frame.buttons, InputFrame.JUMP, "held jump stays held, so resuming is not a new press")

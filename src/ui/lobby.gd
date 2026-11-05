@@ -40,6 +40,9 @@ func _ready() -> void:
 	_build_character_cards()
 	_build_arena_choice()
 	_refresh_players()
+	if Session.phase == Session.Phase.IN_MATCH:  # the next match started while we were loading
+		get_tree().change_scene_to_file.call_deferred(MATCH_PATH)
+		return
 	# Ask for the character picked in the main menu (the host got it when hosting).
 	if not Session.is_host() and not Settings.practice_character.is_empty():
 		Session.get_node("CharacterChoice").choose(Settings.practice_character)

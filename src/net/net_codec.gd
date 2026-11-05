@@ -9,7 +9,7 @@ const INPUT_HISTORY := 3
 const INPUT_FRAME_BYTES := 4  # s8 move_x, u8 buttons, u16 aim
 const INPUT_PACKET_BYTES := 2 + INPUT_HISTORY * INPUT_FRAME_BYTES
 
-const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown seconds left
+const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown tenths of a second left
 ## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives,
 ## u8 previous buttons, u8 jumps left, f32 jump buffer timer, f32 drop timer, u16 kills, u16 deaths,
 ## u16 ability cooldown in physics ticks (1/60 s), f32 dash time left.
@@ -56,7 +56,7 @@ static func decode_input(data: PackedByteArray) -> Array[InputFrame]:
 
 
 ## Player.snapshot_state() includes the movement memory needed to replay pending inputs.
-## countdown = whole seconds left before the match starts.
+## countdown = tenths of a second left before the match starts (max 25.5 s).
 static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]) -> PackedByteArray:
 	var data := PackedByteArray()
 	data.resize(SNAPSHOT_HEADER_BYTES + states.size() * SNAPSHOT_PLAYER_BYTES)

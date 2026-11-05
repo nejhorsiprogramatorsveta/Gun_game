@@ -111,3 +111,19 @@ func test_area_effects_owner_immunity_dedupe_and_host_position() -> void:
 	check_eq(effects.get_child_count(), 2, "another player's platform from the host is created")
 	for node in [effects, owner, victim, outside]:
 		node.free()
+
+
+func test_client_matches_a_late_host_effect_and_drops_unconfirmed_ones() -> void:
+	var effects := AreaEffects.new()
+	effects._is_authority = false
+	var platform := ContentDB.get_ability(&"platform")
+	effects.spawn(platform, 7, 100, Vector2(10, 10))
+	effects._on_remote_spawned(&"platform", 7, 102, Vector2(14, 10))
+	check_eq(effects.get_child_count(), 1, "host applied the press 2 inputs later: same platform, not a second one")
+	check_eq(effects.get_child(0).position, Vector2(14, 10), "host position wins")
+	check(effects._unconfirmed.is_empty(), "confirmed")
+	effects.spawn(platform, 7, 300, Vector2(50, 50))
+	effects._unconfirmed[effects._unconfirmed.keys()[0]] -= AreaEffects.UNCONFIRMED_LIFETIME_MS + 1
+	effects._process(0.0)
+	check(effects.get_child(1).is_queued_for_deletion(), "a prediction the host never confirms is removed")
+	effects.free()

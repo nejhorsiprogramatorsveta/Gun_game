@@ -33,6 +33,8 @@ var _tick := 0
 var _countdown := 0.0
 var _countdown_display := 0
 var _match_over := false
+## Set once the scene switch to results/lobby is scheduled (only one may run).
+var _leaving := false
 ## Authority: peer ids in the order they ran out of lives (for the ranking).
 var _elimination_order: Array[int] = []
 
@@ -45,6 +47,8 @@ var _input_history: Array[InputFrame] = []
 var _prediction := ClientPrediction.new()
 var _last_snapshot_tick := -1
 var _pending_snapshot: Dictionary = {}
+## Client: from this time (msec) the own movement is predicted, see _apply_snapshot.
+var _movement_starts_ms := 0
 var _stats := NetStats.new()
 var _net_log := NetLog.new()
 
@@ -70,6 +74,7 @@ func _ready() -> void:
 			player.lives = _rules.lives
 		_countdown = _rules.countdown_seconds
 		Session.players_changed.connect(_remove_departed_players)
+		_remove_departed_players()  # someone may have left while the match scene was loading
 		Session.phase_changed.connect(_on_session_phase_changed)
 		Session.ended.connect(func(_message: String) -> void: get_tree().change_scene_to_file.call_deferred(MAIN_MENU_PATH))
 		_net.input_received.connect(_on_input_received)
@@ -127,12 +132,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_session_phase_changed(phase: Session.Phase) -> void:
-	if phase != Session.Phase.RESULTS and phase != Session.Phase.LOBBY:
+	if (phase != Session.Phase.RESULTS and phase != Session.Phase.LOBBY) or _leaving:
 		return
+	_leaving = true
 	# Packets sent just before the other side learned the match ended may still be on
 	# their way; keep MatchNet alive a moment so they do not hit a missing node.
 	await get_tree().create_timer(SCENE_CHANGE_GRACE).timeout
-	get_tree().change_scene_to_file.call_deferred(RESULTS_PATH if phase == Session.Phase.RESULTS else LOBBY_PATH)
+	# Use the phase from NOW: it may have moved on (results -> lobby) during the wait.
+	if Session.phase == Session.Phase.RESULTS or Session.phase == Session.Phase.LOBBY:
+		get_tree().change_scene_to_file.call_deferred(RESULTS_PATH if Session.phase == Session.Phase.RESULTS else LOBBY_PATH)
 
 
 # --- Authority ---------------------------------------------------------------
@@ -167,7 +175,7 @@ func _simulate_tick(delta: float) -> void:
 			var states: Array[Dictionary] = []
 			for player in _players.values():
 				states.append(player.snapshot_state())
-			_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, _countdown_display, states))
+			_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, ceili(_countdown * 10.0), states))
 
 
 ## One input per tick per player; if a client's packet is late, its last input repeats.
@@ -254,7 +262,7 @@ func _send_local_input(delta: float) -> void:
 	_input_seq = (_input_seq + 1) & 0xFFFF
 	var frame := InputFrame.sample_local(local_player)
 	frame.seq = _input_seq
-	_prediction.predict(local_player, frame, delta, _countdown_display > 0)
+	_prediction.predict(local_player, frame, delta, Time.get_ticks_msec() < _movement_starts_ms)
 	_input_history.push_front(frame)
 	if _input_history.size() > NetCodec.INPUT_HISTORY:
 		_input_history.pop_back()
@@ -276,7 +284,10 @@ func _on_snapshot_received(snapshot: Dictionary) -> void:
 ## move_and_slide() uses the engine physics delta, so replay must run on a physics tick.
 func _apply_snapshot(snapshot: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
-	_countdown_display = snapshot.countdown
+	_countdown_display = ceili(snapshot.countdown / 10.0)
+	# Inputs sent from this time on reach the host after its countdown ended, so predict
+	# them as moving (roughly: time left - round trip + half a snapshot interval).
+	_movement_starts_ms = now + snapshot.countdown * 100 - maxi(_stats.ping_ms(), 0) + 16 if snapshot.countdown > 0 else 0
 	for state: Dictionary in snapshot.states:
 		for player in _players.values():
 			if player.slot == state.slot:

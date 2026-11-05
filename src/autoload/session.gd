@@ -219,6 +219,8 @@ func _on_peer_authenticating(id: int) -> void:
 
 
 func _on_auth_message(id: int, data: PackedByteArray) -> void:
+	if multiplayer.is_server() and (_rejected_peers.has(id) or _pending_names.has(id)):
+		return  # one hello per connection: no guessing room codes while waiting to be dropped
 	var message := Handshake.decode(data)
 	if message.is_empty():
 		return

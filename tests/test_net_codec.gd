@@ -38,7 +38,7 @@ func test_snapshot_roundtrip() -> void:
 	check_eq(data.size(), NetCodec.SNAPSHOT_HEADER_BYTES + 2 * NetCodec.SNAPSHOT_PLAYER_BYTES, "complete movement snapshot size")
 	var snapshot := NetCodec.decode_snapshot(data)
 	check_eq(snapshot.tick, 1234, "tick")
-	check_eq(snapshot.countdown, 3, "countdown")
+	check_eq(snapshot.countdown, 3, "countdown (tenths)")
 	check_eq([snapshot.states[0].invulnerable, snapshot.states[0].lives, snapshot.states[1].lives], [true, 5, 0], "invulnerability and lives")
 	var a: Dictionary = snapshot.states[0]
 	var b: Dictionary = snapshot.states[1]

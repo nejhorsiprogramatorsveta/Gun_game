@@ -8,7 +8,7 @@ extends RefCounted
 ## oldest inputs are skipped. Their held buttons are merged into the next input so a short
 ## tap (jump, fire) is not lost; the client corrects the skipped tick via reconciliation.
 ## Short gaps (packet loss) repeat the last input; after STALE_TICKS without any input the
-## player stands still instead, so a crashed or frozen client does not run off the arena.
+## player stands still and stops firing, so a crashed or frozen client does not run off.
 
 ## Hard cap: older inputs beyond this are skipped right away.
 const MAX_PENDING := 6
@@ -52,7 +52,9 @@ func next() -> InputFrame:
 		return _current
 	_ticks_without_input += 1
 	if _ticks_without_input > STALE_TICKS:
-		_current = InputFrame.create(0, 0, _current.aim, _current.seq)
+		# Stop moving and shooting, but keep held jump/ability/down so the next real input is
+		# not seen as a fresh press (an unwanted jump or ability after a short stall).
+		_current = InputFrame.create(0, _current.buttons & ~InputFrame.FIRE, _current.aim, _current.seq)
 	return _current
 
 
