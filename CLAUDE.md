@@ -48,13 +48,13 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.13, next 0.1.14).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.14, next 0.1.15).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
 ## Architecture (see docs/ARCHITECTURE.md for what exists, docs/PLAN.md section F for the target)
 Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player,client_prediction}.gd,
-src/arenas/{arena,platform}.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
+src/arenas/{arena,platform}.gd + arena_*.tscn, data/arenas/*.tres (ArenaData), src/net/arena_choice.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players incl. chosen character),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
 src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,

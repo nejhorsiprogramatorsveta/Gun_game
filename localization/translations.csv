@@ -157,3 +157,9 @@ LOBBY_CHARACTER_TAKEN,"obsazeno: {name}"
 CHANGELOG_LOBBY_CHARACTERS,"Výběr postavy v lobby: každou postavu může mít jen jeden hráč; hra si pamatuje tvou oblíbenou."
 CHANGELOG_ONE_WEAPON,"Každá postava má jen jednu zbraň (přepínání zbraní zrušeno): Architekt dvouhlavňová brokovnice, Balvan útočná puška, Jiskra samopal, Krügermann lehký kulomet, Stín odstřelovačka, Vichr bojová puška."
 CHANGELOG_GAS_LONGER,Zpomalovací plyn Krügermanna je o polovinu delší (540 px).
+ARENA_ROOFTOPS_NAME,Střechy
+ARENA_TEMPLE_STEPS_NAME,Chrámové schody
+ARENA_HANGING_BRIDGES_NAME,Visuté mosty
+MENU_PRACTICE_ARENA,Mapa pro trénink (a první mapa při hostování)
+LOBBY_ARENA,"Mapa:"
+CHANGELOG_ARENAS,"Dvě nové mapy: Chrámové schody a Visuté mosty. Mapu vybírá hostitel v lobby, v tréninku ji vybereš v menu."

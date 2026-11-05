@@ -93,6 +93,16 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 - **Úplně nový druh schopnosti** potřebuje malý skript v `src/abilities/` (podtřída `AbilityData`) – to je
   programátorská práce, viz `docs/ARCHITECTURE.md`.
 
+## Mapy (arény) – `data/arenas/*.tres` a `src/arenas/arena_*.tscn`
+
+- Mapa = scéna se skriptem `src/arenas/arena.gd`: plošiny (uzly s `platform.gd`: `position` = levý horní roh,
+  `size`, `one_way = true` pro plošinu, kterou jde proskočit zespodu), uzel `SpawnPoints` se **4** `Marker2D`
+  (místa oživení – kousek nad plošinou) a `Camera` (zoom 0,6). `kill_rect` = hranice, za kterou se ubírá život.
+- **Přidat mapu:** zkopíruj např. `src/arenas/arena_temple_steps.tscn` (uprav v editoru Godotu) a
+  `data/arenas/temple_steps.tres` (změň `id`, `name_key` a cestu ke scéně), přidej název `ARENA_..._NAME` do CSV.
+  Objeví se v menu u Tréninku i ve výběru hostitele v lobby. Test `tests/test_arenas.gd` hlídá, že pod každým
+  spawnem je plošina – při přidání mapy doplň její id do seznamu v testu.
+
 ## Pravidla zápasu – `data/match_rules.tres`
 
 `lives` (počet životů), `respawn_delay` (s do oživení), `respawn_invulnerability` (s ochrany po oživení),

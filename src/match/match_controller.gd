@@ -5,7 +5,6 @@ extends Node2D
 ## Network matches: countdown, lives, elimination, winner -> results -> same lobby (T.1).
 ## Practice: endless lives and no countdown.
 
-const ARENA_SCENE := preload("res://src/arenas/arena_rooftops.tscn")
 const PLAYER_SCENE := preload("res://src/player/player.tscn")
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
 const LOBBY_PATH := "res://src/ui/lobby.tscn"
@@ -54,9 +53,9 @@ var _net_log := NetLog.new()
 
 
 func _ready() -> void:
-	_arena = ARENA_SCENE.instantiate()
-	add_child(_arena)
 	_networked = Session.phase == Session.Phase.IN_MATCH
+	_arena = ContentDB.arena_or_default(Session.arena_id if _networked else Settings.practice_arena).scene.instantiate()
+	add_child(_arena)
 	add_child(_weapons)
 	_weapons.setup(_net if _networked else null)
 	add_child(_effects)

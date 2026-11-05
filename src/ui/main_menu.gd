@@ -11,6 +11,7 @@ const INFO_COLOR := Color(0.75, 0.78, 0.85)
 @onready var _address_edit: LineEdit = %AddressEdit
 @onready var _practice_button: Button = %PracticeButton
 @onready var _character_option: OptionButton = %CharacterOption
+@onready var _arena_option: OptionButton = %ArenaOption
 @onready var _host_button: Button = %HostButton
 @onready var _join_button: Button = %JoinButton
 @onready var _changelog_button: Button = %ChangelogButton
@@ -39,6 +40,7 @@ func _ready() -> void:
 	_address_edit.focus_entered.connect(func() -> void: _address_edit.placeholder_text = "")
 	_address_edit.focus_exited.connect(func() -> void: _address_edit.placeholder_text = tr("MENU_ADDRESS_PLACEHOLDER"))
 	_fill_character_option()
+	_fill_arena_option()
 	_practice_button.pressed.connect(_on_practice_pressed)
 	_host_button.pressed.connect(_on_host_pressed)
 	_join_button.pressed.connect(_on_join_pressed)
@@ -121,6 +123,16 @@ func _fill_character_option() -> void:
 			_character_option.select(index)
 
 
+## Practice arena (also the host's first lobby arena), remembered like the character.
+func _fill_arena_option() -> void:
+	var chosen := ContentDB.arena_or_default(Settings.practice_arena).id
+	for id in ContentDB.arena_ids():
+		_arena_option.add_item(tr(ContentDB.arena_or_default(String(id)).name_key))
+		_arena_option.set_item_metadata(_arena_option.item_count - 1, String(id))
+		if id == chosen:
+			_arena_option.select(_arena_option.item_count - 1)
+
+
 func _on_practice_pressed() -> void:
 	_remember_inputs()
 	get_tree().change_scene_to_file(PRACTICE_SCENE_PATH)
@@ -140,6 +152,8 @@ func _remember_inputs() -> void:
 	Settings.player_name = _name_edit.text.strip_edges()
 	if _character_option.selected >= 0:
 		Settings.practice_character = str(_character_option.get_item_metadata(_character_option.selected))
+	if _arena_option.selected >= 0:
+		Settings.practice_arena = str(_arena_option.get_item_metadata(_arena_option.selected))
 	Settings.save()
 
 

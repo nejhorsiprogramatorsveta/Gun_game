@@ -22,6 +22,9 @@ const ADDRESS_KIND_KEYS := {
 
 ## character id -> its card button
 var _character_buttons: Dictionary[String, Button] = {}
+## Host: arena picker; clients: read-only arena name.
+var _arena_option := OptionButton.new()
+var _arena_label := Label.new()
 
 
 func _ready() -> void:
@@ -35,6 +38,7 @@ func _ready() -> void:
 	if Session.is_host():
 		_build_address_list()
 	_build_character_cards()
+	_build_arena_choice()
 	_refresh_players()
 	# Ask for the character picked in the main menu (the host got it when hosting).
 	if not Session.is_host() and not Settings.practice_character.is_empty():
@@ -76,14 +80,48 @@ func _build_character_cards() -> void:
 	column.add_child(grid)
 	column.move_child(title, _player_list.get_index() + 1)
 	column.move_child(grid, title.get_index() + 1)
+	grid.name = "CharacterGrid"
 	for id in ContentDB.character_ids():
 		var button := Button.new()
 		button.toggle_mode = true
 		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		button.custom_minimum_size = Vector2(230, 88)
+		button.custom_minimum_size = Vector2(230, 70)
+		button.add_theme_font_size_override("font_size", 15)
 		button.pressed.connect(_on_character_pressed.bind(String(id)))
 		grid.add_child(button)
 		_character_buttons[String(id)] = button
+
+
+func _build_arena_choice() -> void:
+	var row := HBoxContainer.new()
+	row.add_child(_make_label(tr("LOBBY_ARENA")))
+	_arena_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	row.add_child(_arena_label)
+	row.add_child(_arena_option)
+	var column := _player_list.get_parent()
+	column.add_child(row)
+	column.move_child(row, _character_grid_index() + 1)
+	for id in ContentDB.arena_ids():
+		_arena_option.add_item(tr(ContentDB.arena_or_default(String(id)).name_key))
+		_arena_option.set_item_metadata(_arena_option.item_count - 1, String(id))
+	_arena_option.visible = Session.is_host()
+	_arena_label.visible = not Session.is_host()
+	_arena_option.item_selected.connect(func(index: int) -> void:
+		Session.get_node("ArenaChoice").choose(str(_arena_option.get_item_metadata(index))))
+	Session.get_node("ArenaChoice").changed.connect(_refresh_arena)
+	_refresh_arena()
+
+
+func _character_grid_index() -> int:
+	return _player_list.get_parent().get_node("CharacterGrid").get_index()
+
+
+func _refresh_arena() -> void:
+	var arena := ContentDB.arena_or_default(Session.arena_id)
+	_arena_label.text = tr(arena.name_key)
+	for index in _arena_option.item_count:
+		if _arena_option.get_item_metadata(index) == String(arena.id):
+			_arena_option.select(index)
 
 
 func _refresh_character_cards() -> void:

@@ -11,58 +11,64 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Scroll" type="ScrollContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
 
-[node name="Column" type="VBoxContainer" parent="Center"]
+[node name="Center" type="CenterContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Column" type="VBoxContainer" parent="Scroll/Center"]
 custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Title" type="Label" parent="Center/Column"]
+[node name="Title" type="Label" parent="Scroll/Center/Column"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
 text = "LOBBY_TITLE"
 horizontal_alignment = 1
 
-[node name="PlayersTitle" type="Label" parent="Center/Column"]
+[node name="PlayersTitle" type="Label" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 
-[node name="PlayerList" type="VBoxContainer" parent="Center/Column"]
+[node name="PlayerList" type="VBoxContainer" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ShareSection" type="VBoxContainer" parent="Center/Column"]
+[node name="ShareSection" type="VBoxContainer" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ShareTitle" type="Label" parent="Center/Column/ShareSection"]
+[node name="ShareTitle" type="Label" parent="Scroll/Center/Column/ShareSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "LOBBY_SHARE_TITLE"
 
-[node name="RoomCodeLabel" type="Label" parent="Center/Column/ShareSection"]
+[node name="RoomCodeLabel" type="Label" parent="Scroll/Center/Column/ShareSection"]
 unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.45, 1)
 
-[node name="AddressList" type="GridContainer" parent="Center/Column/ShareSection"]
+[node name="AddressList" type="GridContainer" parent="Scroll/Center/Column/ShareSection"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 16
 columns = 3
 
-[node name="InternetHint" type="Label" parent="Center/Column/ShareSection"]
+[node name="InternetHint" type="Label" parent="Scroll/Center/Column/ShareSection"]
 unique_name_in_owner = true
 auto_translate_mode = 2
 custom_minimum_size = Vector2(560, 0)
@@ -70,27 +76,27 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
 autowrap_mode = 3
 
-[node name="SafetyHint" type="Label" parent="Center/Column/ShareSection"]
+[node name="SafetyHint" type="Label" parent="Scroll/Center/Column/ShareSection"]
 custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
 text = "LOBBY_SHARE_SAFETY"
 autowrap_mode = 3
 
-[node name="StatusLabel" type="Label" parent="Center/Column"]
+[node name="StatusLabel" type="Label" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
 horizontal_alignment = 1
 
-[node name="StartButton" type="Button" parent="Center/Column"]
+[node name="StartButton" type="Button" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "LOBBY_START"
 
-[node name="LeaveButton" type="Button" parent="Center/Column"]
+[node name="LeaveButton" type="Button" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2

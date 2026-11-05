@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ArenaData" format=3]
+
+[ext_resource type="Script" path="res://src/data_types/arena_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://src/arenas/arena_hanging_bridges.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"hanging_bridges"
+name_key = "ARENA_HANGING_BRIDGES_NAME"
+scene = ExtResource("2")

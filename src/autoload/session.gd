@@ -36,6 +36,8 @@ var match_slots: Dictionary[int, int] = {}
 var match_results: Array = []
 ## Host: secret that friends need to join (sent along with the address as "ip:port#CODE").
 var room_code := ""
+## Arena of the lobby / running match (ArenaChoice in the lobby, fixed by _begin_match).
+var arena_id := ""
 
 var _connector: Connector = EnetDirectConnector.new()
 var _local_name := ""
@@ -54,6 +56,7 @@ func _ready() -> void:
 	# Clients may only talk to the host, never relay RPCs to each other (PLAN.md S).
 	api.server_relay = false
 	add_child(CharacterChoice.new())  # character choice RPCs, see character_choice.gd
+	add_child(ArenaChoice.new())  # arena choice RPCs, see arena_choice.gd
 	api.auth_callback = _on_auth_message
 	api.auth_timeout = AUTH_TIMEOUT
 	api.peer_authenticating.connect(_on_peer_authenticating)
@@ -87,15 +90,16 @@ func start_match() -> void:
 	var slots := {}
 	for i in ids.size():
 		slots[ids[i]] = i
-	_begin_match.rpc(slots)
+	_begin_match.rpc(slots, arena_id)
 
 
 @rpc("authority", "call_local", "reliable")
-func _begin_match(slots: Dictionary) -> void:
+func _begin_match(slots: Dictionary, arena: String) -> void:
 	var valid_slots := LobbyValidator.slots(slots, players)
-	if phase != Phase.LOBBY or valid_slots.is_empty():
+	if phase != Phase.LOBBY or valid_slots.is_empty() or arena.length() > ArenaChoice.MAX_ID_LENGTH:
 		return
 	match_slots = valid_slots
+	arena_id = String(ContentDB.arena_or_default(arena).id)
 	_set_phase(Phase.IN_MATCH)
 
 
@@ -149,6 +153,7 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	multiplayer.multiplayer_peer = peer
 	host_port = port
 	room_code = Handshake.generate_room_code()
+	arena_id = String(ContentDB.arena_or_default(Settings.practice_arena).id)
 	players = {1: {"name": LobbyValidator.clean_name(player_name, 1),
 			"character": CharacterChoice.first_free({}, Settings.practice_character)}}
 	_set_phase(Phase.LOBBY)

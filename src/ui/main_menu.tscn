@@ -52,6 +52,12 @@ custom_minimum_size = Vector2(200, 48)
 layout_mode = 2
 tooltip_text = "MENU_PRACTICE_CHARACTER"
 
+[node name="ArenaOption" type="OptionButton" parent="Center/Column/PracticeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 48)
+layout_mode = 2
+tooltip_text = "MENU_PRACTICE_ARENA"
+
 [node name="HostButton" type="Button" parent="Center/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)

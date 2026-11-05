@@ -1,21 +1,20 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M5 hotový až na ruční hodnocení (verze `0.1.13`).** M5.4: `docs/EDITING_GUIDE.md` (česky) napsaný, akceptace ověřena. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
-- **Akceptace M5 ověřena:** dočasná postava přidaná jen jako `data/characters/zkusebni.tres` + 2 řádky CSV se bez změny kódu objevila v `ContentDB` i ve výběru v menu (lobby čte stejný seznam); pak smazána.
-- Plyn Krügermanna delší: 540 × 90 px (pokyn uživatele).
-- Nepoužité zbraně zůstávají v `data/weapons/` (rozhodnutí uživatele 2026-11-05).
-- Návod popisuje postavy, zbraně (limity odhozu a zpětného rázu), schopnosti, pravidla zápasu, texty (uvozovky), vydání (verze + changelog) a kontroly.
-- `session.gd` má 312 řádků (limit ~300) – rozdělit při další změně Session.
-- **Pozor před dalším herním commitem:** verze `0.1.14` + archivace changelogu (build z `version.json`).
-- **Opravit s dalším herním commitem:** v `data/changelog.tres` je archivní záznam `0.1.12` omylem s `"build": 42`, správně **43** (commit jen s dokumentací `e8075a1` zvýšil počet commitů). Hráči to nevidí (menu ukazuje jen nejnovější verzi). Číslo buildu vždy brát z `version.json` AŽ po přečtení výstupu; dokumentační commity build také zvyšují.
+**M6 – kroky M6.1 + M6.2 hotové (verze `0.1.14`): 3 mapy a výběr mapy.** Zbývá M6.3. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+- Nové originální mapy **Chrámové schody** (dvě boční základny, propast, schody z plošin) a **Visuté mosty** (tři ostrovy, mosty, vysoké římsy); původní **Střechy**. Zatím barevné plošiny (pixel art viz PLAN.md Q).
+- Lobby: mapu vybírá jen hostitel (rozbalovací seznam pod kartami postav), ostatní ji vidí; mapa se posílá i se startem zápasu (`_begin_match(slots, arena)`), takže všichni hrají stejnou. Trénink: výběr mapy v menu vedle postavy (zároveň první mapa při hostování).
+- Lobby je v posuvném kontejneru (u hostitele se obsah nevešel na výšku – nadpis a „Odejít“ byly uříznuté); mapa hned pod kartami, menší karty.
+- Changelog opraven: archivní 0.1.12 = sestavení 43 (bylo omylem 42). Protokol 12.
+- `session.gd` má 317 řádků (limit ~300) – **další úkol na Session: přesunout handshake (`_on_auth_message`, `_handle_hello`, `_handle_auth_reply`, `_drop_peer`, `_pending_names`, `_rejected_peers`) do `src/net/session_auth.gd`** a ověřit síťovými testy chybových hlášek.
+- **Pozor před dalším herním commitem:** verze `0.1.15` + archivace changelogu (build z `version.json`, AŽ po přečtení výstupu).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**Rozhodnutí uživatele: co dál po M5.** Zeptat se a nabídnout:
-- „Budoucí práce – chování zbraní“ (PLAN.md G.0a): úbytek odhozu se vzdáleností, viditelný konec dostřelu, zásobník/přebíjení, rozptyl při pohybu, efekty.
-- **M6 – obsah:** další arény (`ArenaData`), výběr mapy hostitelem v lobby (T.2), 3–4 hráči, profilace výkonu (PLAN.md K, M6).
-- M4.1 (sekání Wi-Fi), jakmile uživatel pošle log `[net]` z hraní s kamarádem.
+**M6.3 – 4 hráči, výkon a vydání `v0.2.0`** (PLAN.md K, M6).
+- Síťový test se 4 procesy na všech 3 mapách (spawny, respawn, konec zápasu, výsledky), měření FPS/pingu z `[net]` logu.
+- Profilace: FPS a čas snímku s 4 hráči a hodně střelami (brokovnice, kulomet) – headless i s oknem; případné optimalizace.
+- Zeptat se uživatele, zda vydat `0.2.0` (zvýšení minor verze je samostatné rozhodnutí, CI ho povolí), a na ruční test se 4 hráči (aspoň 2 přes internet).
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -61,6 +60,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, M6.1 + M6.2 mapy a výběr mapy, verze 0.1.14 (Claude):** `ArenaData`, `data/arenas/{rooftops,temple_steps,hanging_bridges}.tres`, 2 nové scény arén, `ContentDB` arény, `ArenaChoice`, `Session.arena_id` + `_begin_match(slots, arena)`, `Settings.practice_arena`, výběr v menu a lobby, lobby ve `ScrollContainer`, `tests/test_arenas.gd`, oprava changelogu 0.1.12 → 43, EDITING_GUIDE o mapách.
 - **2026-11-05, M5.4 návod + delší plyn, verze 0.1.13 (Claude):** `docs/EDITING_GUIDE.md`, `slow_cloud` délka 540, akceptační ověření přidání postavy přes data.
 - **2026-11-05, jedna zbraň na postavu, verze 0.1.12 (Claude):** `CharacterData.weapon`, 6 postav upraveno, odstraněno přepínání (`project.godot`, `InputFrame`, `Player`, `WeaponSystem`, `CombatRules`, `NetCodec`, `MatchController`), HUD/lobby/CSV, testy.
 - **2026-11-04 večer, rozhodnutí uživatele (jen dokumentace):** každá postava bude mít jen jednu zbraň, přepínání zbraní se odstraní; zapsáno do PLAN.md G.0a a „Další krok“.
@@ -221,6 +221,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, M6.1 + M6.2 (0.1.14):** 104/104 unit testů (3 mapy, záložní mapa, ≥ 4 spawny s plošinou pod každým, nic mimo hranice), lokalizace OK. Trénink na obou nových mapách (postavy stojí na zemi, screenshoty). Síťový test se 3 procesy: host zvolí Visuté mosty → oba klienti vidí změnu v lobby a všichni hrají Visuté mosty. Screenshot lobby hostitele (po opravě posuvu). **Neověřeno:** ruční hraní nových map, 4 hráči, Windows.
 - **2026-11-05, M5.4 (0.1.13):** 102/102 unit testů, lokalizace OK; ruční akceptační ověření dočasné postavy přes `.tres` + CSV (objevila se v ContentDB a menu). **Neověřeno:** návod prakticky nevyzkoušel nikdo jiný; ruční hraní, Windows.
 - **2026-11-05, jedna zbraň (0.1.12):** 102/102 unit testů (každá postava má zvolenou zbraň), lokalizace OK. Trénink: všech 6 postav střílí svou zbraní (brokovnice 8 broků, odstřelovačka 1 rána / 0,5 s), HUD „zbraň | schopnost“. Síťový zápas se 3 hráči bez chyb. **Neověřeno:** ruční hraní, Windows.
 - **2026-11-04, M5.3 (0.1.11):** 104/104 unit testů (validace postav v lobby: chybějící, neznámá, duplicitní; první volná/oblíbená postava; plyn jako pás), lokalizace OK. Síťový test se 3 procesy: A získá Stína, B o Stína nepřijde (odmítnuto) a dostane Vichra, všichni tři v zápase vidí stejné postavy; ~2300 opakovaných žádostí (chyba testovacího skriptu) → host jen 6 změn díky limitu. Screenshoty lobby (karty, obsazeno) a plynu. **Neověřeno:** ruční klikání na karty, Windows.

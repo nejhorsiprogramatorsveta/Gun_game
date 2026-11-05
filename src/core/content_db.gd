@@ -5,12 +5,15 @@ class_name ContentDB
 const CHARACTERS_DIR := "res://data/characters/"
 const WEAPONS_DIR := "res://data/weapons/"
 const ABILITIES_DIR := "res://data/abilities/"
+const ARENAS_DIR := "res://data/arenas/"
+const DEFAULT_ARENA_ID := &"rooftops"
 const MATCH_RULES_PATH := "res://data/match_rules.tres"
 const DEFAULT_CHARACTER_ID := &"jiskra"
 
 static var _characters: Dictionary[StringName, CharacterData] = {}
 static var _weapons: Dictionary[StringName, WeaponData] = {}
 static var _abilities: Dictionary[StringName, AbilityData] = {}
+static var _arenas: Dictionary[StringName, ArenaData] = {}
 static var _match_rules: MatchRules
 
 
@@ -21,6 +24,9 @@ static func _static_init() -> void:
 	for data in _load_all(ABILITIES_DIR):
 		if data is AbilityData:
 			_abilities[data.id] = data
+	for data in _load_all(ARENAS_DIR):
+		if data is ArenaData:
+			_arenas[data.id] = data
 	for data in _load_all(CHARACTERS_DIR):
 		if data is CharacterData:
 			_characters[data.id] = data
@@ -54,6 +60,18 @@ static func character_ids() -> Array[StringName]:
 
 static func get_weapon(id: StringName) -> WeaponData:
 	return _weapons.get(id)
+
+
+## Arena ids in a stable order (alphabetical by text, the same on every computer).
+static func arena_ids() -> Array[StringName]:
+	var ids: Array[StringName] = _arenas.keys()
+	ids.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
+	return ids
+
+
+## The chosen arena, or the default one for unknown/empty ids.
+static func arena_or_default(id: String) -> ArenaData:
+	return _arenas.get(StringName(id), _arenas.get(DEFAULT_ARENA_ID))
 
 
 static func get_ability(id: StringName) -> AbilityData:

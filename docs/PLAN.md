@@ -770,6 +770,7 @@ Milník: M0. Funguje: lokální Godot 4.7.2 přes tools/godot. Hra: zatím nic.
 - **Akceptace:** novou postavu jde přidat jen přes `.tres` a CSV (vyzkoušíme).
 
 ### M6 – Obsah: zbraně, arény, 4 hráči *(střední)*
+- **Stav (2026-11-05):** M6.1 + M6.2 hotové (0.1.14): `ArenaData` + `data/arenas/*.tres`, nové arény Chrámové schody a Visuté mosty (originální rozložení, zatím barevné plošiny), výběr mapy hostitelem v lobby (`ArenaChoice`, mapa se posílá i se startem zápasu), výběr mapy pro trénink v menu. Zbraně: uživatel zvolil 1 zbraň na postavu (G.0a), balanc zbraní = „budoucí práce“. Zbývá **M6.3**: test se 4 hráči, profilace výkonu, vydání `v0.2.0`.
 - **Funkce:** další zbraně a doladění balancu (SMG až sniper, G.0); 2 další arény (`ArenaData`); **výběr mapy hostitelem v lobby (T.2)**; 3–4 hráči.
 - **Testy:** 4 hráči online (aspoň 2 přes internet); profilace výkonu na slabším notebooku a Macu.
 - **Akceptace:** 4 hráči hrají plynule, ~60 FPS. Vydat `v0.2.0`.

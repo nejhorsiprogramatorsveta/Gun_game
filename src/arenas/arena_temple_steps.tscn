@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/arenas/arena.gd" id="1"]
+[ext_resource type="Script" path="res://src/arenas/platform.gd" id="2"]
+
+[node name="ArenaTempleSteps" type="Node2D"]
+script = ExtResource("1")
+kill_rect = Rect2(-700, -800, 2680, 1900)
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+zoom = Vector2(0.6, 0.6)
+
+[node name="LeftBase" type="StaticBody2D" parent="."]
+position = Vector2(40, 600)
+script = ExtResource("2")
+size = Vector2(380, 40)
+
+[node name="RightBase" type="StaticBody2D" parent="."]
+position = Vector2(860, 600)
+script = ExtResource("2")
+size = Vector2(380, 40)
+
+[node name="LowStep" type="StaticBody2D" parent="."]
+position = Vector2(500, 480)
+script = ExtResource("2")
+size = Vector2(280, 16)
+one_way = true
+
+[node name="LeftStep" type="StaticBody2D" parent="."]
+position = Vector2(300, 360)
+script = ExtResource("2")
+size = Vector2(220, 16)
+one_way = true
+
+[node name="RightStep" type="StaticBody2D" parent="."]
+position = Vector2(760, 360)
+script = ExtResource("2")
+size = Vector2(220, 16)
+one_way = true
+
+[node name="TopStep" type="StaticBody2D" parent="."]
+position = Vector2(530, 240)
+script = ExtResource("2")
+size = Vector2(220, 16)
+one_way = true
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(230, 560)
+
+[node name="Spawn2" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1050, 560)
+
+[node name="Spawn3" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(410, 320)
+
+[node name="Spawn4" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(870, 320)
