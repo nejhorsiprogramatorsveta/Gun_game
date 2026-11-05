@@ -20,5 +20,5 @@ func create_effect(owner_peer_id: int) -> Node2D:
 	platform.lifetime = lifetime
 	platform.one_way = true
 	platform.size = Vector2(width, 14.0)
-	platform.color = Color(0.85, 0.65, 0.3)
+	platform.color = Color(1.3, 1.1, 0.55)  # golden tint of the wooden beam
 	return platform

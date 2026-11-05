@@ -2,10 +2,16 @@
 
 [ext_resource type="Script" path="res://src/arenas/arena.gd" id="1"]
 [ext_resource type="Script" path="res://src/arenas/platform.gd" id="2"]
+[ext_resource type="Script" path="res://src/arenas/arena_background.gd" id="3"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/temple_steps.png" id="4"]
 
 [node name="ArenaTempleSteps" type="Node2D"]
 script = ExtResource("1")
 kill_rect = Rect2(-700, -800, 2680, 1900)
+
+[node name="Background" type="CanvasLayer" parent="."]
+script = ExtResource("3")
+scene = ExtResource("4")
 
 [node name="Camera" type="Camera2D" parent="."]
 position = Vector2(640, 360)

@@ -60,6 +60,10 @@ postav jsou v něm (`CHARACTERS`, `WEAPONS`). Po úpravě spusť `python3 tools/
 import Godotu a PNG soubory commitni. Novou postavu do skriptu přidej se stejným id jako v `data/characters/`.
 Hotový obrázek z jiného programu (např. Aseprite) jde použít taky – stačí dodržet rozměry snímků.
 
+Mapy, pozadí a UI kreslí `tools/art/generate_world.py` (dlaždice plošin, pozadí map 480 × 270, mraky, logo, rámečky
+tlačítek). Pozadí mapy je uzel `Background` ve scéně arény (pole `scene`). Vzhled tlačítek a textů je ve společném
+tématu `assets/ui/theme.tres`.
+
 ## Zbraně – `data/weapons/*.tres`
 
 | Hodnota | Význam |

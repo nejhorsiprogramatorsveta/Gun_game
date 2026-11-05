@@ -1,16 +1,15 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Grafika – krok 1 hotový (verze `0.2.1`): pixel art všech 6 postav a zbraní s animacemi.** Hra „Dojo Knockout“ (v0.2.0 vydaná). M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
-- Generátor `tools/art/generate_sprites.py` (vlastní pixel art, obrysy, stínování) → `assets/sprites/characters/*.png` (10 snímků 32×40: klid 2, chůze 4, skok, pád, střelba 2) a `assets/sprites/weapons/*.png` (12 zbraní, normální + záblesk). Ve hře ×2, filtr Nearest.
-- Návrhy (PLAN.md Q „ROZHODNUTÍ 2026-11-05“): Jiskra róninka s kitsune maskou a katanou, Balvan samuraj s kabutem, Vichr ninja s šálou a kusarigamou, Stín ninja se šurikenem, Krügermann vynálezce s brýlemi a tlakovou láhví, Architekt stavitel se slaměným kloboukem a kladivem. **Krügermanna a Architekta Claude záměrně neudělal podle dodaných fotografií** (nacistická uniforma; skutečný člověk).
-- `PlayerVisual`: animace podle stavu (na zemi, rychlost, střelba), zbraň za kurzorem se zábleskem a cuknutím, otočení postavy; jmenovka v barvě slotu. Vzdálení hráči: rychlost, `on_floor` a příznak střelby ze snapshotu (`FLAG_FIRING`, protokol 13); vlastní postava klienta ukazuje střelbu hned podle tlačítka.
-- `session.gd` má 317 řádků (limit ~300) – při další změně Session přesunout handshake do `src/net/session_auth.gd`.
-- **Pozor před dalším herním commitem:** verze `0.2.2` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
+**Grafika – krok 2 hotový (verze `0.2.2`): pixel art map, pozadí a menu.** Rozpracováno: **kompletní validace** (zadání uživatele 2026-11-05 – bugy, animace, připojení, kompatibilita).
+- `tools/art/generate_world.py`: dlaždice (kámen s mechem / dřevěný trám), 3 pozadí map + plující mraky, logo „DOJO KNOCKOUT“, rámečky UI. `Platform` kreslí dlaždice, `ArenaBackground` v každé aréně a v menu/lobby/výsledcích (ztmavené), globální téma `assets/ui/theme.tres` (tlačítka, pole, panely, dialog, obrys všech textů – čitelnost na světlém pozadí).
+- Postavy (0.2.1) beze změny dle uživatele („nech to tak“).
+- `session.gd` má 317 řádků (limit ~300).
+- **Pozor před dalším herním commitem:** verze `0.2.3` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**Grafika – krok 2: arény v pixel artu** (PLAN.md Q): dlaždice plošin (kámen/dřevo, jednosměrné plošiny jako trámy), pozadí s paralaxou (obloha, hory/chrámy), stejné rozměry kolizí; generovat stejným způsobem (rozšířit `tools/art/` o arény) a kreslit v `src/arenas/platform.gd`. Potom animace zásahu (odhoz) a efekt schopnosti; zeptat se uživatele na dojem z postav (barvy, velikost) – změny jsou jen úprava generátoru.
+**Dokončit kompletní validaci** (zadání uživatele): všechny testy, síťové scénáře (handshake: špatný kód, jiná verze, plné lobby, zápas běží; odpojení; 4 hráči s lagem na 3 mapách), animace online (3 hráči), exporty Windows/macOS/Linux lokálně a spuštění exportu, kontrola kódu nezávislým agentem; nalezené chyby opravit, výsledky zapsat sem.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -56,6 +55,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, pixel art map/pozadí/menu, verze 0.2.2 (Claude):** `tools/art/generate_world.py`, `assets/sprites/tiles`, `assets/backgrounds`, `assets/ui` (+ `theme.tres`), `src/arenas/arena_background.gd`, `platform.gd` (dlaždice), pozadí v 3 arénách a 3 UI scénách, logo v menu, `gui/theme/custom` v `project.godot`, CREDITS, EDITING_GUIDE.
 - **2026-11-05, pixel art postav, verze 0.2.1 (Claude):** `tools/art/generate_sprites.py`, `assets/sprites/**`, `src/player/player_visual.gd`, `CharacterData.sprite_sheet`, `WeaponData.sprite`, `Player.last_fire_ms`/`is_firing()`, `FLAG_FIRING`, jmenovka v barvě slotu, CREDITS, EDITING_GUIDE (grafika), testy `test_player_visual`.
 - **2026-11-05, vydání v0.2.0 + název „Dojo Knockout“ (Claude):** `GAME_TITLE` v CSV a CI, titulek okna, `publish_release.sh` (`GAME_TITLE` s výchozím `GAME_NAME`), test titulku v `tests/test_release_workflow.py` (CI proměnnou v testech výslovně odstraňuje), README.
 - **2026-11-05, rozvržení menu/lobby + M6.3 test 4 hráčů, verze 0.1.15 (Claude):** `main_menu.tscn` (Trénink na celou šířku), `lobby.tscn`/`lobby.gd` (kompaktnější), výsledky testu 4 botů a profilace zapsány.
@@ -220,6 +220,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, pixel art světa (0.2.2):** 107/107 unit testů, lokalizace OK; screenshoty 3 map v tréninku, menu, lobby hostitele (bez posuvníku), výsledků a dialogu „Co je nového“. **Neověřeno:** ruční dojem, Windows.
 - **2026-11-05, pixel art (0.2.1):** 107/107 unit testů (výběr animace, zrcadlení zbraně, stav vzdáleného hráče ze snapshotu, sprite u každé postavy/zbraně, příznak střelby v kodeku), lokalizace OK. Trénink: screenshoty chůze/skoku/střelby (Balvan). Online host + klient: klient vidí u sebe a host u klienta všech 5 animací. **Neověřeno:** ruční dojem z grafiky, Windows, třetí hráč (animace ze snapshotu jen unit testem).
 - **2026-11-05, v0.2.0:** 104/104 unit testů, lokalizace OK, 10/10 testů vydávání (nový: titulek z `GAME_TITLE`, názvy souborů dál `gun_game-*`). **Neověřeno:** ruční hra 4 lidí, internet, Windows.
 - **2026-11-05, rozvržení + M6.3 (0.1.15):** 104/104 unit testů, lokalizace OK; screenshot menu a lobby hostitele (bez posuvníku, 1280 × 775); test 4 botů na 3 mapách (výsledky viz „Kde jsme skončili“). **Neověřeno:** ruční hra 4 lidí, internet, Windows, slabší notebook.

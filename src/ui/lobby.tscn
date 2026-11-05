@@ -1,5 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="Script" path="res://src/arenas/arena_background.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/rooftops.png" id="3"]
 [ext_resource type="Script" path="res://src/ui/lobby.gd" id="1"]
 
 [node name="Lobby" type="Control"]
@@ -10,6 +12,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+
+[node name="Background" type="CanvasLayer" parent="."]
+script = ExtResource("2")
+scene = ExtResource("3")
+dim = 0.35
 
 [node name="Scroll" type="ScrollContainer" parent="."]
 layout_mode = 1

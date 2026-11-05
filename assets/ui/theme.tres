@@ -1,0 +1,118 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ui/button_normal.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/button_hover.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/button_pressed.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/button_disabled.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/ui/focus.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/ui/field.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/ui/panel.png" id="7"]
+
+[sub_resource type="StyleBoxTexture" id="normal"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+texture = ExtResource("1")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxTexture" id="hover"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+texture = ExtResource("2")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxTexture" id="pressed"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+texture = ExtResource("3")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxTexture" id="disabled"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+texture = ExtResource("4")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxTexture" id="focus"]
+texture = ExtResource("5")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+draw_center = false
+
+[sub_resource type="StyleBoxTexture" id="field"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+texture = ExtResource("6")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxTexture" id="panel"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+texture = ExtResource("7")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[resource]
+Button/colors/font_color = Color(0.95, 0.92, 0.86, 1)
+Button/colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+Button/colors/font_pressed_color = Color(1, 1, 1, 1)
+Button/colors/font_disabled_color = Color(0.55, 0.52, 0.58, 1)
+Button/colors/font_focus_color = Color(1, 0.95, 0.8, 1)
+Button/colors/font_outline_color = Color(0.07, 0.05, 0.09, 1)
+Button/constants/outline_size = 3
+Button/styles/normal = SubResource("normal")
+Button/styles/hover = SubResource("hover")
+Button/styles/pressed = SubResource("pressed")
+Button/styles/hover_pressed = SubResource("pressed")
+Button/styles/disabled = SubResource("disabled")
+Button/styles/focus = SubResource("focus")
+OptionButton/styles/normal = SubResource("normal")
+OptionButton/styles/hover = SubResource("hover")
+OptionButton/styles/pressed = SubResource("pressed")
+OptionButton/styles/disabled = SubResource("disabled")
+OptionButton/styles/focus = SubResource("focus")
+Label/colors/font_outline_color = Color(0.07, 0.05, 0.09, 1)
+Label/constants/outline_size = 4
+LineEdit/colors/font_color = Color(0.95, 0.92, 0.86, 1)
+LineEdit/styles/normal = SubResource("field")
+LineEdit/styles/focus = SubResource("focus")
+LineEdit/styles/read_only = SubResource("field")
+PanelContainer/styles/panel = SubResource("panel")
+PopupMenu/styles/panel = SubResource("panel")
+PopupMenu/styles/hover = SubResource("hover")
+RichTextLabel/styles/normal = SubResource("field")
+TooltipPanel/styles/panel = SubResource("panel")
+AcceptDialog/styles/panel = SubResource("panel")
+Window/styles/embedded_border = SubResource("panel")
+Window/styles/embedded_unfocused_border = SubResource("panel")
+Window/colors/title_color = Color(1, 0.9, 0.7, 1)
