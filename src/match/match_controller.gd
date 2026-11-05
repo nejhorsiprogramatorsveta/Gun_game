@@ -215,7 +215,9 @@ func _on_player_hit(attacker_peer_id: int, victim: Player) -> void:
 func _on_kill_announced(killer_slot: int, streak: int) -> void:
 	for player in _players.values():
 		if player.slot == killer_slot:
-			_hud.show_kill(player.display_name, streak)
+			var popup := KillPopup.new()
+			popup.setup(streak)
+			player.add_child(popup)
 			return
 
 

@@ -1,43 +1,54 @@
 class_name MatchHud
 extends Control
-## In-match overlay: player scores, the start countdown and kill announcements.
+## In-match overlay: scoreboard panel (character icon, lives, kills, deaths) and the start
+## countdown. Kill announcements float above the killer (KillPopup).
 ## Bottom left: FPS and (on clients) ping; F3 hides/shows it.
 
-const SCORE_COLUMNS := 4
-const KILL_NOTICE_SECONDS := 2.0
+const SCORE_COLUMNS := 4  # name, lives, kills, deaths (plus the character icon column)
+## Head of the character in its sprite sheet (first idle frame), shown in the scoreboard.
+const HEAD_REGION := Rect2(8, 4, 16, 16)
 
 @onready var _scoreboard: GridContainer = %Scoreboard
 @onready var _countdown_label: Label = %CountdownLabel
-@onready var _kill_label: Label = %KillLabel
 
 var _score_cells: Array[Label] = []
-var _kill_seconds_left := 0.0
+var _score_icons: Array[TextureRect] = []
 var _net_label := Label.new()
 var _weapon_label := Label.new()
 
 
 func _ready() -> void:
+	_scoreboard.add_child(Control.new())  # no heading above the icons
 	for key: String in ["HUD_PLAYER", "HUD_LIVES_HEADER", "HUD_KILLS", "HUD_DEATHS"]:
 		var heading := Label.new()
 		heading.text = tr(key)
 		heading.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if key == "HUD_PLAYER" else HORIZONTAL_ALIGNMENT_CENTER
-		heading.add_theme_font_size_override("font_size", 18)
-		heading.add_theme_color_override("font_color", Color(0.8, 0.82, 0.88))
+		heading.add_theme_font_size_override("font_size", 16)
+		heading.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
 		_scoreboard.add_child(heading)
-	for index in Session.MAX_PLAYERS * SCORE_COLUMNS:
-		var cell := Label.new()
-		cell.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		cell.visible = false
-		if index % SCORE_COLUMNS == 0:
-			cell.custom_minimum_size.x = 220.0
-			cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			cell.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-			cell.clip_text = true
-		else:
-			cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_scoreboard.add_child(cell)
-		_score_cells.append(cell)
+	for row in Session.MAX_PLAYERS:
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(32, 32)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.visible = false
+		_scoreboard.add_child(icon)
+		_score_icons.append(icon)
+		for column in SCORE_COLUMNS:
+			var cell := Label.new()
+			cell.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+			cell.visible = false
+			if column == 0:
+				cell.custom_minimum_size.x = 200.0
+				cell.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+				cell.clip_text = true
+			else:
+				cell.custom_minimum_size.x = 64.0
+				cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_scoreboard.add_child(cell)
+			_score_cells.append(cell)
 	_net_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	_net_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 16)
 	_net_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -64,12 +75,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _process(delta: float) -> void:
-	if _kill_seconds_left > 0.0:
-		_kill_seconds_left = maxf(_kill_seconds_left - delta, 0.0)
-		_kill_label.visible = _kill_seconds_left > 0.0
-
-
 func show_state(players: Array, countdown: int, show_lives: bool) -> void:
 	_countdown_label.visible = countdown > 0
 	_countdown_label.text = str(countdown)
@@ -79,9 +84,16 @@ func show_state(players: Array, countdown: int, show_lives: bool) -> void:
 	for row in Session.MAX_PLAYERS:
 		for column in SCORE_COLUMNS:
 			_score_cells[row * SCORE_COLUMNS + column].visible = row < sorted.size()
+		_score_icons[row].visible = row < sorted.size()
 		if row >= sorted.size():
 			continue
 		var player: Player = sorted[row]
+		if _score_icons[row].texture == null and player.character and player.character.sprite_sheet:
+			var head := AtlasTexture.new()
+			head.atlas = player.character.sprite_sheet
+			head.region = HEAD_REGION
+			_score_icons[row].texture = head
+		_score_icons[row].modulate.a = 1.0 if player.lives > 0 or not show_lives else 0.35
 		var lives_text := tr("HUD_UNLIMITED")
 		if show_lives:
 			lives_text = str(player.lives) if player.lives > 0 else tr("HUD_ELIMINATED")
@@ -89,21 +101,6 @@ func show_state(players: Array, countdown: int, show_lives: bool) -> void:
 		for column in SCORE_COLUMNS:
 			_score_cells[row * SCORE_COLUMNS + column].text = values[column]
 		_score_cells[row * SCORE_COLUMNS].modulate = Player.SLOT_COLORS[player.slot % Player.SLOT_COLORS.size()]
-
-
-func show_kill(player_name: String, streak: int) -> void:
-	if streak <= 0:
-		return
-	var key := "HUD_KILL"
-	if streak == 2:
-		key = "HUD_DOUBLE_KILL"
-	elif streak == 3:
-		key = "HUD_TRIPLE_KILL"
-	elif streak >= 4:
-		key = "HUD_MULTI_KILL"
-	_kill_label.text = tr(key).format({"name": player_name, "count": streak})
-	_kill_seconds_left = KILL_NOTICE_SECONDS
-	_kill_label.show()
 
 
 ## ping_ms < 0 = nothing to measure (host, practice) or not measured yet.

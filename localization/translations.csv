@@ -85,10 +85,6 @@ HUD_UNLIMITED,∞
 HUD_KILLS,Zabití
 HUD_DEATHS,Smrti
 HUD_ELIMINATED,vypadl/a
-HUD_KILL,{name} – KILL
-HUD_DOUBLE_KILL,{name} – DOUBLE KILL
-HUD_TRIPLE_KILL,{name} – TRIPLE KILL
-HUD_MULTI_KILL,{name} – MULTI KILL ×{count}
 RESULTS_TITLE,Výsledky
 RESULTS_WINNER,{place}. {name} – vítěz
 RESULTS_PLACE,{place}. {name}
@@ -169,3 +165,8 @@ CHANGELOG_V020,"Verze 0.2.0 shrnuje dosavadní obsah: 6 postav s vlastní zbran�
 CHANGELOG_PIXEL_ART,"Pixel art postav: všech 6 postav má vlastní vzhled a animace klidu, chůze, skoku, pádu a střelby; zbraně se otáčejí za kurzorem a při výstřelu blýsknou."
 CHANGELOG_PIXEL_WORLD,"Pixel art map a menu: kamenné plošiny s mechem a dřevěné trámy, každá mapa má vlastní pozadí s plujícími mraky (noční město pagod, západ slunce s branami torii, mlhavé údolí), nové logo, tlačítka a rámečky v celé hře."
 CHANGELOG_FIXES_023,"Opravy z kontroly hry: Esc hostitele hned po konci zápasu už nezasekne výsledky, plynulejší start po odpočtu, mosty na Visutých mostech navazují bez schodu, bezpečnější připojování a další drobnosti."
+POPUP_KILL,KILL!
+POPUP_DOUBLE_KILL,DOUBLE KILL!
+POPUP_TRIPLE_KILL,TRIPLE KILL!
+POPUP_MULTI_KILL,MULTI KILL ×{count}!
+CHANGELOG_PIXEL_TEXT,"Pixelové písmo v celé hře, nový scoreboard s ikonami postav a nápis KILL! nad hráčem, který zrovna někoho shodil (DOUBLE / TRIPLE / MULTI KILL při sérii)."

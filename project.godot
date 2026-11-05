@@ -6,7 +6,7 @@ config_version=5
 [application]
 
 config/name="gun_game"
-config/version="0.2.3"
+config/version="0.2.4"
 run/main_scene="res://src/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -27,7 +27,7 @@ window/stretch/aspect="expand"
 
 theme/custom="res://assets/ui/theme.tres"
 
-theme/custom_font="res://assets/fonts/NotoSans.ttf"
+theme/custom_font="res://assets/fonts/PixelifySans.ttf"
 
 [input]
 

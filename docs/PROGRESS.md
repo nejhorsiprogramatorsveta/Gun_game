@@ -1,7 +1,7 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Grafika – krok 2 hotový (0.2.2); validace část 1 + opravy (verze `0.2.3`).** Rozpracováno: pixelové písmo, hezčí scoreboard, „KILL“ nad hráčem (nové zadání uživatele) a zbytek validace (exporty, kompatibilita).
+**Grafika a kompletní validace hotové (verze `0.2.4`).** Pixel art postav (0.2.1), map/pozadí/menu (0.2.2), opravy z validace (0.2.3), pixelové písmo + scoreboard + „KILL!“ nad hráčem (0.2.4).
 - **Validace část 1 (2026-11-05):** připojovací chyby (špatný kód, jiná verze, plné lobby, zápas běží – správné české hlášky), 6 scénářů odpojení, 4 boti na mapách, výkon (0 pomalých snímků) – vše OK. Nezávislá kontrola kódu (agent) našla 7 problémů, všechny ověřeny a opraveny:
   1. Esc hostitele během 0,5 s po konci zápasu → všichni uvízli ve výsledcích (reprodukováno na starém kódu, opraveno: scéna podle aktuální fáze, jediné přepnutí; výsledky/lobby po načtení kontrolují fázi).
   2. Lobby po načtení nepřešlo do už běžícího zápasu → opraveno.
@@ -11,14 +11,14 @@
   6. Po výpadku sítě host vyhodnotil držený skok jako nový stisk → neutrální vstup drží tlačítka kromě střelby.
   7. Poskočení při „GO!“ → odpočet ve snapshotu v desetinách s, klient odhadne start pohybu podle pingu (korekce 33–47 → ~24 px při lagu 100 ms). Protokol 14.
   + Visuté mosty: boční ostrovy zarovnány s mosty (dřív kolmý schod 30 px – boti se zasekli, zápas neskončil).
-- `tools/art/generate_world.py`: dlaždice (kámen s mechem / dřevěný trám), 3 pozadí map + plující mraky, logo „DOJO KNOCKOUT“, rámečky UI. `Platform` kreslí dlaždice, `ArenaBackground` v každé aréně a v menu/lobby/výsledcích (ztmavené), globální téma `assets/ui/theme.tres` (tlačítka, pole, panely, dialog, obrys všech textů – čitelnost na světlém pozadí).
-- Postavy (0.2.1) beze změny dle uživatele („nech to tak“).
-- `session.gd` má 317 řádků (limit ~300).
-- **Pozor před dalším herním commitem:** verze `0.2.3` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
+- **Validace část 2:** exporty Windows/macOS/Linux bez chyb (116 / 67 / 80 MB); exportovaná macOS release hra spuštěna (Movie Maker snímky): menu kompletní, bez chyb v logu; herní kód bez OS-specifických cest (jediné větvení podle OS v aktualizátoru je záměrné). Windows/Linux exporty nespuštěny (jen sestaveny) – Windows test zůstává v odložených.
+- **0.2.4:** písmo Pixelify Sans (OFL, celá čeština) bez vyhlazování v celé hře; scoreboard v panelu s ikonami hlav; „KILL!“ / „DOUBLE KILL!“ … nad hráčem, který zabil (`kill_popup.gd`); číslo verze v menu se už neuřízne.
+- `session.gd` má 319 řádků (limit ~300) – přesunout handshake do `src/net/session_auth.gd`.
+- **Pozor před dalším herním commitem:** verze `0.2.5` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**Dokončit kompletní validaci** (zadání uživatele): všechny testy, síťové scénáře (handshake: špatný kód, jiná verze, plné lobby, zápas běží; odpojení; 4 hráči s lagem na 3 mapách), animace online (3 hráči), exporty Windows/macOS/Linux lokálně a spuštění exportu, kontrola kódu nezávislým agentem; nalezené chyby opravit, výsledky zapsat sem.
+**Zeptat se uživatele.** Nabídnout: ruční test ve 4 lidech (+ logy `[net]` pro M4.1), animace zásahu a efekty schopností (grafika), „budoucí práce – chování zbraní“ (PLAN.md G.0a), rozdělení `session.gd`, zvuky a hudba (PLAN.md M8).
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -64,6 +64,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, validace + opravy (0.2.3) a pixelové písmo/scoreboard/KILL (0.2.4) (Claude):** viz „Kde jsme skončili“; nové `src/ui/kill_popup.gd`, `assets/fonts/PixelifySans.ttf` (+ OFL), úpravy `match_hud.gd`, `match.tscn` (ScorePanel, bez KillLabel), CSV `POPUP_*` místo `HUD_*KILL`.
 - **2026-11-05, pixel art map/pozadí/menu, verze 0.2.2 (Claude):** `tools/art/generate_world.py`, `assets/sprites/tiles`, `assets/backgrounds`, `assets/ui` (+ `theme.tres`), `src/arenas/arena_background.gd`, `platform.gd` (dlaždice), pozadí v 3 arénách a 3 UI scénách, logo v menu, `gui/theme/custom` v `project.godot`, CREDITS, EDITING_GUIDE.
 - **2026-11-05, pixel art postav, verze 0.2.1 (Claude):** `tools/art/generate_sprites.py`, `assets/sprites/**`, `src/player/player_visual.gd`, `CharacterData.sprite_sheet`, `WeaponData.sprite`, `Player.last_fire_ms`/`is_firing()`, `FLAG_FIRING`, jmenovka v barvě slotu, CREDITS, EDITING_GUIDE (grafika), testy `test_player_visual`.
 - **2026-11-05, vydání v0.2.0 + název „Dojo Knockout“ (Claude):** `GAME_TITLE` v CSV a CI, titulek okna, `publish_release.sh` (`GAME_TITLE` s výchozím `GAME_NAME`), test titulku v `tests/test_release_workflow.py` (CI proměnnou v testech výslovně odstraňuje), README.
@@ -229,6 +230,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, validace (0.2.3–0.2.4):** 108/108 unit testů, lokalizace OK, 10/10 testů vydávání; síťové scénáře: 4 chyby připojení, 6+1 scénářů odpojení (vč. Esc během výsledků – reprodukováno a opraveno), 4 boti na mapách (0 pomalých snímků), korekce při GO 33–47 → 24 px; exporty 3 platforem, spuštění macOS release exportu; screenshoty HUD/scoreboard/KILL a menu. **Neověřeno:** ruční hra 4 lidí, internet, spuštění na Windows a Linuxu.
 - **2026-11-05, pixel art světa (0.2.2):** 107/107 unit testů, lokalizace OK; screenshoty 3 map v tréninku, menu, lobby hostitele (bez posuvníku), výsledků a dialogu „Co je nového“. **Neověřeno:** ruční dojem, Windows.
 - **2026-11-05, pixel art (0.2.1):** 107/107 unit testů (výběr animace, zrcadlení zbraně, stav vzdáleného hráče ze snapshotu, sprite u každé postavy/zbraně, příznak střelby v kodeku), lokalizace OK. Trénink: screenshoty chůze/skoku/střelby (Balvan). Online host + klient: klient vidí u sebe a host u klienta všech 5 animací. **Neověřeno:** ruční dojem z grafiky, Windows, třetí hráč (animace ze snapshotu jen unit testem).
 - **2026-11-05, v0.2.0:** 104/104 unit testů, lokalizace OK, 10/10 testů vydávání (nový: titulek z `GAME_TITLE`, názvy souborů dál `gun_game-*`). **Neověřeno:** ruční hra 4 lidí, internet, Windows.
