@@ -6,7 +6,7 @@ config_version=5
 [application]
 
 config/name="gun_game"
-config/version="0.2.6"
+config/version="0.2.7"
 run/main_scene="res://src/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -14,6 +14,10 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 
 Settings="*res://src/autoload/settings.gd"
 Session="*res://src/autoload/session.gd"
+
+[debug]
+
+file_logging/max_log_files=10
 
 [display]
 
@@ -27,7 +31,7 @@ window/stretch/aspect="expand"
 
 theme/custom="res://assets/ui/theme.tres"
 
-theme/custom_font="res://assets/fonts/PixelifySans.ttf"
+theme/custom_font="res://assets/fonts/Jersey15.ttf"
 
 [input]
 

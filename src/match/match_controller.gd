@@ -80,6 +80,7 @@ func _ready() -> void:
 		_net.input_received.connect(_on_input_received)
 		_net.snapshot_received.connect(_on_snapshot_received)
 		_net.kill_announced.connect(_on_kill_announced)
+		_net_log.peer_stats = func(peer_id: int) -> Dictionary: return EnetDirectConnector.peer_stats(multiplayer.multiplayer_peer, peer_id)
 		if _net.lag.is_enabled():
 			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
 	else:
@@ -278,6 +279,7 @@ func _on_snapshot_received(snapshot: Dictionary) -> void:
 		return
 	var tick: int = snapshot.tick
 	if _last_snapshot_tick >= 0 and (tick == _last_snapshot_tick or ((tick - _last_snapshot_tick) & 0xFFFFFFFF) >= 0x80000000):
+		_net_log.record_snapshot_dropped()
 		return
 	_last_snapshot_tick = tick
 	_net_log.record_snapshot_arrival(Time.get_ticks_msec())

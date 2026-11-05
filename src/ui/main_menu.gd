@@ -15,6 +15,7 @@ const INFO_COLOR := Color(0.75, 0.78, 0.85)
 @onready var _host_button: Button = %HostButton
 @onready var _join_button: Button = %JoinButton
 @onready var _changelog_button: Button = %ChangelogButton
+@onready var _logs_button: Button = %LogsButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _changelog_dialog: AcceptDialog = %ChangelogDialog
 @onready var _changelog_text: RichTextLabel = %ChangelogText
@@ -47,6 +48,8 @@ func _ready() -> void:
 	_join_button.pressed.connect(_on_join_pressed)
 	_address_edit.text_submitted.connect(func(_text: String) -> void: _on_join_pressed())
 	_changelog_button.pressed.connect(_on_changelog_pressed)
+	# Diagnostics for play tests (docs/PLAYTEST.md): the folder with godot.log files.
+	_logs_button.pressed.connect(func() -> void: OS.shell_open(ProjectSettings.globalize_path("user://logs")))
 	_changelog_dialog.visibility_changed.connect(_on_changelog_visibility_changed)
 	_quit_button.pressed.connect(get_tree().quit)
 	Session.phase_changed.connect(_on_session_phase_changed)

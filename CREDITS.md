@@ -4,7 +4,7 @@ Každý cizí asset musí mít v tomto souboru uvedený zdroj a licenci. Vlastn�
 
 | Asset | Soubor | Autor / zdroj | Licence |
 |---|---|---|---|
-| Pixelové písmo Pixelify Sans (hlavní písmo hry) | `assets/fonts/PixelifySans.ttf` | The Pixelify Sans Project Authors, https://github.com/eifetx/Pixelify-Sans (přes https://github.com/google/fonts/tree/main/ofl/pixelifysans) | SIL Open Font License 1.1 (`assets/fonts/PixelifySans-OFL.txt`) |
+| Pixelové písmo Jersey 15 (hlavní písmo hry od 0.2.7; nahradilo Pixelify Sans kvůli nečitelným číslicím) | `assets/fonts/Jersey15.ttf` | The Soft Type Project Authors, https://github.com/scfried/soft-type-jersey (přes https://github.com/google/fonts/tree/main/ofl/jersey15) | SIL Open Font License 1.1 (`assets/fonts/Jersey15-OFL.txt`) |
 | Font Noto Sans (variabilní, dřívější písmo, zůstává v projektu) | `assets/fonts/NotoSans.ttf` | The Noto Project Authors, https://github.com/google/fonts/tree/main/ofl/notosans | SIL Open Font License 1.1 (`assets/fonts/OFL.txt`) |
 | Herní engine Godot | (součást každého buildu) | Juan Linietsky, Ariel Manzur a přispěvatelé Godotu, https://godotengine.org | MIT, https://godotengine.org/license |
 

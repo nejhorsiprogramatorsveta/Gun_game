@@ -5,7 +5,8 @@ func test_players_accepts_valid_lobby() -> void:
 	var players := LobbyValidator.players({1: {"name": "Host", "character": "balvan"},
 			55: {"name": "Kamarád", "character": "stin", "extra": 1}})
 	check_eq(players.size(), 2, "two players")
-	check_eq(players[55], {"name": "Kamarád", "character": "stin", "team": 0}, "unknown fields dropped, team 0 by default")
+	check_eq(players[55], {"name": "Kamarád", "character": "stin", "team": 0, "ready": false},
+			"unknown fields dropped, team 0 and not confirmed by default")
 
 
 func test_players_rejects_malformed_lobby() -> void:

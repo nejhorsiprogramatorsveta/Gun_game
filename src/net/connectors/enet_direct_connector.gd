@@ -49,6 +49,23 @@ func share_addresses(port: int) -> Array[Dictionary]:
 	return result
 
 
+## Diagnostics (NetLog): ENet's view of the link to one peer, or {} if unavailable.
+## rtt / rtt_var in ms, loss in percent, throttle 1..32 (32 = ENet sends at full rate).
+static func peer_stats(multiplayer_peer: MultiplayerPeer, peer_id: int) -> Dictionary:
+	var enet := multiplayer_peer as ENetMultiplayerPeer
+	if enet == null or enet.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
+		return {}
+	var packet_peer := enet.get_peer(peer_id)
+	if packet_peer == null:
+		return {}
+	return {
+		"rtt": int(packet_peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)),
+		"rtt_var": int(packet_peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME_VARIANCE)),
+		"loss": packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_LOSS) * 100.0 / ENetPacketPeer.PACKET_LOSS_SCALE,
+		"throttle": int(packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE)),
+	}
+
+
 ## Classifies a local interface address: &"tailscale", &"lan", &"public", &"ipv6",
 ## or empty when useless for friends (loopback, link-local...).
 static func address_kind(ip: String, interface_label: String = "") -> StringName:

@@ -25,6 +25,12 @@ var _newest_seq := -1
 var _window_min := MAX_PENDING
 var _window_ticks := 0
 var _ticks_without_input := 0
+## Diagnostics since the last take_stats() (NetLog): new inputs queued, ticks without a
+## queued input, stalls (STALE_TICKS reached) and inputs dropped by the catch-up.
+var _received := 0
+var _starved := 0
+var _stalls := 0
+var _skipped := 0
 
 
 ## frames are newest first (NetCodec.decode_input); queues the unseen ones, oldest first.
@@ -35,6 +41,7 @@ func push(frames: Array[InputFrame]) -> void:
 		if (is_first_packet and i == 0) or (not is_first_packet and NetCodec.seq_newer(frame.seq, _newest_seq)):
 			_queue.append(frame)
 			_newest_seq = frame.seq
+			_received += 1
 	_skip_oldest(_queue.size() - MAX_PENDING)
 
 
@@ -51,6 +58,9 @@ func next() -> InputFrame:
 		_ticks_without_input = 0
 		return _current
 	_ticks_without_input += 1
+	_starved += 1
+	if _ticks_without_input == STALE_TICKS + 1:
+		_stalls += 1
 	if _ticks_without_input > STALE_TICKS:
 		# Stop moving and shooting, but keep held jump/ability/down so the next real input is
 		# not seen as a fresh press (an unwanted jump or ability after a short stall).
@@ -62,7 +72,18 @@ func size() -> int:
 	return _queue.size()
 
 
+## Counters since the previous call (then reset), see NetLog.
+func take_stats() -> Dictionary:
+	var stats := {"received": _received, "starved": _starved, "stalls": _stalls, "skipped": _skipped}
+	_received = 0
+	_starved = 0
+	_stalls = 0
+	_skipped = 0
+	return stats
+
+
 func _skip_oldest(count: int) -> void:
 	for i in mini(count, _queue.size() - 1):
 		var skipped: InputFrame = _queue.pop_front()
 		_queue[0].buttons |= skipped.buttons
+		_skipped += 1

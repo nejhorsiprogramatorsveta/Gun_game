@@ -146,7 +146,7 @@ CHANGELOG_RECOIL,"Rychlopalné zbraně (samopaly, kulomet, karabina, útočná p
 MENU_PRACTICE_CHARACTER,Postava pro trénink a oblíbená postava pro lobby
 CHANGELOG_PRACTICE_CHARACTER,V menu si vedle tlačítka Trénink vybereš postavu; volba se pamatuje.
 CHANGELOG_GAS_STRIP,"Zpomalovací plyn Krügermanna je teď dlouhý vodorovný pás před ním (na stranu kurzoru), ne kruh."
-LOBBY_CHOOSE_CHARACTER,"Vyber si postavu (každá jen jednou):"
+LOBBY_CHOOSE_CHARACTER,"Vyber si postavu a potvrď ji (každá jen jednou):"
 LOBBY_CHARACTER_TAKEN,"obsazeno: {name}"
 CHANGELOG_LOBBY_CHARACTERS,"Výběr postavy v lobby: každou postavu může mít jen jeden hráč; hra si pamatuje tvou oblíbenou."
 CHANGELOG_ONE_WEAPON,"Každá postava má jen jednu zbraň (přepínání zbraní zrušeno): Architekt dvouhlavňová brokovnice, Balvan útočná puška, Jiskra samopal, Krügermann lehký kulomet, Stín odstřelovačka, Vichr bojová puška."
@@ -182,3 +182,13 @@ TEAM_RED,Červený tým
 TEAM_BLUE,Modrý tým
 RESULTS_TEAM_WINNER,"Vyhrál {team}!"
 CHANGELOG_TEAMS,"Nový režim 2 v 2: hostitel ho zapne v lobby, hráči si vyberou Červený nebo Modrý tým. Spoluhráči se navzájem nezraňují a každý tým má svůj scoreboard (vlevo a vpravo)."
+LOBBY_CONFIRM_CHARACTER,Potvrdit postavu
+LOBBY_CHARACTER_CONFIRMED,Potvrzeno
+LOBBY_PICKING_CHARACTER,vybírá postavu…
+LOBBY_NEED_CONFIRM,"Čeká se, až všichni potvrdí postavu."
+MENU_LOGS,Složka s logy
+MENU_LOGS_TOOLTIP,"Otevře složku se záznamy hry (godot.log). Po hraní nám pošli nejnovější soubor – pomůže najít příčinu sekání nebo problémů s připojením."
+CHANGELOG_FONT,"Nové, čitelnější pixelové písmo: číslice už nejdou splést s písmeny (5/S, 2/Z, 8/B, 0/O)."
+CHANGELOG_CONFIRM_CHARACTER,"Výběr postavy v lobby má pixelové náhledy postav a postavu je potřeba potvrdit; zápas jde spustit, až když mají všichni potvrzeno."
+CHANGELOG_LOBBY_MAP,"V pozadí lobby je vidět právě vybraná mapa."
+CHANGELOG_LOGS,"Diagnostika připojení a lagů: hra zapisuje podrobnější záznamy, tlačítko „Složka s logy“ v menu je otevře."

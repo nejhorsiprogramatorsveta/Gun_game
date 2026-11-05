@@ -24,7 +24,8 @@ const AUTH_TIMEOUT := 5.0
 const REJECT_DISCONNECT_DELAY := 0.5
 
 var phase := Phase.OFFLINE
-## peer_id -> {"name": String, "character": String, "team": int}. Identical on all peers (host broadcasts it).
+## peer_id -> {"name": String, "character": String, "team": int, "ready": bool (character
+## confirmed)}. Identical on all peers (host broadcasts it).
 var players: Dictionary[int, Dictionary] = {}
 ## Why the last session ended (translated), so the main menu can show it after a
 ## scene change. The menu clears it once shown.
@@ -60,6 +61,7 @@ func _ready() -> void:
 	add_child(CharacterChoice.new())  # character choice RPCs, see character_choice.gd
 	add_child(ArenaChoice.new())  # arena choice RPCs, see arena_choice.gd
 	add_child(TeamChoice.new())  # game mode and team RPCs, see team_choice.gd
+	add_child(ConnectionLog.new())  # diagnostics in the game log, see connection_log.gd
 	api.auth_callback = _on_auth_message
 	api.auth_timeout = AUTH_TIMEOUT
 	api.peer_authenticating.connect(_on_peer_authenticating)
@@ -82,7 +84,7 @@ func is_host() -> bool:
 
 func can_start_match() -> bool:
 	return is_host() and phase == Phase.LOBBY and players.size() >= MIN_PLAYERS_TO_START \
-			and (not team_mode or Teams.ready_to_start(players))
+			and CharacterChoice.all_confirmed(players) and (not team_mode or Teams.ready_to_start(players))
 
 
 ## Host: starts the match for everyone in the lobby (slots by peer id, host = slot 0).
@@ -166,7 +168,7 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	arena_id = String(ContentDB.arena_or_default(Settings.practice_arena).id)
 	team_mode = false
 	players = {1: {"name": LobbyValidator.clean_name(player_name, 1),
-			"character": CharacterChoice.first_free({}, Settings.practice_character), "team": 0}}
+			"character": CharacterChoice.first_free({}, Settings.practice_character), "team": 0, "ready": false}}
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
 
@@ -180,6 +182,7 @@ func join_game(join_text: String, player_name: String) -> void:
 	if _join_code.is_empty():
 		_emit_ended(tr("ERROR_MISSING_CODE"))
 		return
+	DiagLog.event("conn", "joining %s" % DiagLog.describe_address(address))
 	var peer := _connector.join(address)
 	if peer == null:
 		_emit_ended(tr("ERROR_INVALID_ADDRESS"))
@@ -250,6 +253,7 @@ func _handle_hello(id: int, hello: Dictionary) -> void:
 	elif reason.is_empty() and players.size() + _pending_names.size() >= MAX_PLAYERS:
 		reason = "ERROR_LOBBY_FULL"
 	if not reason.is_empty():
+		DiagLog.event("conn", "peer %d rejected: %s" % [id, reason])
 		api.send_auth(id, Handshake.make_reject(reason))
 		_rejected_peers[id] = true
 		get_tree().create_timer(REJECT_DISCONNECT_DELAY).timeout.connect(_drop_peer.bind(id))
@@ -279,7 +283,7 @@ func _on_peer_connected(id: int) -> void:
 		var requested_name: String = _pending_names.get(id, "")
 		_pending_names.erase(id)
 		players[id] = {"name": LobbyValidator.clean_name(requested_name, players.size() + 1),
-				"character": CharacterChoice.first_free(players, ""), "team": Teams.smaller_team(players)}
+				"character": CharacterChoice.first_free(players, ""), "team": Teams.smaller_team(players), "ready": false}
 		broadcast_players()
 	elif id == 1:
 		_set_phase(Phase.LOBBY)

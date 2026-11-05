@@ -16,8 +16,9 @@ static func clean_name(raw_name: String, number: int) -> String:
 	return cleaned
 
 
-## peer_id -> {"name": String, "character": String, "team": int}; must contain the host
-## (peer 1), every character must exist and be used at most once, team 0 or 1 (missing = 0).
+## peer_id -> {"name": String, "character": String, "team": int, "ready": bool}; must contain
+## the host (peer 1), every character must exist and be used at most once, team 0 or 1
+## (missing = 0), "ready" = character confirmed (missing = false).
 static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 	var result: Dictionary[int, Dictionary] = {}
 	if raw.size() < 1 or raw.size() > MAX_PLAYERS or not raw.has(1):
@@ -39,7 +40,10 @@ static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 		var team: Variant = entry.get("team", 0)
 		if typeof(team) != TYPE_INT or not Teams.is_valid(team):
 			return {}
-		result[peer_id] = {"name": player_name, "character": character, "team": team}
+		var ready: Variant = entry.get("ready", false)
+		if typeof(ready) != TYPE_BOOL:
+			return {}
+		result[peer_id] = {"name": player_name, "character": character, "team": team, "ready": ready}
 	return result
 
 

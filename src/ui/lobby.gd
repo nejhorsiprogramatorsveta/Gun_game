@@ -1,5 +1,6 @@
 extends Control
-## Lobby: who is connected, the character choice (each character once, PLAN.md T.2), the
+## Lobby: who is connected, the character choice (cards with pixel-art previews; a click
+## selects, "Confirm" takes the character; each character once, PLAN.md T.2), the
 ## game mode (host: free-for-all or 2 v 2) with the team choice and, for the host, which
 ## address to send to friends.
 ## The host starts the match; every peer then switches to the match scene.
@@ -20,9 +21,15 @@ const ADDRESS_KIND_KEYS := {
 @onready var _leave_button: Button = %LeaveButton
 @onready var _start_button: Button = %StartButton
 @onready var _status_label: Label = %StatusLabel
+@onready var _arena_preview: ArenaPreview = %ArenaPreview
 
 ## character id -> its card button
 var _character_buttons: Dictionary[String, Button] = {}
+## Card selected locally but maybe not confirmed yet.
+var _selected_character := ""
+## Last character the host stored as confirmed for us (the selection follows it once).
+var _confirmed_character := ""
+var _confirm_button := Button.new()
 ## Host: arena picker; clients: read-only arena name.
 var _arena_option := OptionButton.new()
 var _arena_label := Label.new()
@@ -50,9 +57,7 @@ func _ready() -> void:
 	if Session.phase == Session.Phase.IN_MATCH:  # the next match started while we were loading
 		get_tree().change_scene_to_file.call_deferred(MATCH_PATH)
 		return
-	# Ask for the character picked in the main menu (the host got it when hosting).
-	if not Session.is_host() and not Settings.practice_character.is_empty():
-		Session.get_node("CharacterChoice").choose(Settings.practice_character)
+	_arena_preview.show_arena(Session.arena_id)
 
 
 func _refresh_players() -> void:
@@ -64,7 +69,9 @@ func _refresh_players() -> void:
 	for id: int in ids:
 		var text: String = Session.players[id].name
 		var character := ContentDB.get_character(StringName(str(Session.players[id].get("character", ""))))
-		if character:
+		if not Session.players[id].get("ready", false):
+			text += " – " + tr("LOBBY_PICKING_CHARACTER")
+		elif character:
 			text += " – " + tr(character.name_key)
 		var team := int(Session.players[id].get("team", Teams.NONE))
 		if Session.team_mode and Teams.is_valid(team):
@@ -81,6 +88,8 @@ func _refresh_players() -> void:
 		_status_label.text = ""
 		if Session.players.size() < Session.MIN_PLAYERS_TO_START:
 			_status_label.text = tr("LOBBY_NEED_PLAYERS").format({"min": Session.MIN_PLAYERS_TO_START})
+		elif not CharacterChoice.all_confirmed(Session.players):
+			_status_label.text = tr("LOBBY_NEED_CONFIRM")
 		elif not Session.can_start_match():
 			_status_label.text = tr("LOBBY_NEED_TEAMS")
 	else:
@@ -100,14 +109,29 @@ func _build_character_cards() -> void:
 	column.move_child(grid, title.get_index() + 1)
 	grid.name = "CharacterGrid"
 	for id in ContentDB.character_ids():
+		var character := ContentDB.get_character(id)
 		var button := Button.new()
 		button.toggle_mode = true
 		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		button.custom_minimum_size = Vector2(248, 58)
-		button.add_theme_font_size_override("font_size", 13)
+		button.custom_minimum_size = Vector2(248, 96)
+		button.add_theme_font_size_override("font_size", 18)
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if character.sprite_sheet:  # first idle frame, scaled up without blurring
+			var preview := AtlasTexture.new()
+			preview.atlas = character.sprite_sheet
+			preview.region = Rect2(Vector2.ZERO, PlayerVisual.FRAME_SIZE)
+			button.icon = preview
+			button.expand_icon = true
+			button.add_theme_constant_override("icon_max_width", PlayerVisual.FRAME_SIZE.x * 2)
+			button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		button.pressed.connect(_on_character_pressed.bind(String(id)))
 		grid.add_child(button)
 		_character_buttons[String(id)] = button
+	_confirm_button.text = "LOBBY_CONFIRM_CHARACTER"
+	_confirm_button.custom_minimum_size = Vector2(0, 40)
+	_confirm_button.pressed.connect(func() -> void: Session.get_node("CharacterChoice").choose(_selected_character))
+	column.add_child(_confirm_button)
+	column.move_child(_confirm_button, grid.get_index() + 1)
 
 
 func _build_arena_choice() -> void:
@@ -118,7 +142,7 @@ func _build_arena_choice() -> void:
 	row.add_child(_arena_option)
 	var column := _player_list.get_parent()
 	column.add_child(row)
-	column.move_child(row, _character_grid_index() + 1)
+	column.move_child(row, _confirm_button.get_index() + 1)
 	for id in ContentDB.arena_ids():
 		_arena_option.add_item(tr(ContentDB.arena_or_default(String(id)).name_key))
 		_arena_option.set_item_metadata(_arena_option.item_count - 1, String(id))
@@ -180,12 +204,10 @@ func _on_team_pressed(team: int) -> void:
 	_refresh_teams()  # undo the toggle until the host confirms
 
 
-func _character_grid_index() -> int:
-	return _player_list.get_parent().get_node("CharacterGrid").get_index()
-
-
 func _refresh_arena() -> void:
 	var arena := ContentDB.arena_or_default(Session.arena_id)
+	if _arena_preview:
+		_arena_preview.show_arena(Session.arena_id)
 	_arena_label.text = tr(arena.name_key)
 	for index in _arena_option.item_count:
 		if _arena_option.get_item_metadata(index) == String(arena.id):
@@ -194,29 +216,41 @@ func _refresh_arena() -> void:
 
 func _refresh_character_cards() -> void:
 	var my_id := multiplayer.get_unique_id()
+	var me: Dictionary = Session.players.get(my_id, {})
+	var confirmed: bool = me.get("ready", false)
+	# Start from the menu favourite; after a confirmation follow what the host stored.
+	if _selected_character.is_empty() or (confirmed and not _character_buttons.has(_selected_character)):
+		_selected_character = Settings.practice_character if _character_buttons.has(Settings.practice_character) \
+				else str(me.get("character", ""))
+	if confirmed and str(me.get("character", "")) != _confirmed_character:
+		_confirmed_character = str(me.get("character", ""))
+		_selected_character = _confirmed_character
+	if CharacterChoice.confirmed_by(Session.players, _selected_character, my_id) != 0:
+		_selected_character = str(me.get("character", ""))  # someone else confirmed it first
 	for id in _character_buttons:
 		var character := ContentDB.get_character(StringName(id))
-		var owner_name := ""
-		for peer_id: int in Session.players:
-			if str(Session.players[peer_id].get("character", "")) == id:
-				owner_name = "" if peer_id == my_id else str(Session.players[peer_id].name)
+		var owner_id := CharacterChoice.confirmed_by(Session.players, id, my_id)
 		var button := _character_buttons[id]
-		var mine := str(Session.players.get(my_id, {}).get("character", "")) == id
-		button.set_pressed_no_signal(mine)
-		button.disabled = not owner_name.is_empty()
+		button.set_pressed_no_signal(id == _selected_character)
+		button.disabled = owner_id != 0
 		var lines: PackedStringArray = [tr(character.name_key), tr(character.weapon.name_key) if character.weapon else ""]
 		lines.append(tr(character.ability.name_key) if character.ability else "")
-		if not owner_name.is_empty():
-			lines[2] = tr("LOBBY_CHARACTER_TAKEN").format({"name": owner_name})
+		if owner_id != 0:
+			lines[2] = tr("LOBBY_CHARACTER_TAKEN").format({"name": str(Session.players[owner_id].name)})
+		elif confirmed and str(me.get("character", "")) == id:
+			lines[2] = tr("LOBBY_CHARACTER_CONFIRMED")
 		button.text = "\n".join(lines)
 		button.tooltip_text = tr(character.description_key) + ("\n" + tr(character.ability.description_key) if character.ability else "")
+	var already := confirmed and str(me.get("character", "")) == _selected_character
+	_confirm_button.disabled = already or not _character_buttons.has(_selected_character)
+	_confirm_button.text = tr("LOBBY_CHARACTER_CONFIRMED" if already else "LOBBY_CONFIRM_CHARACTER")
 
 
 func _on_character_pressed(character_id: String) -> void:
+	_selected_character = character_id
 	Settings.practice_character = character_id
 	Settings.save()
-	Session.get_node("CharacterChoice").choose(character_id)
-	_refresh_character_cards()  # undo the toggle until the host confirms
+	_refresh_character_cards()
 
 
 func _on_phase_changed(phase: Session.Phase) -> void:
