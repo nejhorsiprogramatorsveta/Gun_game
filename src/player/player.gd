@@ -161,7 +161,8 @@ func _process(delta: float) -> void:
 		_name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 54) + visual_offset
 	if _visual:
 		_visual.position = visual_offset
-		_visual.update_look(facing, InputFrame.aim_to_vector(aim), motor_state.on_floor, velocity, is_firing())
+		_visual.update_look(facing, InputFrame.aim_to_vector(aim), motor_state.on_floor, velocity, is_firing(),
+				ability_active() and visible)
 	var blink_off := invulnerable and (Time.get_ticks_msec() / 100) % 2 == 0
 	modulate.a = 0.35 if blink_off else 1.0
 
@@ -227,5 +228,5 @@ func _draw() -> void:
 		var eye := Vector2(8.0 * facing, -BODY_SIZE.y / 4.0)
 		draw_rect(Rect2(eye - Vector2(4, 4), Vector2(8, 8)), Color(0.1, 0.1, 0.12))
 		draw_line(Vector2.ZERO, InputFrame.aim_to_vector(aim) * GUN_LENGTH, Color(0.15, 0.15, 0.18), 6.0)
-	if ability_active():
+	if ability_active() and _visual == null:  # placeholder look only; sprites have pixel-art effects
 		draw_arc(Vector2.ZERO, BODY_SIZE.y * 0.75, 0.0, TAU, 32, Color(0.6, 0.85, 1.0, 0.8), 3.0)

@@ -23,6 +23,9 @@ const ANIMATIONS := [
 var _body := AnimatedSprite2D.new()
 var _weapon := Sprite2D.new()
 var _weapon_frames: Array[AtlasTexture] = []
+var _ability: AbilityData
+var _ability_loop: AnimatedSprite2D
+var _was_ability_active := false
 
 
 func setup(character: CharacterData) -> void:
@@ -33,6 +36,11 @@ func setup(character: CharacterData) -> void:
 	_body.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	add_child(_body)
 	_body.play("idle")
+	_ability = character.ability
+	_ability_loop = AbilityFx.make_loop(_ability) if _ability else null
+	if _ability_loop:
+		_ability_loop.visible = false
+		add_child(_ability_loop)
 	var weapon := character.weapon
 	if weapon and weapon.sprite:
 		for i in 2:
@@ -50,7 +58,9 @@ func setup(character: CharacterData) -> void:
 
 
 ## Called every frame by the Player with its current state.
-func update_look(facing: int, aim_direction: Vector2, on_floor: bool, velocity: Vector2, firing: bool) -> void:
+func update_look(facing: int, aim_direction: Vector2, on_floor: bool, velocity: Vector2, firing: bool,
+		ability_active := false) -> void:
+	_update_ability(ability_active, facing)
 	var animation := "idle"
 	if firing:
 		animation = "shoot"
@@ -70,6 +80,23 @@ func update_look(facing: int, aim_direction: Vector2, on_floor: bool, velocity: 
 	_weapon.texture = _weapon_frames[1 if flash else 0]
 	# The gun kicks back a little on the flash frame.
 	_weapon.position = SHOULDER - aim_direction * (3.0 if flash else 0.0)
+
+
+## Ability effects: a loop while active (shield) and a burst when it starts (ring, trail, smoke).
+func _update_ability(active: bool, facing: int) -> void:
+	if _ability_loop:
+		_ability_loop.visible = active
+	if active and not _was_ability_active and _ability:
+		var burst := AbilityFx.make_burst(_ability, facing)
+		if not burst.is_empty():
+			var node: Node2D = burst.node
+			if burst.world and get_parent() and get_parent().get_parent():
+				var world := get_parent().get_parent()
+				world.add_child(node)
+				node.global_position = global_position + node.position
+			else:
+				add_child(node)
+	_was_ability_active = active
 
 
 static func _build_frames(sheet: Texture2D) -> SpriteFrames:

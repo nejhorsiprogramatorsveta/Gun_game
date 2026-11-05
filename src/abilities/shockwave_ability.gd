@@ -1,9 +1,10 @@
 class_name ShockwaveAbility
 extends AbilityData
 ## Vichr: pushes every opponent within `radius` away from the user (slightly upwards).
+## A long reach (320 px, user 2026-11-05) so it is a ranged move, not melee.
 ## `strength` follows the same knockback limit as weapons (CombatRules).
 
-@export var radius: float = 160.0
+@export var radius: float = 320.0
 @export var strength: float = 1100.0
 ## How much the push is tilted upwards (0 = straight away from the user).
 @export var lift: float = 0.35

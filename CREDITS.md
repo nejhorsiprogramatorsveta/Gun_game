@@ -10,6 +10,7 @@ Každý cizí asset musí mít v tomto souboru uvedený zdroj a licenci. Vlastn�
 
 | Pixel art postav a zbraní | `assets/sprites/characters/*.png`, `assets/sprites/weapons/*.png` | vlastní tvorba projektu, generuje `tools/art/generate_sprites.py` (kreslí pixel po pixelu, bez cizích obrázků) | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 
+| Pixel art efektů schopností (plyn, štít, tlaková vlna, úskok, kouř) | `assets/sprites/effects/*.png` | vlastní tvorba projektu, generuje `tools/art/generate_effects.py` | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 | Pixel art map, pozadí a UI (dlaždice, 3 pozadí, mraky, logo, rámečky tlačítek a panelů) | `assets/sprites/tiles/*.png`, `assets/backgrounds/*.png`, `assets/ui/*.png`, `assets/ui/theme.tres` | vlastní tvorba projektu, generuje `tools/art/generate_world.py` (procedurálně, pevná semínka, bez cizích obrázků) | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 
 Postavy, mapy i UI jsou originální návrhy; nic nevychází z fotografií skutečných lidí ani z cizí grafiky.

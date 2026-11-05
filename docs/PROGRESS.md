@@ -1,7 +1,7 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Grafika a kompletní validace hotové (verze `0.2.4`).** Pixel art postav (0.2.1), map/pozadí/menu (0.2.2), opravy z validace (0.2.3), pixelové písmo + scoreboard + „KILL!“ nad hráčem (0.2.4).
+**Grafika a kompletní validace hotové; efekty schopností v pixel artu (verze `0.2.5`).** Pixel art postav (0.2.1), map/pozadí/menu (0.2.2), opravy z validace (0.2.3), pixelové písmo + scoreboard + „KILL!“ nad hráčem (0.2.4), efekty schopností + tlaková vlna 320 px (0.2.5).
 - **Validace část 1 (2026-11-05):** připojovací chyby (špatný kód, jiná verze, plné lobby, zápas běží – správné české hlášky), 6 scénářů odpojení, 4 boti na mapách, výkon (0 pomalých snímků) – vše OK. Nezávislá kontrola kódu (agent) našla 7 problémů, všechny ověřeny a opraveny:
   1. Esc hostitele během 0,5 s po konci zápasu → všichni uvízli ve výsledcích (reprodukováno na starém kódu, opraveno: scéna podle aktuální fáze, jediné přepnutí; výsledky/lobby po načtení kontrolují fázi).
   2. Lobby po načtení nepřešlo do už běžícího zápasu → opraveno.
@@ -14,7 +14,8 @@
 - **Validace část 2:** exporty Windows/macOS/Linux bez chyb (116 / 67 / 80 MB); exportovaná macOS release hra spuštěna (Movie Maker snímky): menu kompletní, bez chyb v logu; herní kód bez OS-specifických cest (jediné větvení podle OS v aktualizátoru je záměrné). Windows/Linux exporty nespuštěny (jen sestaveny) – Windows test zůstává v odložených.
 - **0.2.4:** písmo Pixelify Sans (OFL, celá čeština) bez vyhlazování v celé hře; scoreboard v panelu s ikonami hlav; „KILL!“ / „DOUBLE KILL!“ … nad hráčem, který zabil (`kill_popup.gd`); číslo verze v menu se už neuřízne.
 - `session.gd` má 319 řádků (limit ~300) – přesunout handshake do `src/net/session_auth.gd`.
-- **Pozor před dalším herním commitem:** verze `0.2.5` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
+- **0.2.5 (uživatel: „proč nemá Krügermann pixelartovou schopnost… a ostatní postavy“; „postavě s energetickým štítem na vystřelení větší range, ať nemusí melee“):** pixelové efekty všech schopností (`ability_fx.gd`, `generate_effects.py`); dosah tlakové vlny Vichra 160 → 320 px (výklad: „energetický štít na vystřelení“ = tlaková vlna; pokud uživatel myslel Balvanův štít, upravit).
+- **Pozor před dalším herním commitem:** verze `0.2.6` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
@@ -64,6 +65,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, efekty schopností + delší tlaková vlna, verze 0.2.5 (Claude):** `tools/art/generate_effects.py`, `assets/sprites/effects/*`, `src/player/ability_fx.gd`, `player_visual.gd` (efekty), `slow_cloud.gd` (pixelový plyn), `shockwave.tres` radius 320, test efektů.
 - **2026-11-05, validace + opravy (0.2.3) a pixelové písmo/scoreboard/KILL (0.2.4) (Claude):** viz „Kde jsme skončili“; nové `src/ui/kill_popup.gd`, `assets/fonts/PixelifySans.ttf` (+ OFL), úpravy `match_hud.gd`, `match.tscn` (ScorePanel, bez KillLabel), CSV `POPUP_*` místo `HUD_*KILL`.
 - **2026-11-05, pixel art map/pozadí/menu, verze 0.2.2 (Claude):** `tools/art/generate_world.py`, `assets/sprites/tiles`, `assets/backgrounds`, `assets/ui` (+ `theme.tres`), `src/arenas/arena_background.gd`, `platform.gd` (dlaždice), pozadí v 3 arénách a 3 UI scénách, logo v menu, `gui/theme/custom` v `project.godot`, CREDITS, EDITING_GUIDE.
 - **2026-11-05, pixel art postav, verze 0.2.1 (Claude):** `tools/art/generate_sprites.py`, `assets/sprites/**`, `src/player/player_visual.gd`, `CharacterData.sprite_sheet`, `WeaponData.sprite`, `Player.last_fire_ms`/`is_firing()`, `FLAG_FIRING`, jmenovka v barvě slotu, CREDITS, EDITING_GUIDE (grafika), testy `test_player_visual`.
@@ -230,6 +232,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, efekty schopností (0.2.5):** 109/109 unit testů (efekt ke každé schopnosti, prstenec přesně na dosah vlny), lokalizace OK; screenshoty všech 5 efektů v tréninku. **Neověřeno:** efekty u vzdálených hráčů ručně (náběžná hrana z příznaku ve snapshotu – stejná cesta jako dřívější kruh), ruční dojem.
 - **2026-11-05, validace (0.2.3–0.2.4):** 108/108 unit testů, lokalizace OK, 10/10 testů vydávání; síťové scénáře: 4 chyby připojení, 6+1 scénářů odpojení (vč. Esc během výsledků – reprodukováno a opraveno), 4 boti na mapách (0 pomalých snímků), korekce při GO 33–47 → 24 px; exporty 3 platforem, spuštění macOS release exportu; screenshoty HUD/scoreboard/KILL a menu. **Neověřeno:** ruční hra 4 lidí, internet, spuštění na Windows a Linuxu.
 - **2026-11-05, pixel art světa (0.2.2):** 107/107 unit testů, lokalizace OK; screenshoty 3 map v tréninku, menu, lobby hostitele (bez posuvníku), výsledků a dialogu „Co je nového“. **Neověřeno:** ruční dojem, Windows.
 - **2026-11-05, pixel art (0.2.1):** 107/107 unit testů (výběr animace, zrcadlení zbraně, stav vzdáleného hráče ze snapshotu, sprite u každé postavy/zbraně, příznak střelby v kodeku), lokalizace OK. Trénink: screenshoty chůze/skoku/střelby (Balvan). Online host + klient: klient vidí u sebe a host u klienta všech 5 animací. **Neověřeno:** ruční dojem z grafiky, Windows, třetí hráč (animace ze snapshotu jen unit testem).

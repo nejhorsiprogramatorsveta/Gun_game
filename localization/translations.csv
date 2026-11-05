@@ -122,7 +122,7 @@ HUD_ABILITY_COOLDOWN,"{ability}: {seconds} s"
 ABILITY_SHIELD_NAME,Štít
 ABILITY_SHIELD_DESCRIPTION,"Na 1,5 s skoro žádný odhoz, ale nejde střílet."
 ABILITY_SHOCKWAVE_NAME,Tlaková vlna
-ABILITY_SHOCKWAVE_DESCRIPTION,Odhodí soupeře v blízkosti od sebe.
+ABILITY_SHOCKWAVE_DESCRIPTION,Vyšle tlakovou vlnu daleko kolem sebe a odhodí soupeře.
 WEAPON_LIGHT_MACHINE_GUN_NAME,Lehký kulomet
 WEAPON_REVOLVER_NAME,Revolver
 WEAPON_NAIL_GUN_NAME,Nýtovačka
@@ -170,3 +170,4 @@ POPUP_DOUBLE_KILL,DOUBLE KILL!
 POPUP_TRIPLE_KILL,TRIPLE KILL!
 POPUP_MULTI_KILL,MULTI KILL ×{count}!
 CHANGELOG_PIXEL_TEXT,"Pixelové písmo v celé hře, nový scoreboard s ikonami postav a nápis KILL! nad hráčem, který zrovna někoho shodil (DOUBLE / TRIPLE / MULTI KILL při sérii)."
+CHANGELOG_ABILITY_FX,"Pixelové efekty všech schopností: zelený plyn Krügermanna, energetická bublina Balvanova štítu, prstenec Vichrovy tlakové vlny, stopa Jiskřina úskoku a kouř Stínova přesunu. Tlaková vlna má dvojnásobný dosah (320 px)."

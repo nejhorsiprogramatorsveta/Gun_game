@@ -9,6 +9,6 @@ name_key = "ABILITY_SHOCKWAVE_NAME"
 description_key = "ABILITY_SHOCKWAVE_DESCRIPTION"
 cooldown = 10.0
 duration = 0.25
-radius = 160.0
+radius = 320.0
 strength = 1100.0
 lift = 0.35

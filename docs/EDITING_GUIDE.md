@@ -95,7 +95,7 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | Soubor (druh) | Postava | Vlastní hodnoty |
 |---|---|---|
 | `shield.tres` (štít) | Balvan | `knockback_multiplier` – násobek odhozu během štítu (0,2); během štítu nestřílí |
-| `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru) |
+| `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px, nyní 320 – dosah, ne melee), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru) |
 | `dash.tres` (úskok) | Jiskra | `speed` (px/s po dobu `duration`) |
 | `teleport.tres` (přesun) | Stín | `distance` – max. vzdálenost ke kurzoru (px) |
 | `slow_cloud.tres` (zpomalovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `speed_scale`, `jump_scale` (zpomalení běhu a skoku soupeřů) |

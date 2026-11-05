@@ -39,3 +39,17 @@ func test_every_character_and_its_weapon_have_sprites() -> void:
 		check(character.sprite_sheet.get_size() == Vector2(PlayerVisual.FRAME_SIZE.x * 10, PlayerVisual.FRAME_SIZE.y),
 				"%s sheet has 10 frames of 32x40" % id)
 		check(character.weapon.sprite != null, "%s weapon has a sprite" % id)
+
+
+func test_every_ability_has_a_pixel_art_effect() -> void:
+	check(AbilityFx.make_loop(ContentDB.get_ability(&"shield")) != null, "shield: bubble while active")
+	for id: StringName in [&"shockwave", &"dash", &"teleport"]:
+		var burst := AbilityFx.make_burst(ContentDB.get_ability(id), 1)
+		check(not burst.is_empty(), "%s: burst effect when it starts" % id)
+		if not burst.is_empty():
+			burst.node.free()
+	var ring: AnimatedSprite2D = AbilityFx.make_burst(ContentDB.get_ability(&"shockwave"), 1).node
+	check(is_equal_approx(ring.scale.x * AbilityFx.RING_RADIUS, (ContentDB.get_ability(&"shockwave") as ShockwaveAbility).radius),
+			"the ring grows exactly to the shockwave reach")
+	ring.free()
+	check(SlowCloud.PUFFS != null and ContentDB.get_ability(&"platform") != null, "gas and platform draw themselves")
