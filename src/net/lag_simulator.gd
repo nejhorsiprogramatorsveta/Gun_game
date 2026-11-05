@@ -2,15 +2,18 @@ class_name LagSimulator
 extends RefCounted
 ## Debug only: makes this computer's match traffic behave like a bad internet connection,
 ## so online play can be tested with two game windows on one PC (PLAN.md D.11).
-## Start with `-- --fake-lag=100 --fake-loss=5 [--fake-jitter=10]`:
+## Start with `-- --fake-lag=100 --fake-loss=5 [--fake-jitter=10] [--fake-burst=100]`:
 ##   fake-lag   = extra round-trip time in ms (half is added to each direction),
-##   fake-loss  = percent of packets dropped, fake-jitter = random ± ms per packet.
+##   fake-loss  = percent of packets dropped, fake-jitter = random ± ms per packet,
+##   fake-burst = packets are held and delivered together every N ms (like Wi-Fi power
+##                saving in the play tests 2026-11-05).
 ## Ignored in release exports. Only match inputs/snapshots are affected (they are the
 ## unreliable, timing-critical traffic); lobby messages stay instant.
 
 var rtt_ms := 0
 var jitter_ms := 0
 var loss_percent := 0.0
+var burst_ms := 0
 
 ## [{time: int, action: Callable}] with non-decreasing time, like an ordered channel.
 var _queue: Array[Dictionary] = []
@@ -31,11 +34,13 @@ static func from_command_line() -> LagSimulator:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--fake-jitter="):
 			simulator.jitter_ms = maxi(arg.get_slice("=", 1).to_int(), 0)
+		elif arg.begins_with("--fake-burst="):
+			simulator.burst_ms = maxi(arg.get_slice("=", 1).to_int(), 0)
 	return simulator
 
 
 func is_enabled() -> bool:
-	return rtt_ms > 0 or loss_percent > 0.0
+	return rtt_ms > 0 or loss_percent > 0.0 or burst_ms > 0
 
 
 ## Runs `action` (sending or handling one packet) now, later, or never.
@@ -47,6 +52,8 @@ func run(action: Callable, reliable: bool = false) -> void:
 	if not reliable and randf() * 100.0 < loss_percent:
 		return
 	var delivery := Time.get_ticks_msec() + rtt_ms / 2 + randi_range(-jitter_ms, jitter_ms)
+	if burst_ms > 0:
+		delivery = ceili(float(delivery) / burst_ms) * burst_ms
 	# Never deliver before an earlier packet: the real channels are ordered.
 	_last_delivery_ms = maxi(delivery, _last_delivery_ms)
 	_queue.append({"time": _last_delivery_ms, "action": action})

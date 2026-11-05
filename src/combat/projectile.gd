@@ -24,6 +24,9 @@ var shooter_team := Teams.NONE
 
 var _exclude: Array[RID] = []
 var _travelled := 0.0
+## Client: shown right when the own player fires (before the host confirms the shot).
+var predicted := false
+var predicted_ms := 0
 
 
 func setup(projectile_id: int, origin: Vector2, flight_direction: Vector2, weapon_data: WeaponData, shooter: Player) -> void:
@@ -39,6 +42,14 @@ func setup(projectile_id: int, origin: Vector2, flight_direction: Vector2, weapo
 
 
 func _physics_process(delta: float) -> void:
+	advance(delta)
+
+
+## Moves one physics step (ray-cast against walls and, if authoritative, players).
+## Also used to fast-forward a shot that belongs to an earlier tick (InputBuffer catch-up).
+func advance(delta: float) -> void:
+	if is_queued_for_deletion():
+		return
 	var step := direction * weapon.projectile_speed * delta
 	var mask := WORLD_MASK | (PLAYERS_MASK if authoritative else 0)
 	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + step, mask, _exclude)

@@ -5,9 +5,20 @@ class_name CombatRules
 ## 800 per hit x 9 shots/s. Checked for every weapon by tests/test_weapons.gd.
 const MAX_KNOCKBACK_PER_SHOT := 1400.0
 const MAX_KNOCKBACK_PER_SECOND := 7500.0
+## Damage percent (user 2026-11-05): every hit adds the weapon's `damage` to the target
+## (0-100 %, shown above the character); knockback grows with it linearly up to
+## MAX_DAMAGE_KNOCKBACK times the weapon's own at 100 % ("flies away easily"). The limits
+## above are the knockback at 0 %. Damage resets on respawn.
+const MAX_DAMAGE := 100.0
+const MAX_DAMAGE_KNOCKBACK := 2.5
 ## Arcade feel: every shot must visibly push the shooter. Ground friction removes ~53 px/s
 ## per tick, so smaller recoil would vanish on the ground (SMG bug, user 2026-11-04).
 const MIN_RECOIL := 100.0
+
+
+## Knockback multiplier of a target with `damage` percent (1.0 at 0 %).
+static func damage_multiplier(damage: float) -> float:
+	return 1.0 + (MAX_DAMAGE_KNOCKBACK - 1.0) * clampf(damage, 0.0, MAX_DAMAGE) / MAX_DAMAGE
 
 
 ## Knockback of one full shot (all pellets hit).

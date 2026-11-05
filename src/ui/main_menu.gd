@@ -90,7 +90,8 @@ func _on_controls_pressed() -> void:
 		for action: StringName in spec[1]:
 			keys.append(KeyBindings.action_text(action))
 		lines.append(tr(spec[0]).format({"keys": "  |  ".join(keys)}))
-	lines.append_array([tr("CONTROLS_AIM"), tr("CONTROLS_RELOAD"), tr("CONTROLS_ESC"), tr("CONTROLS_F3"), "", tr("CONTROLS_REBIND_HINT")])
+	lines.append_array([tr("CONTROLS_AIM"), tr("CONTROLS_RELOAD"), tr("CONTROLS_DAMAGE"), tr("CONTROLS_ESC"), tr("CONTROLS_F3"), "",
+			tr("CONTROLS_REBIND_HINT")])
 	_changelog_dialog.title = tr("CONTROLS_TITLE")
 	_changelog_text.text = "\n".join(lines)
 	_show_text_dialog()

@@ -56,3 +56,27 @@ func test_authoritative_hit_reports_shooter_and_protection_blocks_it() -> void:
 	projectile.free()
 	shooter.free()
 	target.free()
+
+
+func test_own_shots_are_shown_at_once_and_paired_with_the_host_events() -> void:
+	var root := (Engine.get_main_loop() as SceneTree).root
+	var weapons := WeaponSystem.new()
+	root.add_child(weapons)
+	var shooter := Player.new()
+	shooter.character = ContentDB.get_character(&"krugermann")
+	root.add_child(shooter)
+	weapons.local_slot = 1
+	weapons.spawn_predicted(shooter, InputFrame.create(0, InputFrame.FIRE, 0, 1))
+	check_eq(weapons.get_child_count(), 1, "the own shot appears immediately")
+	weapons._on_remote_spawned(7, Vector2.ZERO, Vector2.RIGHT, &"light_machine_gun", 1)
+	check_eq(weapons.get_child_count(), 1, "the host's event for it draws no second bullet")
+	check(weapons._projectiles.has(7), "the shown bullet now belongs to the host's id")
+	weapons._on_remote_spawned(8, Vector2.ZERO, Vector2.LEFT, &"light_machine_gun", 0)
+	check_eq(weapons.get_child_count(), 2, "other players' shots are drawn as before")
+	weapons._on_remote_spawned(9, Vector2.ZERO, Vector2.RIGHT, &"light_machine_gun", 1)
+	check_eq(weapons.get_child_count(), 3, "an own shot that was not predicted is still drawn")
+	var shown: Projectile = weapons._projectiles[7]
+	weapons._on_remote_removed(7)
+	check(shown.is_queued_for_deletion() and not weapons._projectiles.has(7), "the host's removal stops the predicted bullet")
+	shooter.free()
+	weapons.free()

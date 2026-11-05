@@ -456,6 +456,11 @@ Menu → Hostovat/Připojit → LOBBY ──(host: Začít zápas)──► ZÁP
 - Zobrazit hlášení `Kill`, `Double kill`, `Triple kill` (a další počet při více zabitích). Pro seskupení blízkých zabití použít okno 2 s mezi zabitími stejného střelce; to neomezuje platnost posledního zásahu.
 - Skóre i oznámení určuje host a klienti je zobrazují. Na začátku nového zápasu se skóre a série vynulují.
 
+### T.6 Procenta poškození (ZADÁNÍ UŽIVATELE 2026-11-05)
+- Čím víc zásahů postava dostane, tím větší odhoz: každý zásah přidá procenta podle zbraně (`WeaponData.damage`, tlaková vlna `ShockwaveAbility.damage`), 0–100 %, ukazují se nad postavou.
+- Odhoz = odhoz zbraně × `CombatRules.damage_multiplier(procenta před zásahem)`, lineárně 1,0 (0 %) → 2,5 (100 %) = „postava odletí snadno“. Limity `MAX_KNOCKBACK_PER_SHOT/SECOND` platí pro 0 % (požadavek 2026-11-04 tím zůstává pro základní hodnoty).
+- Štít (Balvan) snižuje odhoz i přírůstek procent stejným koeficientem. Procenta určuje host, posílají se ve snapshotu, po respawnu 0 %.
+
 ### T.5 Prvky map a nebezpečí (ZADÁNÍ UŽIVATELE 2026-11-05, budoucí milník)
 Do arén postupně přidat aktivní prvky, které mění průběh zápasu. Zatím jen plán, nic z toho neexistuje:
 - **Padající bomby:** v náhodných intervalech spadne bomba (stín/varování na zemi ~1 s předem), výbuch hráče v okruhu **odhodí** (stejný knockback model a limity jako u zbraní, `CombatRules`), sám nezabíjí.

@@ -16,3 +16,4 @@ recoil = 120.0
 sprite = ExtResource("2")
 magazine_size = 15
 reload_time = 1.0
+damage = 6.5

@@ -76,6 +76,14 @@ static func peer_stats(multiplayer_peer: MultiplayerPeer, peer_id: int) -> Dicti
 	}
 
 
+## Sends queued packets now instead of on the next frame's network poll (saves up to one
+## frame, 8-16 ms, per direction). Incoming packets are still handled by the normal poll.
+static func flush(multiplayer_peer: MultiplayerPeer) -> void:
+	var enet := multiplayer_peer as ENetMultiplayerPeer
+	if enet and enet.host and enet.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		enet.host.flush()
+
+
 ## Diagnostics (NetLog): bytes and packets sent/received by this computer since the last
 ## call (ENet counters are reset by reading them), or {} if unavailable.
 static func take_traffic(multiplayer_peer: MultiplayerPeer) -> Dictionary:

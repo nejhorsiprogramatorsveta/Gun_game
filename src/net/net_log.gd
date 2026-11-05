@@ -105,6 +105,7 @@ func tick(now_ms: int, is_host: bool, fps: float, ping_ms: int, inputs: Dictiona
 			if players.has(peer_id):
 				slots.append(_host_slot_text(peer_id, players[peer_id].slot, inputs[peer_id]))
 		report = "host %s | %s" % [frame, " | ".join(slots)]
+		RemoteInterpolator.hold_frames = 0  # the host's display smoothing also counts them
 	else:
 		report = "client ping=%dms avg=%dms max=%dms %s snapshots=%d dropped=%d gap_max=%dms gaps>%dms=%d interp_holds=%d correction_max=%.1fpx corrections>%dpx=%d %s" % [
 			ping_ms, _ping_sum / maxi(_ping_samples, 1), _ping_max, _enet_text(1), _snapshots, _snapshots_dropped,
@@ -121,8 +122,8 @@ func _host_slot_text(peer_id: int, slot: int, buffer: Object) -> String:
 	var text := "slot%d %s queue_max=%d" % [slot, _enet_text(peer_id), _queue_max.get(slot, 0)]
 	if buffer.has_method("take_stats"):
 		var stats: Dictionary = buffer.take_stats()
-		text += " inputs=%d starved=%d stalls=%d skipped=%d target=%d jitter=%dms" % [stats.received, stats.starved,
-				stats.stalls, stats.skipped, stats.get("target", 0), stats.get("jitter", 0)]
+		text += " inputs=%d waited=%d stalls=%d skipped=%d caught_up=%d jitter=%dms" % [stats.received,
+				stats.starved, stats.stalls, stats.skipped, stats.get("extra", 0), stats.get("jitter", 0)]
 	return text
 
 
@@ -141,7 +142,10 @@ func _traffic_text(window_ms: int) -> String:
 static func _performance_text() -> String:
 	var memory := OS.get_static_memory_usage()
 	var text := "mem=%dMB " % (memory / 1048576) if memory > 0 else ""
-	var free: int = OS.get_memory_info().get("available", -1)
+	var info := OS.get_memory_info()
+	var free: int = info.get("available", -1)
+	if free <= 0 or free > int(info.get("physical", 0)):
+		free = info.get("free", -1)  # Windows reports commit/page-file space as "available"
 	if free > 0:
 		text += "sys_free=%dMB " % (free / 1048576)
 	return text + "nodes=%d draws=%d" % [Performance.get_monitor(Performance.OBJECT_NODE_COUNT),

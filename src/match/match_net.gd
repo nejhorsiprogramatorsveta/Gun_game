@@ -7,7 +7,7 @@ extends Node
 
 signal input_received(peer_id: int, frames: Array[InputFrame])
 signal snapshot_received(snapshot: Dictionary)
-signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName)
+signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int)
 signal projectile_removed(id: int)
 signal kill_announced(killer_slot: int, streak: int)
 signal effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, position: Vector2)
@@ -47,10 +47,10 @@ func broadcast_snapshot(data: PackedByteArray) -> void:
 
 
 ## Host: shot/removal events are reliable – a missing bullet would be confusing.
-func send_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName) -> void:
+func send_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int) -> void:
 	_send(func() -> void:
 		for peer_id in _loaded_peers:
-			_receive_projectile_spawned.rpc_id(peer_id, id, origin, direction, weapon_id), true)
+			_receive_projectile_spawned.rpc_id(peer_id, id, origin, direction, weapon_id, shooter_slot), true)
 
 
 func send_projectile_removed(id: int) -> void:
@@ -78,7 +78,8 @@ func send_effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, a
 func _send(action: Callable, reliable: bool = false) -> void:
 	lag.run(func() -> void:
 		if Session.phase == Session.Phase.IN_MATCH:
-			action.call(), reliable)
+			action.call()
+			EnetDirectConnector.flush(multiplayer.multiplayer_peer), reliable)
 
 
 func _announce_loaded() -> void:
@@ -113,8 +114,10 @@ func _receive_snapshot(data: PackedByteArray) -> void:
 
 
 @rpc("authority", "call_remote", "reliable")
-func _receive_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName) -> void:
-	lag.run(projectile_spawned.emit.bind(id, origin, direction, weapon_id), true)
+func _receive_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int) -> void:
+	if shooter_slot < 0 or shooter_slot >= Session.MAX_PLAYERS:
+		return
+	lag.run(projectile_spawned.emit.bind(id, origin, direction, weapon_id, shooter_slot), true)
 
 
 @rpc("authority", "call_remote", "reliable")

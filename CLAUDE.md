@@ -49,7 +49,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.9, next 0.2.10).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.10, next 0.2.11).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
@@ -72,29 +72,34 @@ of a match `[net]`: ENet RTT/loss, traffic, snapshots, interpolation holds, inpu
 Settings screen button "Složka s logem". Read the logs after real play tests.
 Controls: src/core/key_bindings.gd (2 rebindable inputs per action, physical keys, saved in settings.cfg) + src/ui/settings_screen.gd;
 menu "Ovládání" shows the help (no help text inside matches). Reload: WeaponData.magazine_size/reload_time, Player.use_round/tick_reload,
-snapshot carries ammo, FLAG_RELOADING and exact weapon timers (protocol 18, 44 bytes/player), src/player/magazine_drop.gd + PlayerVisual reload animation.
+snapshot carries ammo, FLAG_RELOADING and exact weapon timers (see the protocol notes below), src/player/magazine_drop.gd + PlayerVisual reload animation.
 Changelog entries use mechanics_keys / fix_keys / other_keys (sections in "Co je nového" and release notes).
 src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cleans names; used by session.gd).
 2 v 2 team mode: src/match/{teams,match_ranking}.gd, src/net/team_choice.gd, src/ui/score_table.gd (no friendly fire, one scoreboard per team).
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
-Snapshots (protocol 18, 6-byte header + 44 bytes/player) carry complete motor memory (floor contact, previous buttons,
+Snapshots (protocol 19, 60 Hz, 6-byte header + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
 remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
-reload time (0.1 ms grid, Player._count_down keeps host and client on the same grid). Input packets remain 14 bytes.
+reload time (0.1 ms grid, Player._count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
 move_and_slide() must use the physics delta during replay. The own player's shots (cooldown, ammo, reload, RECOIL) are
-predicted via Player.tick_weapon inside simulate(); the host only spawns projectiles (WeaponSystem.spawn_shot).
-Remote players play back on the HOST timeline (snapshot tick, src/net/snapshot_timeline.gd + jitter_clock.gd) with an
-adaptive delay 50-250 ms from measured jitter. Host input queue target adapts to input jitter (InputBuffer, 1-6 ticks).
-ENet throttling is disabled (connector). Small corrections use a visual offset; projectiles, hits, knockback, respawns,
-countdown and lives remain host-authoritative.
+predicted via Player.tick_weapon inside simulate(); the client also shows its own bullets at once (WeaponSystem.spawn_predicted,
+paired in order with the host's spawn events, which carry the shooter slot). Lowest latency (play tests 2026-11-05):
+the host simulates each client input as soon as it arrives and exactly once (InputBuffer.take_for_tick: 1 per tick, none
+while the next is late, up to 4 to catch up; catch-up bullets are fast-forwarded), ENet sends are flushed at once,
+ENet throttling is disabled, ping is measured on snapshot arrival. Remote players play back on their own timeline
+(SnapshotTimeline per player: host tick for the host's player, the owner's input sequence for client-controlled players)
+with an adaptive delay and short extrapolation; the host draws client-controlled players the same way (Player._display),
+hits use real positions. Damage percent (user 2026-11-05): CombatRules.damage_multiplier 1.0-2.5 at 0-100 %, knockback
+limits apply at 0 %. Small corrections use a visual offset; projectiles, hits, knockback, damage, respawns, countdown and
+lives remain host-authoritative.
 Changelog "Co je nového" shows ONLY the newest (highest) patch version (user 2026-11-04); release notes the same.
 Changelog is implemented: data/changelog.tres + localization CSV are shared by src/core/changelog.gd,
 the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
 archive that entry under its published version/build and add a new current entry. Do not guess the next build number.
-M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c cloud/platform world effects (src/combat/area_effects.gd) done; keep everything arcade, recoil >= CombatRules.MIN_RECOIL; M5.3 lobby character choice done (src/net/character_choice.gd) (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement. Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
+M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c cloud/platform world effects (src/combat/area_effects.gd) done; keep everything arcade, recoil >= CombatRules.MIN_RECOIL; M5.3 lobby character choice done (src/net/character_choice.gd) (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement (they apply at 0 % damage; the damage multiplier comes on top, user 2026-11-05). Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
 The user replaced the previous dev/stable split (2026-11-04): keep ONE existing release `dev`,
 promoted to stable/latest, and change its visible version/title and assets. The `dev` slug is retained for
 installed clients. Do not create releases or move/push tags. Hide old `v0.1.0` as a draft only after successful

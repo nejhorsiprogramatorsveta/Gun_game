@@ -14,7 +14,7 @@ const PIXEL_SCALE := 2.0
 const SHOULDER := Vector2(0, -10)
 ## Reload: the gun dips by up to this angle (rad); the bar above the head (world px).
 const RELOAD_DIP := 1.1
-const RELOAD_BAR := Rect2(-20, -98, 40, 6)
+const RELOAD_BAR := Rect2(-20, -124, 40, 6)  # above the name and the damage percent
 ## Horizontal speed above which the walk animation plays.
 const WALK_SPEED := 30.0
 ## [name, first frame, frame count, frames per second, loop]

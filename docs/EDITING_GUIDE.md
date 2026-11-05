@@ -82,6 +82,7 @@ tématu `assets/ui/theme.tres`.
 | `pellets` | počet broků na výstřel (brokovnice > 1, každý brok má vlastní rozptyl a odhoz) |
 | `magazine_size` | náboje v zásobníku (výstřel brokovnice = 1 náboj); po posledním se přebíjí, po smrti je zásobník vždy plný. Pomalé silné zbraně malý (odstřelovačka 3), rychlé velký (samopal 32) |
 | `reload_time` | délka přebíjení v sekundách (všechny zbraně 1.0) |
+| `damage` | procenta poškození za zásah (u brokovnic za každý brok); čím víc procent má zasažená postava, tím víc ji další zásahy odhodí (na 100 % ×2,5). Orientačně `knockback / 120`, celá rána max. ~15 % |
 | `sprite` | pixel art zbraně `assets/sprites/weapons/<id>.png` (2 snímky 34 × 12 px: normální, záblesk; úchop v bodě 4,6) |
 
 **Limity hlídané testem `tests/test_weapons.gd`** (pokyn: odhoz nesmí být příliš vysoký, vše arkádové):
@@ -101,7 +102,7 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | Soubor (druh) | Postava | Vlastní hodnoty |
 |---|---|---|
 | `shield.tres` (štít) | Balvan | `knockback_multiplier` – násobek odhozu během štítu (0,2); během štítu nestřílí |
-| `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px, nyní 320 – dosah, ne melee), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru) |
+| `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px, nyní 320 – dosah, ne melee), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru), `damage` (procenta poškození za zásah, nyní 9) |
 | `dash.tres` (úskok) | Jiskra | `speed` (px/s po dobu `duration`) |
 | `teleport.tres` (přesun) | Stín | `distance` – max. vzdálenost ke kurzoru (px) |
 | `slow_cloud.tres` (zpomalovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `speed_scale`, `jump_scale` (zpomalení běhu a skoku soupeřů) |

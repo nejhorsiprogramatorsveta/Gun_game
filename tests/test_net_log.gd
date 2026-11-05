@@ -43,15 +43,15 @@ func test_host_line_reports_each_client_slot() -> void:
 	buffer.push([frame])
 	log.tick(0, true, 60.0, -1, {7: buffer}, {7: player})
 	for i in 20:
-		buffer.next()
+		buffer.take_for_tick()
 	var line := log.tick(NetLog.INTERVAL_MS, true, 60.0, -1, {7: buffer, 9: FakeBuffer.new()}, {7: player})
 	check(line.contains("] [net] host fps=60 min=60"), "host line: " + line)
 	check(line.contains("slot1 rtt=42ms var=7ms loss=1.5% throttle=32/32 queue_max=1"), "ENet stats and queue per slot")
-	check(line.contains("inputs=1 starved=19 stalls=1 skipped=0"), "input buffer counters")
+	check(line.contains("inputs=1 waited=19 stalls=1 skipped=0 caught_up=0"), "input buffer counters")
 	check(not line.contains("slot9") and line.count("slot") == 1, "unknown peers skipped")
 
 
-func test_input_buffer_counts_skipped_inputs_and_resets() -> void:
+func test_input_buffer_counts_cut_inputs_and_resets() -> void:
 	var buffer := InputBuffer.new()
 	var frames: Array[InputFrame] = []
 	for seq in range(10, 0, -1):
@@ -60,13 +60,13 @@ func test_input_buffer_counts_skipped_inputs_and_resets() -> void:
 		frames.append(frame)
 	buffer.push(frames)  # first packet: only the newest frame counts
 	var more: Array[InputFrame] = []
-	for seq in range(20, 10, -1):
+	for seq in range(30, 10, -1):
 		var frame := InputFrame.create(0, 0)
 		frame.seq = seq
 		more.append(frame)
 	buffer.push(more)
 	var stats := buffer.take_stats()
-	check_eq([stats.received, stats.skipped], [11, 11 - InputBuffer.MAX_PENDING], "received and capped")
+	check_eq([stats.received, stats.skipped], [21, 21 - InputBuffer.MAX_PENDING], "received and capped")
 	check_eq(buffer.take_stats().received, 0, "counters reset")
 
 

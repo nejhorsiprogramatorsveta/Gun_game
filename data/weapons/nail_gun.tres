@@ -17,3 +17,4 @@ pellets = 1
 sprite = ExtResource("2")
 magazine_size = 30
 reload_time = 1.0
+damage = 4.0

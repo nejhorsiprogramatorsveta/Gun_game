@@ -229,6 +229,34 @@ func _check_recoil_prediction(character_id: StringName) -> void:
 	client.free()
 
 
+func test_bunched_inputs_on_the_host_cause_no_correction() -> void:
+	var host := _player()
+	var client := _player()
+	var prediction := ClientPrediction.new()
+	prediction.reconcile(client, host.snapshot_state())
+	var buffer := InputBuffer.new()
+	var in_flight: Array[InputFrame] = []
+	var worst := 0.0
+	for tick in range(1, 241):
+		var move := 1 if (tick / 20) % 2 == 0 else -1  # change direction every 20 ticks
+		var buttons := InputFrame.JUMP if tick % 45 == 0 else 0
+		var input := InputFrame.create(move, buttons, 0, tick)
+		prediction.predict(client, input, DT, false)
+		in_flight.append(input)
+		if tick % 6 == 0:  # Wi-Fi delivers the last 6 inputs together
+			for sent in in_flight:
+				buffer.push([sent] as Array[InputFrame], int(tick * InputBuffer.TICK_MS))
+			in_flight.clear()
+		for received in buffer.take_for_tick():
+			host.simulate(received, DT)
+		if tick % 3 == 0:
+			var state: Dictionary = NetCodec.decode_snapshot(NetCodec.encode_snapshot(tick, 0, [host.snapshot_state()] as Array[Dictionary])).states[0]
+			worst = maxf(worst, prediction.reconcile(client, state))
+	check(worst < 1.0, "the host simulates exactly the client's inputs: no visible correction (%.3f px)" % worst)
+	host.free()
+	client.free()
+
+
 func test_jetpack_is_predicted_without_correction() -> void:
 	var host := _player()
 	host.character = ContentDB.get_character(&"jiskra")

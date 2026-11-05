@@ -12,15 +12,17 @@ var _last_discarded_seq := -1
 var _history: Array[Dictionary] = []
 
 
-func predict(player: Player, input: InputFrame, delta: float, frozen: bool) -> void:
+## Returns true when the input was simulated (then player.fired_this_tick is current).
+func predict(player: Player, input: InputFrame, delta: float, frozen: bool) -> bool:
 	if not _ready or not player.visible:
-		return
+		return false
 	var movement := InputFrame.create(0, 0, input.aim, input.seq) if frozen else input
 	player.simulate(movement, delta)
 	_history.append({"input": movement, "delta": delta, "state": player.snapshot_state()})
 	if _history.size() > MAX_PENDING_INPUTS:
 		var discarded: Dictionary = _history.pop_front()
 		_last_discarded_seq = discarded.input.seq
+	return true
 
 
 ## Returns how far the prediction was off (px), or -1 when there was nothing to compare

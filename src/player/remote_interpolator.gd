@@ -6,12 +6,15 @@ extends RefCounted
 ## and the display time comes from SnapshotTimeline (adaptive delay, delay_ms = 0 here).
 
 const INTERPOLATION_DELAY_MS := 100
-const MAX_BUFFERED := 20
+const MAX_BUFFERED := 40
+## When no newer snapshot has arrived yet, the player keeps moving along its last velocity
+## for up to this long instead of freezing (short Wi-Fi gaps); later it holds.
+const MAX_EXTRAPOLATION_MS := 100.0
 ## Bigger jumps (e.g. a respawn) are shown instantly instead of sliding across the arena.
 const TELEPORT_DISTANCE := 200.0
 
-## Diagnostics (NetLog): frames in which a remote player had to be held at its last known
-## state because no newer snapshot had arrived (visible as stutter). Shared by all players.
+## Diagnostics (NetLog): frames in which no newer snapshot had arrived yet, so a remote
+## player was extrapolated or held (more = more guessing). Shared by all players.
 static var hold_frames := 0
 
 ## [{time: float (ms), state: Dictionary}], oldest first.
@@ -42,7 +45,17 @@ func sample(now_ms: float) -> Dictionary:
 		if render_time < newer.time:
 			return _blend(older, newer, render_time)
 	hold_frames += 1
-	return _buffer[-1].state  # no newer data yet: hold the last known state
+	return _extrapolate(_buffer[-1], render_time)  # no newer data yet
+
+
+static func _extrapolate(newest: Dictionary, render_time: float) -> Dictionary:
+	var state: Dictionary = newest.state
+	var ahead := minf(render_time - float(newest.time), MAX_EXTRAPOLATION_MS) / 1000.0
+	if ahead <= 0.0 or not state.get("active", true) or not state.has("velocity"):
+		return state
+	var moved := state.duplicate()
+	moved.position = (state.position as Vector2) + (state.velocity as Vector2) * ahead
+	return moved
 
 
 static func _blend(older: Dictionary, newer: Dictionary, render_time: float) -> Dictionary:

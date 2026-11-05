@@ -6,6 +6,8 @@ extends AbilityData
 
 @export var radius: float = 320.0
 @export var strength: float = 1100.0
+## Damage percent added to each pushed opponent (CombatRules.damage_multiplier).
+@export var damage: float = 9.0
 ## How much the push is tilted upwards (0 = straight away from the user).
 @export var lift: float = 0.35
 
@@ -19,6 +21,6 @@ func activate(user: Player, players: Array) -> Array[Player]:
 		if offset.length() > radius:
 			continue
 		var direction := (offset.normalized() if not offset.is_zero_approx() else Vector2(user.facing, 0)) + Vector2(0, -lift)
-		other.velocity += direction.normalized() * strength * other.knockback_scale() / maxf(other.character.weight, 0.1)
+		other.take_hit(direction.normalized() * strength / maxf(other.character.weight, 0.1), damage)
 		pushed.append(other)
 	return pushed

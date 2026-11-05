@@ -13,10 +13,14 @@ const RESULTS_PATH := "res://src/ui/results.tscn"
 const RESULTS_DELAY := 1.5
 ## Host waits this long before leaving the match scene (see _on_session_phase_changed).
 const SCENE_CHANGE_GRACE := 0.5
-## 60 Hz physics -> 30 Hz snapshots.
-const SNAPSHOT_EVERY_TICKS := 2
+## A snapshot every physics tick (60 Hz): lower latency and smoother remote players
+## (~4-14 kB/s per client).
+const SNAPSHOT_EVERY_TICKS := 1
 ## Peer id of the practice dummy (real peer ids are always positive).
 const PRACTICE_DUMMY_ID := -1
+## Host: client-controlled players are drawn at least this far behind their simulation
+## (their inputs can arrive in bunches; hits always use the real position).
+const HOST_DISPLAY_MIN_DELAY_MS := 20.0
 
 var _arena: Arena
 var _weapons := WeaponSystem.new()
@@ -45,8 +49,6 @@ var _inputs: Dictionary[int, InputBuffer] = {}
 var _input_seq := 0
 var _input_history: Array[InputFrame] = []
 var _prediction := ClientPrediction.new()
-## Client: remote players play back on the host's timeline with an adaptive delay.
-var _timeline := SnapshotTimeline.new()
 var _last_snapshot_tick := -1
 var _pending_snapshot: Dictionary = {}
 ## Client: from this time (msec) the own movement is predicted, see _apply_snapshot.
@@ -69,6 +71,8 @@ func _ready() -> void:
 	_abilities.player_hit.connect(_on_player_hit)
 	_is_authority = not _networked or multiplayer.is_server()
 	_effects.setup(_net if _networked else null, _is_authority)
+	if _networked and not _is_authority:  # own shots are predicted on clients
+		_weapons.local_slot = Session.match_slots.get(multiplayer.get_unique_id(), -1)
 	if _networked:
 		for peer_id: int in Session.match_slots:
 			_spawn(peer_id, Session.match_slots[peer_id], Session.players.get(peer_id, {}).get("name", "?"))
@@ -84,7 +88,7 @@ func _ready() -> void:
 		_net.kill_announced.connect(_on_kill_announced)
 		_net_log.peer_stats = func(peer_id: int) -> Dictionary: return EnetDirectConnector.peer_stats(multiplayer.multiplayer_peer, peer_id)
 		_net_log.traffic = func() -> Dictionary: return EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)
-		_net_log.client_extra = func() -> String: return "interp_delay=%dms jitter=%dms" % [_timeline.delay_ms, _timeline.clock.jitter_ms()]
+		_net_log.client_extra = _interpolation_text
 		EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)  # start counting with the match
 		if _net.lag.is_enabled():
 			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
@@ -108,12 +112,10 @@ func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 	var spawns := _arena.spawn_points()
 	player.reset_to(spawns[slot % spawns.size()])
 	_players[peer_id] = player
-	if _networked and not multiplayer.is_server() and peer_id != multiplayer.get_unique_id():
-		player.timeline = _timeline
-
-
-func _process(delta: float) -> void:
-	_timeline.update(delta)
+	# Remote players get their own playback timeline (SnapshotTimeline). On the host this
+	# only smooths how client-controlled players are drawn (tiny minimum delay).
+	if _networked and peer_id != multiplayer.get_unique_id():
+		player.timeline = SnapshotTimeline.new() if not _is_authority else SnapshotTimeline.new(HOST_DISPLAY_MIN_DELAY_MS)
 
 
 func _physics_process(delta: float) -> void:
@@ -167,17 +169,19 @@ func _simulate_tick(delta: float) -> void:
 	var frozen := _countdown > 0.0
 	for peer_id in _players:
 		var player := _players[peer_id]
-		# Read the input even while dead, so the queue does not fill up and delay the respawn.
-		var input := _input_for(peer_id, player)
+		# Read the inputs even while dead, so the queue does not fill up and delay the respawn.
+		var inputs := _inputs_for(peer_id, player)
 		if not player.visible:
 			continue
-		if frozen:
-			input = InputFrame.create(0, 0, input.aim, input.seq)  # only aiming during the countdown
-		player.simulate(input, delta)
+		for i in inputs.size():  # 0-4 inputs, each simulated exactly once (InputBuffer)
+			var input := InputFrame.create(0, 0, inputs[i].aim, inputs[i].seq) if frozen else inputs[i]
+			player.simulate(input, delta)
+			_weapons.spawn_shot(player, input, inputs.size() - 1 - i)
+			_abilities.tick(player, _players.values())
+		if not inputs.is_empty() and player.timeline:
+			player.record_for_display()
 		player.invulnerable_time = maxf(player.invulnerable_time - delta, 0.0)
 		player.invulnerable = player.invulnerable_time > 0.0
-		_weapons.spawn_shot(player, input)
-		_abilities.tick(player, _players.values())
 		if _arena.is_out_of_bounds(player.position):
 			player.out_of_bounds_time += delta
 			if player.out_of_bounds_time >= _rules.out_of_bounds_grace:
@@ -193,11 +197,17 @@ func _simulate_tick(delta: float) -> void:
 			_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, ceili(_countdown * 10.0), states))
 
 
-## One input per tick per player; if a client's packet is late, its last input repeats.
-func _input_for(peer_id: int, player: Player) -> InputFrame:
+## The inputs to simulate this tick: the local player's own, the practice dummy's neutral
+## one, or what a client's InputBuffer releases (none while its next input is late).
+func _inputs_for(peer_id: int, player: Player) -> Array[InputFrame]:
+	var inputs: Array[InputFrame] = []
 	if peer_id == multiplayer.get_unique_id():
-		return InputFrame.sample_local(player)
-	return _inputs.get_or_add(peer_id, InputBuffer.new()).next()
+		inputs.append(InputFrame.sample_local(player))
+	elif peer_id == PRACTICE_DUMMY_ID:
+		inputs.append(InputFrame.new())
+	else:
+		inputs = _inputs.get_or_add(peer_id, InputBuffer.new()).take_for_tick()
+	return inputs
 
 
 func _on_input_received(peer_id: int, frames: Array[InputFrame]) -> void:
@@ -280,7 +290,8 @@ func _send_local_input(delta: float) -> void:
 	_input_seq = (_input_seq + 1) & 0xFFFF
 	var frame := InputFrame.sample_local(local_player)
 	frame.seq = _input_seq
-	_prediction.predict(local_player, frame, delta, Time.get_ticks_msec() < _movement_starts_ms)
+	if _prediction.predict(local_player, frame, delta, Time.get_ticks_msec() < _movement_starts_ms) and local_player.fired_this_tick:
+		_weapons.spawn_predicted(local_player, frame)  # the shot appears now, the host confirms it later
 	_input_history.push_front(frame)
 	if _input_history.size() > NetCodec.INPUT_HISTORY:
 		_input_history.pop_back()
@@ -296,8 +307,17 @@ func _on_snapshot_received(snapshot: Dictionary) -> void:
 		_net_log.record_snapshot_dropped()
 		return
 	_last_snapshot_tick = tick
-	_net_log.record_snapshot_arrival(Time.get_ticks_msec())
-	_timeline.observe(tick, Time.get_ticks_msec())
+	var now := Time.get_ticks_msec()
+	_net_log.record_snapshot_arrival(now)
+	# Remote players get EVERY snapshot (a bunch keeps all its positions); the own player
+	# is reconciled with the newest one on the next physics tick. Ping counts from arrival.
+	for state: Dictionary in snapshot.states:
+		for player in _players.values():
+			if player.slot == state.slot:
+				if player.peer_id == multiplayer.get_unique_id():
+					_stats.record_ack(state.last_seq, now)
+				else:
+					player.receive_state(state, SnapshotTimeline.tick_ms(tick))
 	_pending_snapshot = snapshot
 
 
@@ -310,12 +330,17 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 	_movement_starts_ms = now + snapshot.countdown * 100 - maxi(_stats.ping_ms(), 0) + 16 if snapshot.countdown > 0 else 0
 	for state: Dictionary in snapshot.states:
 		for player in _players.values():
-			if player.slot == state.slot:
-				if player.peer_id == multiplayer.get_unique_id():
-					_net_log.record_correction(_prediction.reconcile(player, state))
-					_stats.record_ack(state.last_seq, now)
-				else:
-					player.receive_state(state, SnapshotTimeline.tick_ms(snapshot.tick))
+			if player.slot == state.slot and player.peer_id == multiplayer.get_unique_id():
+				_net_log.record_correction(_prediction.reconcile(player, state))
+
+
+## Diagnostics: display delay / measured jitter of each remote player's timeline.
+func _interpolation_text() -> String:
+	var parts: PackedStringArray = []
+	for player: Player in _players.values():
+		if player.timeline:
+			parts.append("slot%d:%d/%d" % [player.slot, player.timeline.delay_ms, player.timeline.clock.jitter_ms()])
+	return "interp_ms(delay/jitter) " + " ".join(parts)
 
 
 # --- Both ------------------------------------------------------------------------

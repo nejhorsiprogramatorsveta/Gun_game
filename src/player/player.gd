@@ -20,6 +20,10 @@ var display_name := ""
 var team := Teams.NONE
 ## Lives left in a network match (0 = eliminated). Set by the authority, shown in the HUD.
 var lives := 0
+## Damage percent 0-100 (host decides, shown above the character): more = more knockback.
+var damage := 0.0
+var _damage_label: Label
+var _shown_damage := -1
 var kills := 0
 var deaths := 0
 ## True right after a respawn: hits do not push the player (shown by blinking).
@@ -52,9 +56,14 @@ var out_of_bounds_time := 0.0
 ## Render correction only; collisions always use the corrected simulation position.
 var visual_offset := Vector2.ZERO
 
-## Only for remote players on clients: host-time playback with an adaptive delay.
+## Remote players on clients: playback on the player's own timeline (SnapshotTimeline).
+## Client-controlled players on the host: _display shows them on the same kind of timeline
+## (simulation and hits still use the real position).
 var _interpolator: RemoteInterpolator
+var _display: RemoteInterpolator
 var timeline: SnapshotTimeline
+var _last_state_time := -INF
+var _last_state_active := false
 var _name_label: Label
 ## Pixel-art sprites (null = placeholder rectangle, e.g. in unit tests).
 var _visual: PlayerVisual
@@ -78,6 +87,14 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 	name_label.add_theme_color_override("font_color", SLOT_COLORS[slot % SLOT_COLORS.size()].lightened(0.3))
 	add_child(name_label)
 	_name_label = name_label
+	_damage_label = Label.new()
+	_damage_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_damage_label.add_theme_font_size_override("font_size", 26)
+	_damage_label.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.08))
+	_damage_label.add_theme_constant_override("outline_size", 6)
+	_damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_damage_label.size = Vector2(120, 32)
+	add_child(_damage_label)
 	refill_magazine()
 	if character and character.sprite_sheet:
 		_visual = PlayerVisual.new()
@@ -190,6 +207,14 @@ func ability_active() -> bool:
 	return ability_time_left > 0.0
 
 
+## Authority: a hit. Knockback grows with the damage taken so far, then the hit's damage is
+## added; an active shield scales both.
+func take_hit(push: Vector2, added_damage: float) -> void:
+	var scale := knockback_scale()
+	velocity += push * scale * CombatRules.damage_multiplier(damage)
+	damage = minf(damage + added_damage * scale, CombatRules.MAX_DAMAGE)
+
+
 ## Knockback multiplier from an active ability (e.g. shield).
 func knockback_scale() -> float:
 	return character.ability.knockback_scale() if ability_active() and character and character.ability else 1.0
@@ -207,7 +232,7 @@ func snapshot_state() -> Dictionary:
 			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths,
 			"ability_cooldown": ability_cooldown, "ability_active": ability_active(), "firing": is_firing(),
 			"boost_time_left": motor_state.boost_time_left, "ammo": ammo, "reloading": is_reloading(),
-			"fire_cooldown": fire_cooldown, "reload_time_left": reload_time_left}
+			"fire_cooldown": fire_cooldown, "reload_time_left": reload_time_left, "damage": damage}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -228,24 +253,61 @@ func restore_state(state: Dictionary) -> void:
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, visible and motor_state.drop_timer <= 0.0)
 
 
-## Client only: queue a host snapshot (at its host time, see SnapshotTimeline) for display.
+## Client only: queue a host snapshot of this remote player for display. The host's own
+## player (peer 1) is placed at the snapshot's host time, others at their own input time.
 func receive_state(state: Dictionary, host_time_ms: float) -> void:
 	if _interpolator == null:
 		_interpolator = RemoteInterpolator.new(0 if timeline else RemoteInterpolator.INTERPOLATION_DELAY_MS)
-	_interpolator.push(host_time_ms, state)
+	if timeline == null:
+		_interpolator.push(host_time_ms, state)
+		return
+	var time_ms := host_time_ms if peer_id == 1 else timeline.seq_ms(state.last_seq)
+	if time_ms <= _last_state_time:
+		if state.active == _last_state_active:
+			return  # the host is waiting for this player's next input: nothing new to show
+		time_ms = _last_state_time + 1.0  # e.g. died on the same input: show it right after
+	else:
+		timeline.observe_ms(time_ms, Time.get_ticks_msec())
+	_last_state_time = time_ms
+	_last_state_active = state.active
+	_interpolator.push(time_ms, state)
+
+
+## Host only, client-controlled players: remember the state after this tick's inputs for
+## the smooth display on the client's input timeline (see _display).
+func record_for_display() -> void:
+	if timeline == null:
+		return
+	if _display == null:
+		_display = RemoteInterpolator.new(0)
+	var time_ms := timeline.seq_ms(last_input_seq)
+	if time_ms <= _last_state_time:
+		return
+	timeline.observe_ms(time_ms, Time.get_ticks_msec())
+	_last_state_time = time_ms
+	_display.push(time_ms, {"position": position, "velocity": velocity, "active": true})
 
 
 func _process(delta: float) -> void:
+	var now := Time.get_ticks_msec()
+	if timeline:
+		timeline.update(delta)
 	if _interpolator:
-		var now := Time.get_ticks_msec()
 		_apply_state(_interpolator.sample(timeline.render_time(now) if timeline else float(now)))
 	if not visual_offset.is_zero_approx():
 		visual_offset *= exp(-20.0 * delta)
 		if visual_offset.length_squared() < 0.01:
 			visual_offset = Vector2.ZERO
+	if _display:
+		var shown := _display.sample(timeline.render_time(now))
+		var offset: Vector2 = (shown.position as Vector2) - position if not shown.is_empty() else Vector2.ZERO
+		visual_offset = offset if visible and offset.length() < RemoteInterpolator.TELEPORT_DISTANCE else Vector2.ZERO
+		queue_redraw()
 		queue_redraw()
 	if _name_label:
 		_name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 54) + visual_offset
+	if _damage_label:
+		_update_damage_label()
 	if _visual:
 		_visual.position = visual_offset
 		_visual.update_look(facing, InputFrame.aim_to_vector(aim), motor_state.on_floor, velocity, is_firing(),
@@ -260,6 +322,21 @@ func is_firing() -> bool:
 	if Time.get_ticks_msec() - last_fire_ms < FIRING_VISUAL_MS:
 		return true
 	return _is_local_client() and Input.is_action_pressed("fire") and can_fire() and visible and not is_reloading()
+
+
+## "37 %" above the name: white at 0 %, yellow at 50 %, red at 100 %. The text only changes
+## when the whole percent changes.
+func _update_damage_label() -> void:
+	_damage_label.position = Vector2(-60, -BODY_SIZE.y / 2.0 - 86) + visual_offset
+	var shown := roundi(damage)
+	if shown == _shown_damage:
+		return
+	_shown_damage = shown
+	_damage_label.text = "%d %%" % shown
+	var t := shown / CombatRules.MAX_DAMAGE
+	var yellow := Color(1.0, 0.82, 0.25)
+	var color := Color.WHITE.lerp(yellow, t * 2.0) if t < 0.5 else yellow.lerp(Color(1.0, 0.25, 0.2), (t - 0.5) * 2.0)
+	_damage_label.add_theme_color_override("font_color", color)
 
 
 func _is_local_client() -> bool:
@@ -285,6 +362,7 @@ func _apply_state(state: Dictionary) -> void:
 	# Clients only need "active or not" for drawing; the exact time stays on the host.
 	ability_time_left = 1.0 if state.get("ability_active", false) else 0.0
 	ammo = state.get("ammo", ammo)
+	damage = state.get("damage", damage)
 	var reloading: bool = state.get("reloading", false)
 	if reloading and not is_reloading():
 		reload_started_ms = Time.get_ticks_msec()
@@ -302,6 +380,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	visual_offset = Vector2.ZERO
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, true)
 	fire_cooldown = 0.0
+	damage = 0.0
 	refill_magazine()
 	ability_time_left = 0.0
 	invulnerable_time = 0.0
