@@ -117,10 +117,6 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	var local_player: Player = _players.get(multiplayer.get_unique_id())
-	if local_player and local_player.handle_weapon_input(event):
-		get_viewport().set_input_as_handled()
-		return
 	if not event.is_action_pressed("ui_cancel"):
 		return
 	if not _networked:

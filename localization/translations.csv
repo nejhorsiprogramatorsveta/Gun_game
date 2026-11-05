@@ -38,9 +38,9 @@ RELEASE_LINUX,- **Linux:** `{file}`
 RELEASE_SOURCE_NOTICE,⚠️ Automatické archivy „Source code“ patří k historickému tagu. Hra ke stažení je v souborech výše.
 RELEASE_SOURCE_COMMIT,Zdrojové kódy tohoto sestavení: {url}
 RELEASE_GUIDE,"Návod (SmartScreen, macOS, hraní s kamarády): {url}"
-PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · E/pravé tlačítko: schopnost · Q/1/2: zbraň · Esc: odejít (hostitel: konec zápasu)"
+PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · E/pravé tlačítko: schopnost · Esc: odejít (hostitel: konec zápasu)"
 CHARACTER_JISKRA_NAME,Jiskra
-CHARACTER_JISKRA_DESCRIPTION,"Lehká róninka: rychlá, snadno ji odhodíš, ale těžko ji chytíš. Samopal a pistole."
+CHARACTER_JISKRA_DESCRIPTION,"Lehká róninka: rychlá, snadno ji odhodíš, ale těžko ji chytíš. Samopal."
 LOBBY_DEFAULT_NAME,Hráč {number}
 ERROR_HOST_FAILED,"Nepodařilo se spustit hru na portu {port}. Možná na něm už běží jiný program (nebo druhá kopie hry)."
 ERROR_INVALID_ADDRESS,"Neplatná adresa. Vlož celou adresu od hostitele, např. 100.101.102.103:24642#K7Q2MX."
@@ -105,7 +105,7 @@ UPDATE_DOWNLOADING,Stahuji aktualizaci…
 UPDATE_FAILED_DOWNLOAD,"Aktualizaci se nepodařilo stáhnout (zkontroluj internet). Můžeš ji stáhnout ručně."
 UPDATE_FAILED_VERIFY,"Stažený soubor nesouhlasí s kontrolním otiskem, aktualizace byla zrušena. Zkus to později nebo stáhni hru ručně."
 UPDATE_FAILED_INSTALL,"Hru se nepodařilo nahradit. Přesuň ji do složky, kam smíš zapisovat (Windows: Plocha nebo Dokumenty, Mac: Aplikace), nebo ji stáhni ručně."
-HUD_WEAPON,"{weapon}   (přepnutí: Q, 1 / 2, kolečko myši)"
+HUD_WEAPON,{weapon}
 WEAPON_SMG_NAME,Samopal
 WEAPON_SHOTGUN_NAME,Brokovnice
 WEAPON_ASSAULT_RIFLE_NAME,Útočná puška
@@ -114,11 +114,11 @@ WEAPON_CARBINE_NAME,Karabina
 WEAPON_SNIPER_NAME,Odstřelovačka
 WEAPON_COMPACT_SMG_NAME,Kompaktní samopal
 CHARACTER_BALVAN_NAME,Balvan
-CHARACTER_BALVAN_DESCRIPTION,"Těžký samuraj: pomalý, ale těžko se odhazuje. Brokovnice a útočná puška."
+CHARACTER_BALVAN_DESCRIPTION,"Těžký samuraj: pomalý, ale těžko se odhazuje. Útočná puška."
 CHARACTER_VICHR_NAME,Vichr
-CHARACTER_VICHR_DESCRIPTION,"Ninja s kusarigamou: vyvážený. Bojová puška a karabina."
+CHARACTER_VICHR_DESCRIPTION,"Ninja s kusarigamou: vyvážený. Bojová puška."
 CHARACTER_STIN_NAME,Stín
-CHARACTER_STIN_DESCRIPTION,"Lehký ninja se šurikenem: rychlý, ale snadno odletí. Odstřelovačka a kompaktní samopal."
+CHARACTER_STIN_DESCRIPTION,"Lehký ninja se šurikenem: rychlý, ale snadno odletí. Odstřelovačka."
 CHANGELOG_WEAPONS,"Čtyři postavy a osm zbraní: každá postava má dvě vlastní zbraně (samopal, pistole, brokovnice, útočná a bojová puška, karabina, odstřelovačka, kompaktní samopal)."
 CHANGELOG_WEAPON_SWITCH,"Přepínání zbraní klávesou Q, 1 / 2 nebo kolečkem myši. Dokud nepřibude výběr v lobby, dostane každý hráč postavu podle pořadí."
 HUD_ABILITY_READY,"{ability}: připraveno (E / pravé tlačítko myši)"
@@ -132,9 +132,9 @@ WEAPON_REVOLVER_NAME,Revolver
 WEAPON_NAIL_GUN_NAME,Nýtovačka
 WEAPON_DOUBLE_BARREL_NAME,Dvouhlavňová brokovnice
 CHARACTER_KRUGERMANN_NAME,Krügermann
-CHARACTER_KRUGERMANN_DESCRIPTION,"Potrhlý vynálezce: vyvážený. Lehký kulomet a revolver."
+CHARACTER_KRUGERMANN_DESCRIPTION,"Potrhlý vynálezce: vyvážený. Lehký kulomet."
 CHARACTER_ARCHITEKT_NAME,Architekt
-CHARACTER_ARCHITEKT_DESCRIPTION,"Stavitel chrámů: spíš těžší a pomalejší. Nýtovačka a dvouhlavňová brokovnice."
+CHARACTER_ARCHITEKT_DESCRIPTION,"Stavitel chrámů: spíš těžší a pomalejší. Dvouhlavňová brokovnice."
 CHANGELOG_NEW_CHARACTERS,"Dvě nové postavy: Krügermann (lehký kulomet, revolver) a Architekt (nýtovačka, dvouhlavňová brokovnice)."
 CHANGELOG_ABILITIES,"Speciální schopnosti (E nebo pravé tlačítko myši): Balvan má štít, Vichr tlakovou vlnu. Další schopnosti přibudou."
 ABILITY_DASH_NAME,Úskok
@@ -155,3 +155,4 @@ CHANGELOG_GAS_STRIP,"Zpomalovací plyn Krügermanna je teď dlouhý vodorovný p
 LOBBY_CHOOSE_CHARACTER,"Vyber si postavu (každá jen jednou):"
 LOBBY_CHARACTER_TAKEN,"obsazeno: {name}"
 CHANGELOG_LOBBY_CHARACTERS,"Výběr postavy v lobby: každou postavu může mít jen jeden hráč; hra si pamatuje tvou oblíbenou."
+CHANGELOG_ONE_WEAPON,"Každá postava má jen jednu zbraň (přepínání zbraní zrušeno): Architekt dvouhlavňová brokovnice, Balvan útočná puška, Jiskra samopal, Krügermann lehký kulomet, Stín odstřelovačka, Vichr bojová puška."

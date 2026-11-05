@@ -26,7 +26,7 @@ func test_spread_stays_within_limits() -> void:
 
 
 func test_pistol_is_loaded_for_default_character() -> void:
-	check_eq(ContentDB.default_character().weapons[1].id, &"pistol", "default character has the pistol as second weapon")
+	check_eq(ContentDB.default_character().weapon.id, &"smg", "default character has her SMG")
 	check(ContentDB.get_weapon(&"pistol") != null, "weapon lookup by id")
 
 

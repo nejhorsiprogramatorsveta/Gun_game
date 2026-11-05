@@ -1,20 +1,19 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Dnešní práce (2026-11-04) je hotová.** Poslední rozhodnutí uživatele: odstranit dvě zbraně, každá postava bude mít jen jednu (zatím jen zapsáno, kód beze změny – viz Další krok).
-**M5 – krok M5.3 hotový (verze `0.1.11`): výběr postavy v lobby, každá postava jen jednou.** Zbývá M5.4. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
-- Lobby: karty 6 postav (jméno, 2 zbraně, schopnost; popis v tooltipu), obsazené zašedlé „obsazeno: jméno“, vlastní zvýrazněná; v seznamu hráčů „jméno – postava“. Host ověřuje vše (`CharacterChoice`), klient jen žádá. Nový hráč dostane první volnou postavu, pak si zažádá o oblíbenou z menu (`Settings.practice_character`, výběr v lobby ji také uloží). Odchod hráče postavu uvolní.
-- Zápas používá zvolené postavy; dočasné `ContentDB.character_for_slot` odstraněno. Protokol 10.
-- **Krügermann:** plyn je dlouhý vodorovný pás 360 × 90 px před postavou (na stranu kurzoru, zastaví se o zeď). Obličej podle dodané fotografie Claude odmítl udělat (PLAN.md G.0a); postava zůstává vlastní návrh, grafika zatím žádná postava nemá.
+**M5: jedna zbraň na postavu hotová (verze `0.1.12`).** Zbývá M5.4. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+- Volba uživatele (2026-11-05): Architekt – dvouhlavňová brokovnice, Balvan – útočná puška, Jiskra – samopal, Krügermann – lehký kulomet, Stín – odstřelovačka, Vichr – bojová puška. `CharacterData.weapon` místo pole.
+- Přepínání odstraněno: akce Q/1/2/kolečko, bit vstupu, příznak ve snapshotu (protokol 11), `weapon_slot`, blokace po přepnutí; HUD ukazuje jen zbraň; nápověda a karty v lobby upravené; popisy postav v CSV.
+- Nepoužité zbraně (pistole, brokovnice, nýtovačka, revolver, kompaktní samopal, karabina) zůstávají v `data/weapons/` – **zeptat se uživatele, zda je smazat**.
 - `session.gd` má 312 řádků (limit ~300) – rozdělit při další změně Session.
-- **Pozor před dalším herním commitem:** verze `0.1.12` + archivace changelogu (build z `version.json`).
+- **Pozor před dalším herním commitem:** verze `0.1.13` + archivace changelogu (build z `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**M5 – přechod na JEDNU zbraň na postavu** (rozhodnutí uživatele 2026-11-04, PLAN.md G.0a „ZMĚNA“). Dnešní práce skončila; začít až v nové session.
-- Nejdřív se uživatele zeptat, kterou zbraň si každá postava ponechá (dnes: Architekt nýtovačka/dvouhlavňová brokovnice, Balvan brokovnice/útočná puška, Jiskra samopal/pistole, Krügermann lehký kulomet/revolver, Stín odstřelovačka/kompaktní samopal, Vichr bojová puška/karabina) a zda nepoužité zbraně smazat, nebo nechat pro budoucnost.
-- Pak odstranit přepínání: akce `weapon_switch`/`weapon_1`/`weapon_2` v `project.godot`, `InputFrame.WEAPON_2`, `Player.weapon_slot`/`wanted_weapon_slot`/`handle_weapon_input`, `WeaponSystem._switch_weapon` a `CombatRules.WEAPON_SWITCH_SECONDS`, `NetCodec.FLAG_WEAPON_2` (protokol +1), přepínání v `match_controller._unhandled_input`, text přepnutí v HUD (`HUD_WEAPON`), nápovědu `PRACTICE_HINT`, karty v lobby (jedna zbraň), `CharacterData.weapons` → jedna zbraň (nebo pole s 1 prvkem – rozhodnout podle jednoduchosti), testy (`test_weapons`, `test_net_codec`, `test_combat_rules`), dokumentaci (PLAN G.0a, ARCHITECTURE, CLAUDE.md) a changelog. Verze `0.1.12`.
-- Potom M5.4 (`docs/EDITING_GUIDE.md` a ladění) – viz PLAN.md G.0a.
+**M5.4 – `docs/EDITING_GUIDE.md` (česky) a ladění** (PLAN.md H.5, G.0a).
+- Návod: přidat/upravit postavu (`data/characters/*.tres` – `weapon`, `ability`, pohyb, váha – + CSV), zbraň (`data/weapons/*.tres`, limity knockbacku a minimum zpětného rázu hlídané testy), schopnost (`data/abilities/*.tres`, nový druh = podtřída `AbilityData`), text (CSV, uvozovky u čárek), pravidlo stejné verze a zvýšení verze/changelogu při vydání.
+- Ověřit akceptaci M5: nová postava jen přes `.tres` + CSV (dočasná testovací postava v testu, objeví se v lobby/menu).
+- Zeptat se na smazání nepoužitých zbraní; pak s uživatelem „budoucí práce – chování zbraní“ (PLAN.md G.0a) nebo M6.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -60,6 +59,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, jedna zbraň na postavu, verze 0.1.12 (Claude):** `CharacterData.weapon`, 6 postav upraveno, odstraněno přepínání (`project.godot`, `InputFrame`, `Player`, `WeaponSystem`, `CombatRules`, `NetCodec`, `MatchController`), HUD/lobby/CSV, testy.
 - **2026-11-04 večer, rozhodnutí uživatele (jen dokumentace):** každá postava bude mít jen jednu zbraň, přepínání zbraní se odstraní; zapsáno do PLAN.md G.0a a „Další krok“.
 - **2026-11-04, M5.3 výběr postavy v lobby + plyn jako pás, verze 0.1.11 (Claude):** `src/net/character_choice.gd`, postava v `Session.players`, `LobbyValidator` kontroluje postavy, karty v `lobby.gd`, `MatchController` bere zvolenou postavu, odstraněno `character_for_slot`, `SlowCloud` jako obdélníkový pás, `SlowCloudAbility` (délka/výška/mezera).
 - **2026-11-04, výběr postavy pro trénink, verze 0.1.10 (Claude):** `PracticeRow` + `CharacterOption` v `main_menu.tscn`, `Settings.practice_character`, `ContentDB.practice_character()`, test; zapsána budoucí práce na zbraních (PLAN.md G.0a).
@@ -218,6 +218,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, jedna zbraň (0.1.12):** 102/102 unit testů (každá postava má zvolenou zbraň), lokalizace OK. Trénink: všech 6 postav střílí svou zbraní (brokovnice 8 broků, odstřelovačka 1 rána / 0,5 s), HUD „zbraň | schopnost“. Síťový zápas se 3 hráči bez chyb. **Neověřeno:** ruční hraní, Windows.
 - **2026-11-04, M5.3 (0.1.11):** 104/104 unit testů (validace postav v lobby: chybějící, neznámá, duplicitní; první volná/oblíbená postava; plyn jako pás), lokalizace OK. Síťový test se 3 procesy: A získá Stína, B o Stína nepřijde (odmítnuto) a dostane Vichra, všichni tři v zápase vidí stejné postavy; ~2300 opakovaných žádostí (chyba testovacího skriptu) → host jen 6 změn díky limitu. Screenshoty lobby (karty, obsazeno) a plynu. **Neověřeno:** ruční klikání na karty, Windows.
 - **2026-11-04, výběr postavy pro trénink (0.1.10):** 103/103 unit testů, lokalizace OK; v menu 6 postav, výběr Stína → v tréninku Stín, volba uložena; screenshot menu. **Neověřeno:** ruční klikání v rozbalovacím seznamu.
 - **2026-11-04, M5.2c (0.1.9):** 102/102 unit testů (zpomalení běhu/skoku v motoru, oblak: majitel imunní, mimo oblak nic, bez zdvojení, pozice hostitele; minimum zpětného rázu), lokalizace OK. Online host + klient (lag 100 ms / 5 %): Architekt postaví plošinu ve vzduchu a 3 s na ní stojí u hosta i klienta, korekce max. 24 px; oblak Krügermanna u obou právě jednou. Trénink: měření rázu (samopal dřív 0,7 px / 0,5 s), screenshot oblaku a plošiny. **Neověřeno:** zpomalení soupeře v online hře ručně, ruční hraní, Windows.

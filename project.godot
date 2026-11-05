@@ -6,7 +6,7 @@ config_version=5
 [application]
 
 config/name="gun_game"
-config/version="0.1.11"
+config/version="0.1.12"
 run/main_scene="res://src/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -52,18 +52,6 @@ fire={
 ability={
 "deadzone": 0.2,
 "events": [Object(InputEventMouseButton,"button_index":2), Object(InputEventKey,"physical_keycode":69)]
-}
-weapon_switch={
-"deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":81), Object(InputEventMouseButton,"button_index":4), Object(InputEventMouseButton,"button_index":5)]
-}
-weapon_1={
-"deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":49)]
-}
-weapon_2={
-"deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":50)]
 }
 
 [internationalization]

@@ -98,8 +98,7 @@ func _refresh_character_cards() -> void:
 		var mine := str(Session.players.get(my_id, {}).get("character", "")) == id
 		button.set_pressed_no_signal(mine)
 		button.disabled = not owner_name.is_empty()
-		var lines: PackedStringArray = [tr(character.name_key), " + ".join(character.weapons.map(
-				func(weapon: WeaponData) -> String: return tr(weapon.name_key)))]
+		var lines: PackedStringArray = [tr(character.name_key), tr(character.weapon.name_key) if character.weapon else ""]
 		lines.append(tr(character.ability.name_key) if character.ability else "")
 		if not owner_name.is_empty():
 			lines[2] = tr("LOBBY_CHARACTER_TAKEN").format({"name": owner_name})

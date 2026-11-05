@@ -26,10 +26,6 @@ var aim := 0
 var last_input_seq := 0
 ## Authority: seconds until the current weapon may fire again.
 var fire_cooldown := 0.0
-## Index into character.weapons; decided by the authority, sent in snapshots.
-var weapon_slot := 0
-## Local player only: the weapon chosen with Q / 1 / 2 / wheel, sent in every input.
-var wanted_weapon_slot := 0
 ## Ability runtime state (authority decides; clients receive it in snapshots).
 var ability_cooldown := 0.0
 var ability_time_left := 0.0
@@ -80,9 +76,7 @@ func simulate(input: InputFrame, delta: float) -> void:
 
 
 func current_weapon() -> WeaponData:
-	if character == null or character.weapons.is_empty():
-		return null
-	return character.weapons[clampi(weapon_slot, 0, character.weapons.size() - 1)]
+	return character.weapon if character else null
 
 
 ## Cooldowns and activation on press (not while held); shared by host and prediction.
@@ -111,25 +105,12 @@ func can_fire() -> bool:
 	return not (ability_active() and character and character.ability and not character.ability.allows_firing())
 
 
-## Local player: Q / wheel toggles, 1 / 2 select directly.
-func handle_weapon_input(event: InputEvent) -> bool:
-	if event.is_action_pressed("weapon_switch"):
-		wanted_weapon_slot = 1 - wanted_weapon_slot
-	elif event.is_action_pressed("weapon_1"):
-		wanted_weapon_slot = 0
-	elif event.is_action_pressed("weapon_2"):
-		wanted_weapon_slot = 1
-	else:
-		return false
-	return true
-
-
 func snapshot_state() -> Dictionary:
 	return {"slot": slot, "position": position, "velocity": velocity, "facing": facing,
 			"active": visible, "invulnerable": invulnerable, "aim": aim, "last_seq": last_input_seq, "lives": lives,
 			"on_floor": motor_state.on_floor, "prev_buttons": motor_state.prev_buttons,
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
-			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths, "weapon_slot": weapon_slot,
+			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths,
 			"ability_cooldown": ability_cooldown, "ability_active": ability_active(),
 			"dash_time_left": motor_state.dash_time_left, "dash_direction": motor_state.dash_direction}
 
@@ -181,7 +162,6 @@ func _apply_state(state: Dictionary) -> void:
 	lives = state.lives
 	kills = state.get("kills", 0)
 	deaths = state.get("deaths", 0)
-	weapon_slot = state.get("weapon_slot", 0)
 	ability_cooldown = state.get("ability_cooldown", 0.0)
 	# Clients only need "active or not" for drawing; the exact time stays on the host.
 	ability_time_left = 1.0 if state.get("ability_active", false) else 0.0
