@@ -48,6 +48,18 @@
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
+**Rozhodnutí uživatele, které opravy z analýzy logů 2026-11-05 udělat (viz „Analýza prvního ostrého hraní“ níže).** Navržené pořadí: 1) vypnout ENet throttle, 2) delší/adaptivní interpolace vzdálených hráčů, 3) predikce vlastního zpětného rázu, 4) adaptivní fronta vstupů na hostu, 5) opravy diagnostiky (mem, milisekundy), 6) tlačítko logů zpět do menu/lobby.
+
+### Analýza prvního ostrého hraní (0.2.8, 2026-11-05, host Mac na Wi-Fi, 1 klient Windows notebook na Wi-Fi, Tailscale)
+- **Počítače nejsou úzké hrdlo:** host 120 FPS, klient 60 FPS (vsync), 0 záseků, žádné chyby v logu.
+- **Linka:** ENet RTT v zápase 55–65 ms (rozptyl 10–40 ms), ztráta 0,5–2 %; v lobby (málo provozu) 130–470 ms a ztráta až 3 % u obou stran současně → typicky úsporný režim Wi-Fi (rádio usíná při nízkém provozu). Připojení přes Tailscale trvalo 1,6 s.
+- **Nárazové doručování v obou směrech:** klient má 4–9× za 5 s mezeru mezi snapshoty 117–168 ms (normálně 33 ms) při 0 ztracených → pakety chodí ve shlucích po ~100 ms (odpovídá Wi-Fi power save, beacon ~102 ms). Host: vstupy klienta také ve shlucích (fronta 5, starved 5–42 a skipped 5–32 za 5 s).
+- **Důsledky:** vzdálený hráč u klienta zamrzá (`interp_holds`, mezery > interpolační zpoždění 100 ms); ping vstupu ~150 ms při RTT ~60 ms (host drží ve frontě ~4 vstupy); korekce vlastní postavy 1–24× za 5 s, typicky 50–130 px (nepredikovaný zpětný ráz – klient hrál Architekta s rázem 550 – a hladovění/přeskakování vstupů na hostu), jednou 334 px (pád).
+- **ENet throttle (potvrzeno v obou logech, 17:04:23–29):** host snížil throttle na 18–20/32, odesílání 3,1 → 1,3 kB/s, klient dostal jen 62 ze 150 snapshotů a dvě mezery 334 a 416 ms. Oprava: `ENetPacketPeer.throttle_configure(..., deceleration 0)` v konektoru.
+- **Chyby diagnostiky:** `mem=0MB` v release (použít `OS.get_static_memory_usage()`), milisekundy ve značce času berou `ticks_msec`, ne systémový čas.
+- **Doporučení hráčům (bez kódu):** notebook do zásuvky a režim napájení „Nejlepší výkon“, ve Správci zařízení u Wi-Fi adaptéru úspora energie vypnutá / „Maximální výkon“, ideálně kabel; `tailscale ping <host>` ukáže, zda jde spojení napřímo nebo přes DERP relay.
+
+Dříve zapsané:
 **Testovací hraní 0.2.8 s kamarády (kamarád hostuje) podle `docs/PLAYTEST.md`**, potom od všech vyžádat `last_game.log` a vyhodnotit (připojení, Tailscale, ztráty, mezery snapshotů, záseky, přebíjení). Opravy až po vyhodnocení a pokynu uživatele.
 Dříve zapsané:
 **Testovací hraní s kamarádem jako hostitelem podle `docs/PLAYTEST.md`**, potom od všech hráčů vyžádat `godot.log` a vyhodnotit `[conn]`/`[net]` řádky (připojení, ztráty, mezery snapshotů, záseky). Opravy sítě až po vyhodnocení a pokynu uživatele.
