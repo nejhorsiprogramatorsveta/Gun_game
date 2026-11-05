@@ -156,3 +156,4 @@ LOBBY_CHOOSE_CHARACTER,"Vyber si postavu (každá jen jednou):"
 LOBBY_CHARACTER_TAKEN,"obsazeno: {name}"
 CHANGELOG_LOBBY_CHARACTERS,"Výběr postavy v lobby: každou postavu může mít jen jeden hráč; hra si pamatuje tvou oblíbenou."
 CHANGELOG_ONE_WEAPON,"Každá postava má jen jednu zbraň (přepínání zbraní zrušeno): Architekt dvouhlavňová brokovnice, Balvan útočná puška, Jiskra samopal, Krügermann lehký kulomet, Stín odstřelovačka, Vichr bojová puška."
+CHANGELOG_GAS_LONGER,Zpomalovací plyn Krügermanna je o polovinu delší (540 px).

@@ -48,7 +48,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.12, next 0.1.13).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.13, next 0.1.14).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
@@ -89,6 +89,7 @@ The fixed dev tag's automatic source archives remain historical; release notes l
 User report (2026-11-04): severe stutter on the same Wi-Fi for clients while the host remains smooth.
 Root cause is unmeasured. PLAN.md M4.1 records investigation and later fixes; do not change networking,
 movement prediction or interpolation to address it in the current combat/scoreboard task.
+Data editing guide for non-programmers: docs/EDITING_GUIDE.md (keep it in sync when data fields change).
 Commit *.gd.uid and *.import files; *.translation, .godot/, build/, build_info.json are generated (gitignored).
 
 ## Design decisions that override the original brief (details: docs/PLAN.md)

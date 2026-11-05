@@ -5,7 +5,7 @@ extends AbilityData
 ## inside (run and jump) and fades after `lifetime` seconds.
 
 ## Strip size (px) and the gap between Krügermann and the strip's near end.
-@export var length: float = 360.0
+@export var length: float = 540.0
 @export var height: float = 90.0
 @export var gap: float = 30.0
 @export var lifetime: float = 3.0
