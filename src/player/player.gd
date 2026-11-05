@@ -6,6 +6,8 @@ extends CharacterBody2D
 
 const BODY_SIZE := Vector2(36, 56)
 const GUN_LENGTH := 30.0
+## How long the shooting animation plays after a shot.
+const FIRING_VISUAL_MS := 150
 ## Placeholder colors so players can be told apart before characters have sprites.
 const SLOT_COLORS: Array[Color] = [Color(1, 0.72, 0.2), Color(0.35, 0.75, 1), Color(0.55, 0.9, 0.4), Color(1, 0.45, 0.6)]
 
@@ -43,6 +45,10 @@ var visual_offset := Vector2.ZERO
 ## Only for remote players on clients.
 var _interpolator: RemoteInterpolator
 var _name_label: Label
+## Pixel-art sprites (null = placeholder rectangle, e.g. in unit tests).
+var _visual: PlayerVisual
+## Last shot (msec): the authority sets it, clients get it via the snapshot "firing" flag.
+var last_fire_ms := -100000
 
 
 func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_name: String) -> void:
@@ -57,9 +63,14 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 	name_label.add_theme_font_size_override("font_size", 26)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.size = Vector2(240, 36)
-	name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 42)
+	name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 54)
+	name_label.add_theme_color_override("font_color", SLOT_COLORS[slot % SLOT_COLORS.size()].lightened(0.3))
 	add_child(name_label)
 	_name_label = name_label
+	if character and character.sprite_sheet:
+		_visual = PlayerVisual.new()
+		_visual.setup(character)
+		add_child(_visual)
 
 
 ## One shared movement tick, also used during client prediction and replay.
@@ -111,7 +122,7 @@ func snapshot_state() -> Dictionary:
 			"on_floor": motor_state.on_floor, "prev_buttons": motor_state.prev_buttons,
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
 			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths,
-			"ability_cooldown": ability_cooldown, "ability_active": ability_active(),
+			"ability_cooldown": ability_cooldown, "ability_active": ability_active(), "firing": is_firing(),
 			"dash_time_left": motor_state.dash_time_left, "dash_direction": motor_state.dash_direction}
 
 
@@ -147,15 +158,35 @@ func _process(delta: float) -> void:
 			visual_offset = Vector2.ZERO
 		queue_redraw()
 	if _name_label:
-		_name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 42) + visual_offset
+		_name_label.position = Vector2(-120, -BODY_SIZE.y / 2.0 - 54) + visual_offset
+	if _visual:
+		_visual.position = visual_offset
+		_visual.update_look(facing, InputFrame.aim_to_vector(aim), motor_state.on_floor, velocity, is_firing())
 	var blink_off := invulnerable and (Time.get_ticks_msec() / 100) % 2 == 0
 	modulate.a = 0.35 if blink_off else 1.0
+
+
+## True right after a shot (drives the shooting animation). The own player on a client
+## shows it from the local fire button, so it reacts without waiting for the host.
+func is_firing() -> bool:
+	if Time.get_ticks_msec() - last_fire_ms < FIRING_VISUAL_MS:
+		return true
+	return _is_local_client() and Input.is_action_pressed("fire") and can_fire() and visible
+
+
+func _is_local_client() -> bool:
+	return is_inside_tree() and multiplayer.has_multiplayer_peer() and not multiplayer.is_server() \
+			and peer_id == multiplayer.get_unique_id()
 
 
 func _apply_state(state: Dictionary) -> void:
 	if state.is_empty():
 		return
 	position = state.position
+	velocity = state.velocity
+	motor_state.on_floor = state.get("on_floor", motor_state.on_floor)
+	if state.get("firing", false):
+		last_fire_ms = Time.get_ticks_msec()
 	set_active(state.active)
 	facing = state.facing
 	aim = state.aim
@@ -191,9 +222,10 @@ func set_active(active: bool) -> void:
 
 func _draw() -> void:
 	draw_set_transform(visual_offset)
-	draw_rect(Rect2(-BODY_SIZE / 2.0, BODY_SIZE), SLOT_COLORS[slot % SLOT_COLORS.size()])
-	var eye := Vector2(8.0 * facing, -BODY_SIZE.y / 4.0)
-	draw_rect(Rect2(eye - Vector2(4, 4), Vector2(8, 8)), Color(0.1, 0.1, 0.12))
-	draw_line(Vector2.ZERO, InputFrame.aim_to_vector(aim) * GUN_LENGTH, Color(0.15, 0.15, 0.18), 6.0)
+	if _visual == null:  # placeholder look without a sprite sheet
+		draw_rect(Rect2(-BODY_SIZE / 2.0, BODY_SIZE), SLOT_COLORS[slot % SLOT_COLORS.size()])
+		var eye := Vector2(8.0 * facing, -BODY_SIZE.y / 4.0)
+		draw_rect(Rect2(eye - Vector2(4, 4), Vector2(8, 8)), Color(0.1, 0.1, 0.12))
+		draw_line(Vector2.ZERO, InputFrame.aim_to_vector(aim) * GUN_LENGTH, Color(0.15, 0.15, 0.18), 6.0)
 	if ability_active():
 		draw_arc(Vector2.ZERO, BODY_SIZE.y * 0.75, 0.0, TAU, 32, Color(0.6, 0.85, 1.0, 0.8), 3.0)

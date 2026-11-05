@@ -7,6 +7,8 @@ extends Resource
 @export var name_key: String
 @export var description_key: String
 @export var color: Color = Color.WHITE
+## Pixel-art sheet from tools/art/generate_sprites.py (10 frames of 32x40: idle, walk, jump, fall, shoot).
+@export var sprite_sheet: Texture2D
 
 @export_group("Movement")
 ## Max running speed (px/s).

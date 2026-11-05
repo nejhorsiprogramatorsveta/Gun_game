@@ -377,7 +377,8 @@ tools/
   - projektové nastavení `default_texture_filter = Nearest`, přichytávání 2D transformací a vrcholů k pixelům
   - celočíselné škálování okna (`window/stretch/scale_mode = integer`) a nízké základní rozlišení (např. 640×360, nebo aréna kreslená ve 2× pixelech)
   - `AnimatedSprite2D` se `SpriteFrames` (idle, běh, skok, pád, výstřel); zbraň jako samostatný sprite otáčený podle míření
-- **Zdroj grafiky není vyřešený** (otevřená otázka): vlastní kreslení (Aseprite, LibreSprite), objednávka u pixel artisty, nebo assety s licencí CC0 / CC BY. Do té doby zůstávají barevné placeholdery. Každý asset se zapíše do `CREDITS.md`.
+- **ROZHODNUTÍ 2026-11-05 (uživatel: „přidáme konečně pixel art“): postavy a zbraně kreslí generátor `tools/art/generate_sprites.py`** (vlastní pixel art pixel po pixelu: obrysy, stínování; snímky 32 × 40 px, ve hře ×2). Animace: klid (2), chůze (4), skok, pád, střelba (2) + zbraň otočená za kurzorem se zábleskem. Návrhy: Jiskra – róninka s maskou kitsune a katanou; Balvan – samuraj ve zbroji s kabutem; Vichr – ninja s šálou a kusarigamou; Stín – ninja s velkým šurikenem; Krügermann – potrhlý vynálezce (plášť, brýle, tlaková láhev; NE podle dodané fotky v nacistické uniformě); Architekt – stavitel se slaměným kloboukem a kladivem (NE podle dodané fotky skutečného člověka). Další krok grafiky: arény (dlaždice plošin, pozadí s paralaxou), animace zásahu a schopnosti.
+- **Zdroj grafiky (původně otevřená otázka):** vlastní kreslení (Aseprite, LibreSprite), objednávka u pixel artisty, nebo assety s licencí CC0 / CC BY. Do té doby zůstávají barevné placeholdery. Každý asset se zapíše do `CREDITS.md`.
 - **Návrh mapování na postavy (G.3):**
   - samuraj ↔ Balvan (štít)
   - róninka s kitsune maskou ↔ Jiskra (úskok)

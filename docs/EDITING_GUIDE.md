@@ -51,6 +51,14 @@ V jednom zápase může mít každou postavu jen jeden hráč a hrají max. 4 hr
 | `weapon` | jediná zbraň postavy |
 | `ability` | speciální schopnost (E / pravé tlačítko myši) |
 | `color` | zatím nepoužito (barvu určuje pořadí hráče) |
+| `sprite_sheet` | pixel art postavy `assets/sprites/characters/<id>.png` (10 snímků 32 × 40 px: klid 2, chůze 4, skok, pád, střelba 2) |
+
+## Grafika (pixel art)
+
+Postavy a zbraně kreslí skript `tools/art/generate_sprites.py` (potřebuje Python a Pillow). Barvy a tvary
+postav jsou v něm (`CHARACTERS`, `WEAPONS`). Po úpravě spusť `python3 tools/art/generate_sprites.py`, pak
+import Godotu a PNG soubory commitni. Novou postavu do skriptu přidej se stejným id jako v `data/characters/`.
+Hotový obrázek z jiného programu (např. Aseprite) jde použít taky – stačí dodržet rozměry snímků.
 
 ## Zbraně – `data/weapons/*.tres`
 
@@ -64,6 +72,7 @@ V jednom zápase může mít každou postavu jen jeden hráč a hrají max. 4 hr
 | `knockback` | odhoz jednoho zásahu (dělí se váhou zasaženého) |
 | `recoil` | zpětný ráz střelce při každém výstřelu |
 | `pellets` | počet broků na výstřel (brokovnice > 1, každý brok má vlastní rozptyl a odhoz) |
+| `sprite` | pixel art zbraně `assets/sprites/weapons/<id>.png` (2 snímky 34 × 12 px: normální, záblesk; úchop v bodě 4,6) |
 
 **Limity hlídané testem `tests/test_weapons.gd`** (pokyn: odhoz nesmí být příliš vysoký, vše arkádové):
 - odhoz jednoho výstřelu (`knockback × pellets`) max. **1400**,

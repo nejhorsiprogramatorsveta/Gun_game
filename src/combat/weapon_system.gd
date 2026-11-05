@@ -26,6 +26,7 @@ func try_fire(player: Player, input: InputFrame, delta: float) -> void:
 	if weapon == null or not input.is_held(InputFrame.FIRE) or player.fire_cooldown > 0.0 or not player.can_fire():
 		return
 	player.fire_cooldown = CombatRules.fire_interval(weapon)
+	player.last_fire_ms = Time.get_ticks_msec()
 	var aim_direction := InputFrame.aim_to_vector(input.aim)
 	var origin := player.global_position + aim_direction * Player.GUN_LENGTH
 	player.velocity += CombatRules.recoil(aim_direction, weapon)

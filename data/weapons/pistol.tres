@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/weapons/pistol.png" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -12,3 +13,4 @@ max_range = 1400.0
 spread_degrees = 1.5
 knockback = 800.0
 recoil = 120.0
+sprite = ExtResource("2")

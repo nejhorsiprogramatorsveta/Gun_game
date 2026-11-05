@@ -21,6 +21,8 @@ const FLAG_FACING_RIGHT := 1
 const FLAG_ACTIVE := 2
 const FLAG_INVULNERABLE := 4
 const FLAG_ON_FLOOR := 8
+## The player shot within Player.FIRING_VISUAL_MS (shooting animation for everyone).
+const FLAG_FIRING := 16
 const FLAG_ABILITY_ACTIVE := 32
 const FLAG_DASH_LEFT := 64
 
@@ -69,6 +71,7 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		var flags := (FLAG_FACING_RIGHT if state.facing > 0 else 0) | (FLAG_ACTIVE if state.active else 0) \
 				| (FLAG_INVULNERABLE if state.invulnerable else 0) | (FLAG_ON_FLOOR if state.get("on_floor", false) else 0) \
 				| (FLAG_ABILITY_ACTIVE if state.get("ability_active", false) else 0) \
+				| (FLAG_FIRING if state.get("firing", false) else 0) \
 				| (FLAG_DASH_LEFT if state.get("dash_direction", 1) < 0 else 0)
 		data.encode_u8(offset, state.slot)
 		data.encode_float(offset + 1, position.x)
@@ -134,6 +137,7 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"dash_time_left": dash_time_left,
 			"dash_direction": -1 if flags & FLAG_DASH_LEFT else 1,
 			"ability_active": flags & FLAG_ABILITY_ACTIVE != 0,
+			"firing": flags & FLAG_FIRING != 0,
 		})
 	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "states": states}
 

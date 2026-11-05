@@ -31,7 +31,7 @@ func test_snapshot_roundtrip() -> void:
 	var states: Array[Dictionary] = [
 		{"slot": 0, "position": Vector2(400.5, -20.25), "velocity": Vector2(120, -820), "facing": -1, "active": true, "invulnerable": true, "aim": 32768, "last_seq": 65535, "lives": 5,
 				"on_floor": true, "prev_buttons": InputFrame.JUMP | InputFrame.DOWN, "jumps_left": 2, "jump_buffer_timer": 0.125, "drop_timer": 0.25,
-				"kills": 7, "deaths": 3, "ability_cooldown": 3.21, "ability_active": true, "dash_time_left": 0.05, "dash_direction": -1},
+				"kills": 7, "deaths": 3, "ability_cooldown": 3.21, "ability_active": true, "firing": true, "dash_time_left": 0.05, "dash_direction": -1},
 		{"slot": 3, "position": Vector2(1, 2), "velocity": Vector2(99999, 0), "facing": 1, "active": false, "invulnerable": false, "aim": 0, "last_seq": 7, "lives": 0},
 	]
 	var data := NetCodec.encode_snapshot(1234, 3, states)
@@ -49,6 +49,7 @@ func test_snapshot_roundtrip() -> void:
 			[true, InputFrame.JUMP | InputFrame.DOWN, 2, 0.125, 0.25], "movement memory survives encoding")
 	check_eq([b.on_floor, b.prev_buttons, b.jumps_left, b.jump_buffer_timer, b.drop_timer],
 			[false, 0, 0, 0.0, 0.0], "missing movement memory has neutral defaults")
+	check_eq([a.firing, b.firing], [true, false], "shooting animation flag")
 	check_eq([a.ability_cooldown, a.ability_active, b.ability_cooldown, b.ability_active], [193 / 60.0, true, 0.0, false],
 			"ability cooldown in ticks (rounded up) and active flag")
 	check_eq([is_equal_approx(a.dash_time_left, 0.05), a.dash_direction, b.dash_time_left, b.dash_direction], [true, -1, 0.0, 1],

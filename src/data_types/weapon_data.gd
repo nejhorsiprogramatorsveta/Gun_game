@@ -5,6 +5,8 @@ extends Resource
 
 @export var id: StringName
 @export var name_key: String
+## Pixel-art sheet (2 frames of 34x12: normal, muzzle flash), see tools/art/generate_sprites.py.
+@export var sprite: Texture2D
 
 ## Shots per second while the fire button is held.
 @export var shots_per_second: float = 3.0

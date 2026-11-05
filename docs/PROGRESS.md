@@ -1,19 +1,16 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M6 hotový a vydaný jako `v0.2.0`; hra se jmenuje „Dojo Knockout“** (pokyn uživatele 2026-11-05). Ruční test 4 lidí zatím neproběhl. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
-- Název: nadpis v menu (`GAME_TITLE` v CSV), titulek okna (`main_menu.gd`), název vydání na GitHubu (`GAME_TITLE` v `build.yml` → `publish_release.sh`, výchozí dál `GAME_NAME`), README. **Beze změny** (záměrně): `config/name="gun_game"` (složka s nastavením a logy), názvy souborů `gun_game-*.exe/zip` (URL aktualizací), repozitář.
-- M6.3 výsledky (0.1.15): 4 boti na 3 mapách bez chyb, bez pomalých snímků – viz PLAN.md M6.
+**Grafika – krok 1 hotový (verze `0.2.1`): pixel art všech 6 postav a zbraní s animacemi.** Hra „Dojo Knockout“ (v0.2.0 vydaná). M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+- Generátor `tools/art/generate_sprites.py` (vlastní pixel art, obrysy, stínování) → `assets/sprites/characters/*.png` (10 snímků 32×40: klid 2, chůze 4, skok, pád, střelba 2) a `assets/sprites/weapons/*.png` (12 zbraní, normální + záblesk). Ve hře ×2, filtr Nearest.
+- Návrhy (PLAN.md Q „ROZHODNUTÍ 2026-11-05“): Jiskra róninka s kitsune maskou a katanou, Balvan samuraj s kabutem, Vichr ninja s šálou a kusarigamou, Stín ninja se šurikenem, Krügermann vynálezce s brýlemi a tlakovou láhví, Architekt stavitel se slaměným kloboukem a kladivem. **Krügermanna a Architekta Claude záměrně neudělal podle dodaných fotografií** (nacistická uniforma; skutečný člověk).
+- `PlayerVisual`: animace podle stavu (na zemi, rychlost, střelba), zbraň za kurzorem se zábleskem a cuknutím, otočení postavy; jmenovka v barvě slotu. Vzdálení hráči: rychlost, `on_floor` a příznak střelby ze snapshotu (`FLAG_FIRING`, protokol 13); vlastní postava klienta ukazuje střelbu hned podle tlačítka.
 - `session.gd` má 317 řádků (limit ~300) – při další změně Session přesunout handshake do `src/net/session_auth.gd`.
-- **Pozor před dalším herním commitem:** verze `0.2.1` + archivace changelogu (build přes API `releases/latest` → asset `version.json`, AŽ po přečtení výstupu).
+- **Pozor před dalším herním commitem:** verze `0.2.2` + archivace changelogu (build přes API `releases/latest` → asset `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**Rozhodnutí uživatele, co dál.** Nabídnout:
-- ruční test 4 lidí (aspoň 2 přes Tailscale) + poslat logy `[net]` → M4.1 sekání a korekce při zásazích (odhoz se u klienta nepredikuje),
-- „budoucí práce – chování zbraní“ (PLAN.md G.0a): úbytek odhozu se vzdáleností, viditelný konec dostřelu, zásobník,
-- grafika – pixel art postav a map (PLAN.md Q; zdroj grafiky zatím nevyřešený),
-- údržba: rozdělit `session.gd`.
+**Grafika – krok 2: arény v pixel artu** (PLAN.md Q): dlaždice plošin (kámen/dřevo, jednosměrné plošiny jako trámy), pozadí s paralaxou (obloha, hory/chrámy), stejné rozměry kolizí; generovat stejným způsobem (rozšířit `tools/art/` o arény) a kreslit v `src/arenas/platform.gd`. Potom animace zásahu (odhoz) a efekt schopnosti; zeptat se uživatele na dojem z postav (barvy, velikost) – změny jsou jen úprava generátoru.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -59,6 +56,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, pixel art postav, verze 0.2.1 (Claude):** `tools/art/generate_sprites.py`, `assets/sprites/**`, `src/player/player_visual.gd`, `CharacterData.sprite_sheet`, `WeaponData.sprite`, `Player.last_fire_ms`/`is_firing()`, `FLAG_FIRING`, jmenovka v barvě slotu, CREDITS, EDITING_GUIDE (grafika), testy `test_player_visual`.
 - **2026-11-05, vydání v0.2.0 + název „Dojo Knockout“ (Claude):** `GAME_TITLE` v CSV a CI, titulek okna, `publish_release.sh` (`GAME_TITLE` s výchozím `GAME_NAME`), test titulku v `tests/test_release_workflow.py` (CI proměnnou v testech výslovně odstraňuje), README.
 - **2026-11-05, rozvržení menu/lobby + M6.3 test 4 hráčů, verze 0.1.15 (Claude):** `main_menu.tscn` (Trénink na celou šířku), `lobby.tscn`/`lobby.gd` (kompaktnější), výsledky testu 4 botů a profilace zapsány.
 - **2026-11-05, M6.1 + M6.2 mapy a výběr mapy, verze 0.1.14 (Claude):** `ArenaData`, `data/arenas/{rooftops,temple_steps,hanging_bridges}.tres`, 2 nové scény arén, `ContentDB` arény, `ArenaChoice`, `Session.arena_id` + `_begin_match(slots, arena)`, `Settings.practice_arena`, výběr v menu a lobby, lobby ve `ScrollContainer`, `tests/test_arenas.gd`, oprava changelogu 0.1.12 → 43, EDITING_GUIDE o mapách.
@@ -222,6 +220,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, pixel art (0.2.1):** 107/107 unit testů (výběr animace, zrcadlení zbraně, stav vzdáleného hráče ze snapshotu, sprite u každé postavy/zbraně, příznak střelby v kodeku), lokalizace OK. Trénink: screenshoty chůze/skoku/střelby (Balvan). Online host + klient: klient vidí u sebe a host u klienta všech 5 animací. **Neověřeno:** ruční dojem z grafiky, Windows, třetí hráč (animace ze snapshotu jen unit testem).
 - **2026-11-05, v0.2.0:** 104/104 unit testů, lokalizace OK, 10/10 testů vydávání (nový: titulek z `GAME_TITLE`, názvy souborů dál `gun_game-*`). **Neověřeno:** ruční hra 4 lidí, internet, Windows.
 - **2026-11-05, rozvržení + M6.3 (0.1.15):** 104/104 unit testů, lokalizace OK; screenshot menu a lobby hostitele (bez posuvníku, 1280 × 775); test 4 botů na 3 mapách (výsledky viz „Kde jsme skončili“). **Neověřeno:** ruční hra 4 lidí, internet, Windows, slabší notebook.
 - **2026-11-05, M6.1 + M6.2 (0.1.14):** 104/104 unit testů (3 mapy, záložní mapa, ≥ 4 spawny s plošinou pod každým, nic mimo hranice), lokalizace OK. Trénink na obou nových mapách (postavy stojí na zemi, screenshoty). Síťový test se 3 procesy: host zvolí Visuté mosty → oba klienti vidí změnu v lobby a všichni hrají Visuté mosty. Screenshot lobby hostitele (po opravě posuvu). **Neověřeno:** ruční hraní nových map, 4 hráči, Windows.
