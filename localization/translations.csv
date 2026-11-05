@@ -247,3 +247,8 @@ CONTROLS_RELOAD,Přebíjení: samo po vystřílení zásobníku (1 s)
 CONTROLS_ESC,"Esc: odejít ze zápasu (hostitel ukončí zápas všem)"
 CONTROLS_F3,F3: zobrazí nebo skryje FPS a ping
 CONTROLS_REBIND_HINT,Klávesy změníš v Nastavení.
+CHANGELOG_SMOOTH_REMOTE,"Plynulejší pohyb ostatních hráčů: hra je přehrává podle času hostitele a sama si nastaví vyrovnávací zpoždění podle kvality spojení (na dobré síti kratší než dřív, na kolísavé Wi-Fi delší), takže při zpožděných paketech už postavy nezamrzají."
+CHANGELOG_NO_THROTTLE,"Opraveno: při výkyvu odezvy síťová knihovna sama zahazovala až polovinu aktualizací pro připojené hráče, takže se jim hra na několik sekund sekala."
+CHANGELOG_RECOIL_PREDICTION,"Vlastní postava při střelbě už neposkakuje: zpětný ráz, náboje i přebíjení se u připojeného hráče počítají hned, ne až po odpovědi hostitele."
+CHANGELOG_INPUT_BUFFER,"Hostitel si pro každého hráče nastaví zásobu vstupů podle kolísání jeho spojení, takže na Wi-Fi postava méně cuká."
+CHANGELOG_DIAG_029,"Diagnostika: přesné časy v logu, volná paměť počítače, vyrovnávací zpoždění a kolísání spojení pro každého hráče."

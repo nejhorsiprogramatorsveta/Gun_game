@@ -28,8 +28,11 @@ var facing := 1
 var aim := 0
 ## Newest input applied on the host; sent in snapshots for client prediction (M4).
 var last_input_seq := 0
-## Authority: seconds until the current weapon may fire again.
+## Seconds until the current weapon may fire again. Simulated by the host AND by the own
+## client's prediction (tick_weapon), so the shooter's recoil is predicted too.
 var fire_cooldown := 0.0
+## True on the tick a shot was fired (the host then spawns the projectiles).
+var fired_this_tick := false
 ## Rounds left in the magazine and seconds of reloading left (authority decides; clients
 ## get both via the snapshot). reload_started_ms only drives the reload animation.
 var ammo := 0
@@ -49,8 +52,9 @@ var out_of_bounds_time := 0.0
 ## Render correction only; collisions always use the corrected simulation position.
 var visual_offset := Vector2.ZERO
 
-## Only for remote players on clients.
+## Only for remote players on clients: host-time playback with an adaptive delay.
 var _interpolator: RemoteInterpolator
+var timeline: SnapshotTimeline
 var _name_label: Label
 ## Pixel-art sprites (null = placeholder rectangle, e.g. in unit tests).
 var _visual: PlayerVisual
@@ -95,6 +99,7 @@ func simulate(input: InputFrame, delta: float) -> void:
 	motor_state.speed_scale = slow.x
 	motor_state.jump_scale = slow.y
 	PlayerMotor.step(self, input, motor_state, character, delta)
+	fired_this_tick = tick_weapon(input, delta)
 	aim = input.aim
 	last_input_seq = input.seq
 	facing = motor_state.facing
@@ -103,6 +108,30 @@ func simulate(input: InputFrame, delta: float) -> void:
 
 func current_weapon() -> WeaponData:
 	return character.weapon if character else null
+
+
+## Shared by the host and the own client's prediction: cooldown, reload, ammo and the
+## shooter's recoil. Returns true when a shot is fired this tick.
+func tick_weapon(input: InputFrame, delta: float) -> bool:
+	fire_cooldown = _count_down(fire_cooldown, delta)
+	if tick_reload(delta):
+		return false
+	var weapon := current_weapon()
+	if weapon == null or not input.is_held(InputFrame.FIRE) or fire_cooldown > 0.0 or not can_fire():
+		return false
+	fire_cooldown = roundf(CombatRules.fire_interval(weapon) * NetCodec.WEAPON_TIMER_UNITS) / NetCodec.WEAPON_TIMER_UNITS
+	last_fire_ms = Time.get_ticks_msec()
+	velocity += CombatRules.recoil(InputFrame.aim_to_vector(input.aim), weapon)
+	use_round()
+	return true
+
+
+## Weapon timers are kept on the snapshot's grid (NetCodec.WEAPON_TIMER_UNITS), so the host
+## and the replaying client compare exactly the same numbers (0.1 s - 6 ticks is not 0 in
+## floating point and would otherwise fire a tick apart).
+static func _count_down(seconds: float, delta: float) -> float:
+	var left := roundf((seconds - delta) * NetCodec.WEAPON_TIMER_UNITS)
+	return left / NetCodec.WEAPON_TIMER_UNITS if left > 0.0 else 0.0
 
 
 ## Full magazine, no reload (spawn and every respawn).
@@ -120,7 +149,7 @@ func is_reloading() -> bool:
 func tick_reload(delta: float) -> bool:
 	if reload_time_left <= 0.0:
 		return false
-	reload_time_left = maxf(reload_time_left - delta, 0.0)
+	reload_time_left = _count_down(reload_time_left, delta)
 	if reload_time_left > 0.0:
 		return true
 	refill_magazine()
@@ -177,7 +206,8 @@ func snapshot_state() -> Dictionary:
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
 			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths,
 			"ability_cooldown": ability_cooldown, "ability_active": ability_active(), "firing": is_firing(),
-			"boost_time_left": motor_state.boost_time_left, "ammo": ammo, "reloading": is_reloading()}
+			"boost_time_left": motor_state.boost_time_left, "ammo": ammo, "reloading": is_reloading(),
+			"fire_cooldown": fire_cooldown, "reload_time_left": reload_time_left}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -192,19 +222,23 @@ func restore_state(state: Dictionary) -> void:
 	motor_state.jump_buffer_timer = state.jump_buffer_timer
 	motor_state.drop_timer = state.drop_timer
 	motor_state.boost_time_left = state.get("boost_time_left", 0.0)
+	# Exact weapon timers, so replayed shots (recoil) happen on the same ticks as on the host.
+	fire_cooldown = state.get("fire_cooldown", 0.0)
+	reload_time_left = state.get("reload_time_left", reload_time_left)
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, visible and motor_state.drop_timer <= 0.0)
 
 
-## Client only: queue a host snapshot for smooth display.
-func receive_state(state: Dictionary, time_ms: int) -> void:
+## Client only: queue a host snapshot (at its host time, see SnapshotTimeline) for display.
+func receive_state(state: Dictionary, host_time_ms: float) -> void:
 	if _interpolator == null:
-		_interpolator = RemoteInterpolator.new()
-	_interpolator.push(time_ms, state)
+		_interpolator = RemoteInterpolator.new(0 if timeline else RemoteInterpolator.INTERPOLATION_DELAY_MS)
+	_interpolator.push(host_time_ms, state)
 
 
 func _process(delta: float) -> void:
 	if _interpolator:
-		_apply_state(_interpolator.sample(Time.get_ticks_msec()))
+		var now := Time.get_ticks_msec()
+		_apply_state(_interpolator.sample(timeline.render_time(now) if timeline else float(now)))
 	if not visual_offset.is_zero_approx():
 		visual_offset *= exp(-20.0 * delta)
 		if visual_offset.length_squared() < 0.01:

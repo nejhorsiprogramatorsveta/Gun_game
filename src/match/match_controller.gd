@@ -45,6 +45,8 @@ var _inputs: Dictionary[int, InputBuffer] = {}
 var _input_seq := 0
 var _input_history: Array[InputFrame] = []
 var _prediction := ClientPrediction.new()
+## Client: remote players play back on the host's timeline with an adaptive delay.
+var _timeline := SnapshotTimeline.new()
 var _last_snapshot_tick := -1
 var _pending_snapshot: Dictionary = {}
 ## Client: from this time (msec) the own movement is predicted, see _apply_snapshot.
@@ -82,6 +84,7 @@ func _ready() -> void:
 		_net.kill_announced.connect(_on_kill_announced)
 		_net_log.peer_stats = func(peer_id: int) -> Dictionary: return EnetDirectConnector.peer_stats(multiplayer.multiplayer_peer, peer_id)
 		_net_log.traffic = func() -> Dictionary: return EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)
+		_net_log.client_extra = func() -> String: return "interp_delay=%dms jitter=%dms" % [_timeline.delay_ms, _timeline.clock.jitter_ms()]
 		EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)  # start counting with the match
 		if _net.lag.is_enabled():
 			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
@@ -105,6 +108,12 @@ func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 	var spawns := _arena.spawn_points()
 	player.reset_to(spawns[slot % spawns.size()])
 	_players[peer_id] = player
+	if _networked and not multiplayer.is_server() and peer_id != multiplayer.get_unique_id():
+		player.timeline = _timeline
+
+
+func _process(delta: float) -> void:
+	_timeline.update(delta)
 
 
 func _physics_process(delta: float) -> void:
@@ -167,7 +176,7 @@ func _simulate_tick(delta: float) -> void:
 		player.simulate(input, delta)
 		player.invulnerable_time = maxf(player.invulnerable_time - delta, 0.0)
 		player.invulnerable = player.invulnerable_time > 0.0
-		_weapons.try_fire(player, input, delta)
+		_weapons.spawn_shot(player, input)
 		_abilities.tick(player, _players.values())
 		if _arena.is_out_of_bounds(player.position):
 			player.out_of_bounds_time += delta
@@ -288,6 +297,7 @@ func _on_snapshot_received(snapshot: Dictionary) -> void:
 		return
 	_last_snapshot_tick = tick
 	_net_log.record_snapshot_arrival(Time.get_ticks_msec())
+	_timeline.observe(tick, Time.get_ticks_msec())
 	_pending_snapshot = snapshot
 
 
@@ -305,7 +315,7 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 					_net_log.record_correction(_prediction.reconcile(player, state))
 					_stats.record_ack(state.last_seq, now)
 				else:
-					player.receive_state(state, now)
+					player.receive_state(state, SnapshotTimeline.tick_ms(snapshot.tick))
 
 
 # --- Both ------------------------------------------------------------------------

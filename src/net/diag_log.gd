@@ -56,8 +56,7 @@ static var _ipv6 := RegEx.create_from_string("\\b[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{0
 
 ## "[12:34:56.789] [tag] text"
 static func line(tag: String, text: String) -> String:
-	var now := Time.get_datetime_dict_from_system()
-	return "[%02d:%02d:%02d.%03d] [%s] %s" % [now.hour, now.minute, now.second, Time.get_ticks_msec() % 1000, tag, text]
+	return DiagFileLogger.stamp("[%s] %s" % [tag, text])
 
 
 static func event(tag: String, text: String) -> void:

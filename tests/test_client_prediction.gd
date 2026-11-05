@@ -8,6 +8,7 @@ class TestPlayer extends Player:
 		tick_ability(input, delta)
 		velocity = PlayerMotor.compute_velocity(velocity, motor_state.on_floor, input, motor_state, character, delta)
 		position += velocity * delta
+		fired_this_tick = tick_weapon(input, delta)
 		aim = input.aim
 		facing = motor_state.facing
 		last_input_seq = input.seq
@@ -192,6 +193,40 @@ func test_snapshot_delivery_defers_replay_and_rejects_old_ticks() -> void:
 	check_eq(controller._last_snapshot_tick, 0, "late match packets ignored during scene transition")
 	session.phase = previous_phase
 	controller.free()
+
+
+func test_recoil_and_reload_are_predicted_without_correction() -> void:
+	for id: StringName in [&"krugermann", &"jiskra", &"stin", &"architekt"]:
+		_check_recoil_prediction(id)
+
+
+func _check_recoil_prediction(character_id: StringName) -> void:
+	var host := _player()
+	host.character = ContentDB.get_character(character_id)
+	host.refill_magazine()
+	var client := _player()
+	client.character = host.character
+	client.refill_magazine()
+	var prediction := ClientPrediction.new()
+	prediction.reconcile(client, host.snapshot_state())
+	var confirmed := {}
+	var aim := InputFrame.aim_from_vector(Vector2(1, -0.3))
+	var shots := 0
+	for seq in range(1, 260):  # hold fire long enough for several shots (and the sniper's reload)
+		var input := InputFrame.create(0, InputFrame.FIRE, aim, seq)
+		host.simulate(input, DT)
+		shots += 1 if host.fired_this_tick else 0
+		prediction.predict(client, input, DT, false)
+		if seq == 160:
+			confirmed = NetCodec.decode_snapshot(NetCodec.encode_snapshot(1, 0, [host.snapshot_state()] as Array[Dictionary])).states[0]
+	check(shots >= 2, "%s: the host fired (%d shots)" % [character_id, shots])
+	check(not host.velocity.is_zero_approx() or not host.position.is_zero_approx(), "recoil moved the shooter")
+	check(client.position.is_equal_approx(host.position), "%s: prediction applies the same recoil" % character_id)
+	check_eq(client.ammo, host.ammo, "%s: same rounds left" % character_id)
+	var correction := prediction.reconcile(client, confirmed)
+	check(correction < 1.0, "%s: replay from a mid-burst snapshot needs no visible correction (%.3f px)" % [character_id, correction])
+	host.free()
+	client.free()
 
 
 func test_jetpack_is_predicted_without_correction() -> void:

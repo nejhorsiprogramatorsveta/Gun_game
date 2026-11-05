@@ -26,6 +26,8 @@ var peer_stats := Callable()
 ## Callable() -> {"sent", "received", "sent_packets", "received_packets"} since the last call
 ## (EnetDirectConnector.take_traffic); empty in unit tests.
 var traffic := Callable()
+## Callable() -> String appended to client lines (interpolation delay and jitter).
+var client_extra := Callable()
 
 var _window_start_ms := -1
 var _fps_min := -1.0
@@ -108,6 +110,8 @@ func tick(now_ms: int, is_host: bool, fps: float, ping_ms: int, inputs: Dictiona
 			ping_ms, _ping_sum / maxi(_ping_samples, 1), _ping_max, _enet_text(1), _snapshots, _snapshots_dropped,
 			_snapshot_gap_max, GAP_MS, _snapshot_gaps, RemoteInterpolator.hold_frames, _correction_max, CORRECTION_PX,
 			_corrections, frame]
+		if client_extra.is_valid():
+			report += " " + str(client_extra.call())
 		RemoteInterpolator.hold_frames = 0
 	_reset(now_ms)
 	return DiagLog.line("net", report)
@@ -117,7 +121,8 @@ func _host_slot_text(peer_id: int, slot: int, buffer: Object) -> String:
 	var text := "slot%d %s queue_max=%d" % [slot, _enet_text(peer_id), _queue_max.get(slot, 0)]
 	if buffer.has_method("take_stats"):
 		var stats: Dictionary = buffer.take_stats()
-		text += " inputs=%d starved=%d stalls=%d skipped=%d" % [stats.received, stats.starved, stats.stalls, stats.skipped]
+		text += " inputs=%d starved=%d stalls=%d skipped=%d target=%d jitter=%dms" % [stats.received, stats.starved,
+				stats.stalls, stats.skipped, stats.get("target", 0), stats.get("jitter", 0)]
 	return text
 
 
@@ -132,9 +137,14 @@ func _traffic_text(window_ms: int) -> String:
 			data.received / 1024.0 / seconds, data.sent_packets / seconds, data.received_packets / seconds]
 
 
+## Game memory is only counted in debug builds; release builds report the computer's free memory.
 static func _performance_text() -> String:
-	return "mem=%dMB nodes=%d draws=%d" % [Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
-			Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
+	var memory := OS.get_static_memory_usage()
+	var text := "mem=%dMB " % (memory / 1048576) if memory > 0 else ""
+	var free: int = OS.get_memory_info().get("available", -1)
+	if free > 0:
+		text += "sys_free=%dMB " % (free / 1048576)
+	return text + "nodes=%d draws=%d" % [Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
 			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
 
 

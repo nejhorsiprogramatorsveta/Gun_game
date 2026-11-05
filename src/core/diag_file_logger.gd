@@ -75,9 +75,14 @@ func close() -> void:
 	_mutex.unlock()
 
 
+## "[hh:mm:ss.mmm] text" in local time; seconds and milliseconds come from one clock
+## reading (exact order within a log; across computers only as exact as their clocks).
 static func stamp(text: String) -> String:
-	var now := Time.get_time_dict_from_system()
-	return "[%02d:%02d:%02d.%03d] %s" % [now.hour, now.minute, now.second, Time.get_ticks_msec() % 1000, text]
+	var bias: int = Time.get_time_zone_from_system().get("bias", 0)
+	var local: float = Time.get_unix_time_from_system() + bias * 60.0
+	var whole := floorf(local)
+	var now := Time.get_time_dict_from_unix_time(int(whole))
+	return "[%02d:%02d:%02d.%03d] %s" % [now.hour, now.minute, now.second, int((local - whole) * 1000.0), text]
 
 
 ## True for lines that already start with "[hh:mm:ss.mmm]" (DiagLog lines).

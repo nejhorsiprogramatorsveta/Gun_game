@@ -7,6 +7,11 @@ script = ExtResource("1")
 entries = Array[Dictionary]([{
 "build": 0,
 "version": "",
+"fix_keys": PackedStringArray("CHANGELOG_SMOOTH_REMOTE", "CHANGELOG_NO_THROTTLE", "CHANGELOG_RECOIL_PREDICTION", "CHANGELOG_INPUT_BUFFER"),
+"other_keys": PackedStringArray("CHANGELOG_DIAG_029")
+}, {
+"build": 56,
+"version": "0.2.8",
 "mechanics_keys": PackedStringArray("CHANGELOG_RELOAD", "CHANGELOG_STIN_BULLETS", "CHANGELOG_ROOFTOPS_FLOOR"),
 "fix_keys": PackedStringArray("CHANGELOG_COMPACT_TEAM_SCORE", "CHANGELOG_NO_INGAME_HINT"),
 "other_keys": PackedStringArray("CHANGELOG_SETTINGS_KEYS", "CHANGELOG_SINGLE_LOG", "CHANGELOG_SECTIONS")

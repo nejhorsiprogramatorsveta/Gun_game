@@ -5,7 +5,7 @@ Hostovat bude kamarád, ostatní se připojí. Hra si sama zapisuje měření do
 po hraní nám ho každý pošle.
 
 ## Před hraním
-1. Všichni spusťte hru a nechte ji aktualizovat na stejnou verzi (vlevo dole v menu, např. „Verze 0.2.8“).
+1. Všichni spusťte hru a nechte ji aktualizovat na stejnou verzi (vlevo dole v menu, např. „Verze 0.2.9“).
    Kdo má jinou verzi, toho hra do lobby nepustí.
 2. Domluvte se, jak se spojíte:
    - **stejná Wi-Fi / síť**: hostitel pošle adresu z řádku „Stejná Wi-Fi / síť“,
@@ -57,6 +57,8 @@ takže jdou porovnat logy hostitele a hráčů:
 - `loss=` a `throttle=` (32/32 = plná rychlost) ukazují ztráty paketů na síti; `up/down` kB/s a `pkts_*` provoz.
 - `gaps>100ms`, `gap_max`, `client spike` a `interp_holds` (snímky × vzdálení hráči bez nových dat) = sekání vzdálených hráčů.
 - `hitches` a `tick_gap_max` = záseky samotného počítače (ne sítě); `window lost focus` může vysvětlit záseky na Windows.
-- Hostitel: `starved` / `stalls` = od hráče nepřišly vstupy; `skipped` = hostitel dohání frontu vstupů.
+- Hostitel: `starved` / `stalls` = od hráče nepřišly vstupy; `skipped` = hostitel dohání frontu vstupů;
+  `target` = zásoba vstupů, kterou si host pro hráče nastavil (1–6 ticků), `jitter` = naměřené kolísání jeho vstupů.
+- Klient: `interp_delay` = o kolik ms později hra ukazuje ostatní hráče (50–250, podle kolísání), `jitter` = kolísání snapshotů.
 - `[conn] joining ... HINT: Tailscale address, but this computer has no Tailscale address` = hráč má vypnutý Tailscale.
 - `same_subnet=no` u LAN adresy = hráč není ve stejné síti (host. Wi-Fi, jiný router, mobilní data).

@@ -13,6 +13,12 @@ const MAX_CLIENTS := 4
 const TIMEOUT_LIMIT := 32
 const TIMEOUT_MIN_MS := 5000
 const TIMEOUT_MAX_MS := 8000
+## ENet "throttle" randomly drops unreliable packets (our snapshots and inputs) when the
+## round-trip time jumps; on Wi-Fi it halved the snapshots for 5 s (play test 2026-11-05).
+## Deceleration 0 keeps it at full rate; the game sends ~4 kB/s, far below any limit.
+const THROTTLE_INTERVAL_MS := 5000
+const THROTTLE_ACCELERATION := 2
+const THROTTLE_DECELERATION := 0
 ## Kinds offered for sharing, best first. Public IPv4/IPv6 are deliberately left out.
 const SHAREABLE_KINDS: Array[StringName] = [&"tailscale", &"lan"]
 
@@ -21,7 +27,9 @@ func host(port: int) -> MultiplayerPeer:
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_server(port, MAX_CLIENTS) != OK:
 		return null
-	peer.peer_connected.connect(func(id: int) -> void: _apply_timeout(peer, id))
+	peer.peer_connected.connect(func(id: int) -> void:
+		_apply_timeout(peer, id)
+		_disable_throttle(peer, id))
 	return peer
 
 
@@ -33,6 +41,8 @@ func join(join_info: String) -> MultiplayerPeer:
 	if peer.create_client(address.host, address.port) != OK:
 		return null
 	_apply_timeout(peer, 1)
+	# Only once connected: the setting is also sent to the host, which ignores it mid-handshake.
+	peer.peer_connected.connect(func(id: int) -> void: _disable_throttle(peer, id))
 	return peer
 
 
@@ -132,6 +142,12 @@ static func _parse_port(text: String) -> int:
 		return -1
 	var port := text.to_int()
 	return port if port >= 1 and port <= 65535 else -1
+
+
+static func _disable_throttle(peer: ENetMultiplayerPeer, id: int) -> void:
+	var packet_peer := peer.get_peer(id)
+	if packet_peer:
+		packet_peer.throttle_configure(THROTTLE_INTERVAL_MS, THROTTLE_ACCELERATION, THROTTLE_DECELERATION)
 
 
 static func _apply_timeout(peer: ENetMultiplayerPeer, id: int) -> void:

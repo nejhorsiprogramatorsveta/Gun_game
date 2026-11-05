@@ -13,8 +13,11 @@ const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown tent
 ## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives,
 ## u8 previous buttons, u8 jumps left, f32 jump buffer timer, f32 drop timer, u16 kills, u16 deaths,
 ## u16 ability cooldown in physics ticks (1/60 s), f32 movement ability (jetpack) time left,
-## u8 rounds left in the magazine.
-const SNAPSHOT_PLAYER_BYTES := 40
+## u8 rounds left in the magazine, u16 fire cooldown and u16 reload time left (both in
+## WEAPON_TIMER_UNITS per second, exact enough that the client replays shots and recoil on
+## the same ticks as the host).
+const SNAPSHOT_PLAYER_BYTES := 44
+const WEAPON_TIMER_UNITS := 10000.0
 const MAX_SNAPSHOT_PLAYERS := 4
 const COOLDOWN_TICKS_PER_SECOND := 60.0
 
@@ -93,6 +96,8 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		data.encode_u16(offset + 33, clampi(_ticks_up(float(state.get("ability_cooldown", 0.0))), 0, 65535))
 		data.encode_float(offset + 35, state.get("boost_time_left", 0.0))
 		data.encode_u8(offset + 39, clampi(state.get("ammo", 0), 0, 255))
+		data.encode_u16(offset + 40, _timer_units(state.get("fire_cooldown", 0.0)))
+		data.encode_u16(offset + 42, _timer_units(state.get("reload_time_left", 0.0)))
 	return data
 
 
@@ -142,6 +147,8 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"firing": flags & FLAG_FIRING != 0,
 			"reloading": flags & FLAG_RELOADING != 0,
 			"ammo": data.decode_u8(offset + 39),
+			"fire_cooldown": data.decode_u16(offset + 40) / WEAPON_TIMER_UNITS,
+			"reload_time_left": data.decode_u16(offset + 42) / WEAPON_TIMER_UNITS,
 		})
 	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "states": states}
 
@@ -149,6 +156,11 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 ## True if u16 sequence number `a` is newer than `b` (handles wrap-around at 65535).
 static func seq_newer(a: int, b: int) -> bool:
 	return a != b and ((a - b) & 0xFFFF) < 0x8000
+
+
+static func _timer_units(seconds: Variant) -> int:
+	var value := float(seconds)
+	return clampi(roundi(value * WEAPON_TIMER_UNITS), 0, 65535) if is_finite(value) else 0
 
 
 ## Cooldown seconds -> whole physics ticks, rounded up so "ready" never comes too early.

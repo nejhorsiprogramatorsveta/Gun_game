@@ -49,7 +49,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.8, next 0.2.9).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.9, next 0.2.10).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
@@ -72,18 +72,23 @@ of a match `[net]`: ENet RTT/loss, traffic, snapshots, interpolation holds, inpu
 Settings screen button "Složka s logem". Read the logs after real play tests.
 Controls: src/core/key_bindings.gd (2 rebindable inputs per action, physical keys, saved in settings.cfg) + src/ui/settings_screen.gd;
 menu "Ovládání" shows the help (no help text inside matches). Reload: WeaponData.magazine_size/reload_time, Player.use_round/tick_reload,
-snapshot carries ammo + FLAG_RELOADING (protocol 17, 40 bytes/player), src/player/magazine_drop.gd + PlayerVisual reload animation.
+snapshot carries ammo, FLAG_RELOADING and exact weapon timers (protocol 18, 44 bytes/player), src/player/magazine_drop.gd + PlayerVisual reload animation.
 Changelog entries use mechanics_keys / fix_keys / other_keys (sections in "Co je nového" and release notes).
 src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cleans names; used by session.gd).
 2 v 2 team mode: src/match/{teams,match_ranking}.gd, src/net/team_choice.gd, src/ui/score_table.gd (no friendly fire, one scoreboard per team).
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
-Snapshot protocol 5 carries complete motor memory (floor contact, previous buttons, remaining jumps, jump/drop timers)
-alongside position/velocity, last_seq and kills/deaths: 6-byte header + 33 bytes/player. Input packets remain 14 bytes.
+Snapshots (protocol 18, 6-byte header + 44 bytes/player) carry complete motor memory (floor contact, previous buttons,
+remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
+reload time (0.1 ms grid, Player._count_down keeps host and client on the same grid). Input packets remain 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
-move_and_slide() must use the physics delta during replay. Remote players still interpolate with a 100 ms delay.
-Small corrections use a visual offset; combat, knockback, recoil, respawns, countdown and lives remain host-authoritative.
+move_and_slide() must use the physics delta during replay. The own player's shots (cooldown, ammo, reload, RECOIL) are
+predicted via Player.tick_weapon inside simulate(); the host only spawns projectiles (WeaponSystem.spawn_shot).
+Remote players play back on the HOST timeline (snapshot tick, src/net/snapshot_timeline.gd + jitter_clock.gd) with an
+adaptive delay 50-250 ms from measured jitter. Host input queue target adapts to input jitter (InputBuffer, 1-6 ticks).
+ENet throttling is disabled (connector). Small corrections use a visual offset; projectiles, hits, knockback, respawns,
+countdown and lives remain host-authoritative.
 Changelog "Co je nového" shows ONLY the newest (highest) patch version (user 2026-11-04); release notes the same.
 Changelog is implemented: data/changelog.tres + localization CSV are shared by src/core/changelog.gd,
 the offline menu "Co je nového", and tools/write_release_notes.gd.
