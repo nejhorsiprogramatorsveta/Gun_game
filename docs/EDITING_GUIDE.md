@@ -80,6 +80,8 @@ tématu `assets/ui/theme.tres`.
 | `knockback` | odhoz jednoho zásahu (dělí se váhou zasaženého) |
 | `recoil` | zpětný ráz střelce při každém výstřelu |
 | `pellets` | počet broků na výstřel (brokovnice > 1, každý brok má vlastní rozptyl a odhoz) |
+| `magazine_size` | náboje v zásobníku (výstřel brokovnice = 1 náboj); po posledním se přebíjí, po smrti je zásobník vždy plný. Pomalé silné zbraně malý (odstřelovačka 3), rychlé velký (samopal 32) |
+| `reload_time` | délka přebíjení v sekundách (všechny zbraně 1.0) |
 | `sprite` | pixel art zbraně `assets/sprites/weapons/<id>.png` (2 snímky 34 × 12 px: normální, záblesk; úchop v bodě 4,6) |
 
 **Limity hlídané testem `tests/test_weapons.gd`** (pokyn: odhoz nesmí být příliš vysoký, vše arkádové):

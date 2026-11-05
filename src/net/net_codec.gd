@@ -12,8 +12,9 @@ const INPUT_PACKET_BYTES := 2 + INPUT_HISTORY * INPUT_FRAME_BYTES
 const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown tenths of a second left
 ## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives,
 ## u8 previous buttons, u8 jumps left, f32 jump buffer timer, f32 drop timer, u16 kills, u16 deaths,
-## u16 ability cooldown in physics ticks (1/60 s), f32 movement ability (jetpack) time left.
-const SNAPSHOT_PLAYER_BYTES := 39
+## u16 ability cooldown in physics ticks (1/60 s), f32 movement ability (jetpack) time left,
+## u8 rounds left in the magazine.
+const SNAPSHOT_PLAYER_BYTES := 40
 const MAX_SNAPSHOT_PLAYERS := 4
 const COOLDOWN_TICKS_PER_SECOND := 60.0
 
@@ -24,6 +25,8 @@ const FLAG_ON_FLOOR := 8
 ## The player shot within Player.FIRING_VISUAL_MS (shooting animation for everyone).
 const FLAG_FIRING := 16
 const FLAG_ABILITY_ACTIVE := 32
+## The weapon is reloading (animation for everyone, "reloading" in the own HUD).
+const FLAG_RELOADING := 64
 
 
 ## frames[0] is the newest; older frames must have seq = newest.seq - index.
@@ -70,7 +73,8 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		var flags := (FLAG_FACING_RIGHT if state.facing > 0 else 0) | (FLAG_ACTIVE if state.active else 0) \
 				| (FLAG_INVULNERABLE if state.invulnerable else 0) | (FLAG_ON_FLOOR if state.get("on_floor", false) else 0) \
 				| (FLAG_ABILITY_ACTIVE if state.get("ability_active", false) else 0) \
-				| (FLAG_FIRING if state.get("firing", false) else 0)
+				| (FLAG_FIRING if state.get("firing", false) else 0) \
+				| (FLAG_RELOADING if state.get("reloading", false) else 0)
 		data.encode_u8(offset, state.slot)
 		data.encode_float(offset + 1, position.x)
 		data.encode_float(offset + 5, position.y)
@@ -88,6 +92,7 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		data.encode_u16(offset + 31, clampi(state.get("deaths", 0), 0, 65535))
 		data.encode_u16(offset + 33, clampi(_ticks_up(float(state.get("ability_cooldown", 0.0))), 0, 65535))
 		data.encode_float(offset + 35, state.get("boost_time_left", 0.0))
+		data.encode_u8(offset + 39, clampi(state.get("ammo", 0), 0, 255))
 	return data
 
 
@@ -135,6 +140,8 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"boost_time_left": boost_time_left,
 			"ability_active": flags & FLAG_ABILITY_ACTIVE != 0,
 			"firing": flags & FLAG_FIRING != 0,
+			"reloading": flags & FLAG_RELOADING != 0,
+			"ammo": data.decode_u8(offset + 39),
 		})
 	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "states": states}
 

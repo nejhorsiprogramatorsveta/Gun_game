@@ -22,6 +22,8 @@ func setup(net: Node) -> void:
 ## Authority: called every tick after the player moved.
 func try_fire(player: Player, input: InputFrame, delta: float) -> void:
 	player.fire_cooldown = maxf(player.fire_cooldown - delta, 0.0)
+	if player.tick_reload(delta):
+		return
 	var weapon := player.current_weapon()
 	if weapon == null or not input.is_held(InputFrame.FIRE) or player.fire_cooldown > 0.0 or not player.can_fire():
 		return
@@ -30,6 +32,7 @@ func try_fire(player: Player, input: InputFrame, delta: float) -> void:
 	var aim_direction := InputFrame.aim_to_vector(input.aim)
 	var origin := player.global_position + aim_direction * Player.GUN_LENGTH
 	player.velocity += CombatRules.recoil(aim_direction, weapon)
+	player.use_round()
 	for pellet in weapon.pellets:
 		var direction := CombatRules.spread_direction(aim_direction, weapon, randf())
 		var id := _next_id

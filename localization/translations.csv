@@ -38,7 +38,6 @@ RELEASE_LINUX,- **Linux:** `{file}`
 RELEASE_SOURCE_NOTICE,⚠️ Automatické archivy „Source code“ patří k historickému tagu. Hra ke stažení je v souborech výše.
 RELEASE_SOURCE_COMMIT,Zdrojové kódy tohoto sestavení: {url}
 RELEASE_GUIDE,"Návod (SmartScreen, macOS, hraní s kamarády): {url}"
-PRACTICE_HINT,"A/D: pohyb · W/mezerník: skok (i dvojskok) · S: seskok · myš: míření · levé tlačítko: střelba · E/pravé tlačítko: schopnost · Esc: odejít (hostitel: konec zápasu)"
 CHARACTER_JISKRA_NAME,Jiskra
 CHARACTER_JISKRA_DESCRIPTION,"Lehká róninka: rychlá, snadno ji odhodíš, ale těžko ji chytíš. Samopal."
 LOBBY_DEFAULT_NAME,Hráč {number}
@@ -101,7 +100,7 @@ UPDATE_DOWNLOADING,Stahuji aktualizaci…
 UPDATE_FAILED_DOWNLOAD,"Aktualizaci se nepodařilo stáhnout (zkontroluj internet). Můžeš ji stáhnout ručně."
 UPDATE_FAILED_VERIFY,"Stažený soubor nesouhlasí s kontrolním otiskem, aktualizace byla zrušena. Zkus to později nebo stáhni hru ručně."
 UPDATE_FAILED_INSTALL,"Hru se nepodařilo nahradit. Přesuň ji do složky, kam smíš zapisovat (Windows: Plocha nebo Dokumenty, Mac: Aplikace), nebo ji stáhni ručně."
-HUD_WEAPON,{weapon}
+HUD_WEAPON,"{weapon} · {ammo}"
 WEAPON_SMG_NAME,Samopal
 WEAPON_SHOTGUN_NAME,Brokovnice
 WEAPON_ASSAULT_RIFLE_NAME,Útočná puška
@@ -117,7 +116,7 @@ CHARACTER_STIN_NAME,Stín
 CHARACTER_STIN_DESCRIPTION,"Lehký ninja se šurikenem: rychlý, ale snadno odletí. Odstřelovačka."
 CHANGELOG_WEAPONS,"Čtyři postavy a osm zbraní: každá postava má dvě vlastní zbraně (samopal, pistole, brokovnice, útočná a bojová puška, karabina, odstřelovačka, kompaktní samopal)."
 CHANGELOG_WEAPON_SWITCH,"Přepínání zbraní klávesou Q, 1 / 2 nebo kolečkem myši. Dokud nepřibude výběr v lobby, dostane každý hráč postavu podle pořadí."
-HUD_ABILITY_READY,"{ability}: připraveno (E / pravé tlačítko myši)"
+HUD_ABILITY_READY,"{ability}: připraveno ({keys})"
 HUD_ABILITY_COOLDOWN,"{ability}: {seconds} s"
 ABILITY_SHIELD_NAME,Štít
 ABILITY_SHIELD_DESCRIPTION,"Na 1,5 s skoro žádný odhoz, ale nejde střílet."
@@ -186,9 +185,65 @@ LOBBY_CONFIRM_CHARACTER,Potvrdit postavu
 LOBBY_CHARACTER_CONFIRMED,Potvrzeno
 LOBBY_PICKING_CHARACTER,vybírá postavu…
 LOBBY_NEED_CONFIRM,"Čeká se, až všichni potvrdí postavu."
-MENU_LOGS,Složka s logy
-MENU_LOGS_TOOLTIP,"Otevře složku se záznamy hry (godot.log). Po hraní nám pošli nejnovější soubor – pomůže najít příčinu sekání nebo problémů s připojením."
 CHANGELOG_FONT,"Nové, čitelnější pixelové písmo: číslice už nejdou splést s písmeny (5/S, 2/Z, 8/B, 0/O)."
 CHANGELOG_CONFIRM_CHARACTER,"Výběr postavy v lobby má pixelové náhledy postav a postavu je potřeba potvrdit; zápas jde spustit, až když mají všichni potvrzeno."
 CHANGELOG_LOBBY_MAP,"V pozadí lobby je vidět právě vybraná mapa."
 CHANGELOG_LOGS,"Diagnostika připojení a lagů: hra zapisuje podrobnější záznamy, tlačítko „Složka s logy“ v menu je otevře."
+HUD_AMMO,{ammo}/{max}
+HUD_RELOADING,přebíjení…
+CHANGELOG_SECTION_MECHANICS,Nové mechaniky a updaty postav
+CHANGELOG_SECTION_FIXES,Bugfixy
+CHANGELOG_SECTION_OTHER,Ostatní
+CHANGELOG_RELOAD,"Přebíjení: každá zbraň má zásobník (odstřelovačka 3 rány, brokovnice 2, samopal 32, kulomet 45…) a po vystřílení se 1 s přebíjí – zbraň se skloní, vypadne zásobník a nad postavou běží ukazatel. Po smrti máš vždy plný zásobník."
+CHANGELOG_STIN_BULLETS,"Stín: odstřelovačka střílí o polovinu rychlejší projektily (3600 px/s), aby vyvážila pomalou kadenci."
+CHANGELOG_ROOFTOPS_FLOOR,"Mapa Střechy má nové horní patro: dvě menší kamenné plošiny (neprostřelitelné) a nad nimi uprostřed dřevěnou plošinu, kterou jde proskočit."
+CHANGELOG_COMPACT_TEAM_SCORE,Scoreboardy v režimu 2 v 2 jsou menší a nezakrývají arénu.
+CHANGELOG_NO_INGAME_HINT,"Nápověda k ovládání už nepřekrývá hru – je v menu pod tlačítkem Ovládání."
+CHANGELOG_SETTINGS_KEYS,"Nové Nastavení: pohyb, skok, seskok, střelbu i schopnost si můžeš přenastavit na jiné klávesy nebo tlačítka myši (dvě na akci). Tlačítko Ovládání v menu ukáže aktuální klávesy."
+CHANGELOG_SINGLE_LOG,"Diagnostika: hra drží jen jeden log (last_game.log) z poslední online hry a starší logy maže, takže se na disku nic nehromadí. Log nově obsahuje i stav Tailscale, datový provoz, plynulost vzdálených hráčů, chyby hry a průběh zápasu."
+CHANGELOG_SECTIONS,"Okno Co je nového je rozdělené na nové mechaniky, bugfixy a ostatní."
+ACTION_MOVE_LEFT,Pohyb doleva
+ACTION_MOVE_RIGHT,Pohyb doprava
+ACTION_JUMP,Skok
+ACTION_DOWN,Seskok z plošiny
+ACTION_FIRE,Střelba
+ACTION_ABILITY,Schopnost
+KEY_MOUSE_LEFT,Levé tlačítko myši
+KEY_MOUSE_RIGHT,Pravé tlačítko myši
+KEY_MOUSE_MIDDLE,Prostřední tlačítko myši
+KEY_MOUSE_4,Tlačítko myši 4
+KEY_MOUSE_5,Tlačítko myši 5
+KEY_SPACE,Mezerník
+KEY_ARROW_LEFT,Šipka vlevo
+KEY_ARROW_RIGHT,Šipka vpravo
+KEY_ARROW_UP,Šipka nahoru
+KEY_ARROW_DOWN,Šipka dolů
+KEY_SHIFT,Shift
+KEY_CTRL,Ctrl
+KEY_ALT,Alt
+KEY_ENTER,Enter
+KEY_TAB,Tab
+KEY_BACKSPACE,Backspace
+SETTINGS_TITLE,Nastavení
+SETTINGS_CONTROLS,Ovládání (dvě klávesy na každou akci)
+SETTINGS_PRESS_KEY,Stiskni klávesu…
+SETTINGS_UNBOUND,–
+SETTINGS_HINT,"Klikni na políčko a stiskni novou klávesu nebo tlačítko myši. Klávesa, kterou už má jiná akce, se u ní odebere. Esc a F3 jsou vyhrazené."
+SETTINGS_WAITING_HINT,"Stiskni klávesu nebo tlačítko myši pro tuto akci (Esc zruší)."
+SETTINGS_RESET,Výchozí ovládání
+SETTINGS_OPEN_LOGS,Složka s logem
+SETTINGS_LOGS_HINT,"Log (last_game.log) obsahuje jen poslední online hru, starší se mažou samy. Po hraní ho pošli – pomůže najít příčinu lagů a problémů s připojením."
+SETTINGS_BACK,Zpět
+MENU_CONTROLS,Ovládání
+MENU_SETTINGS,Nastavení
+CONTROLS_TITLE,Ovládání
+CONTROLS_MOVE,Pohyb doleva | doprava: {keys}
+CONTROLS_JUMP,Skok (ve vzduchu ještě jednou = dvojskok): {keys}
+CONTROLS_DOWN,Seskok z dřevěné plošiny: {keys}
+CONTROLS_FIRE,Střelba (podržet): {keys}
+CONTROLS_ABILITY,Schopnost postavy: {keys}
+CONTROLS_AIM,Míření: myš (postava se dívá ke kurzoru)
+CONTROLS_RELOAD,Přebíjení: samo po vystřílení zásobníku (1 s)
+CONTROLS_ESC,"Esc: odejít ze zápasu (hostitel ukončí zápas všem)"
+CONTROLS_F3,F3: zobrazí nebo skryje FPS a ping
+CONTROLS_REBIND_HINT,Klávesy změníš v Nastavení.

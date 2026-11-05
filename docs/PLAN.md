@@ -456,6 +456,14 @@ Menu → Hostovat/Připojit → LOBBY ──(host: Začít zápas)──► ZÁP
 - Zobrazit hlášení `Kill`, `Double kill`, `Triple kill` (a další počet při více zabitích). Pro seskupení blízkých zabití použít okno 2 s mezi zabitími stejného střelce; to neomezuje platnost posledního zásahu.
 - Skóre i oznámení určuje host a klienti je zobrazují. Na začátku nového zápasu se skóre a série vynulují.
 
+### T.5 Prvky map a nebezpečí (ZADÁNÍ UŽIVATELE 2026-11-05, budoucí milník)
+Do arén postupně přidat aktivní prvky, které mění průběh zápasu. Zatím jen plán, nic z toho neexistuje:
+- **Padající bomby:** v náhodných intervalech spadne bomba (stín/varování na zemi ~1 s předem), výbuch hráče v okruhu **odhodí** (stejný knockback model a limity jako u zbraní, `CombatRules`), sám nezabíjí.
+- **Stoupající láva:** v některé aréně pomalu stoupá a zase klesá; dotyk = pád (ztráta života) nebo silné odhození nahoru – rozhodnout při návrhu.
+- Další nápady k výběru: pohyblivé / mizející plošiny, vítr postrkující do strany, rozbitné bedny, odrazové pružiny.
+- **Síť:** o všem rozhoduje host (časy, pozice, zásahy); klienti dostanou spolehlivou událost se semínkem/časem a prvky jen zobrazují (stejně jako `AreaEffects`). Pohyb vlastní postavy, který prvky ovlivní, musí jít predikovat, jinak korekce.
+- **Data:** parametry prvků v `ArenaData` / vlastních `.tres` (zapnutí, interval, síla), aby šly ladit bez programování; hostitel může prvky v lobby vypnout.
+
 ## G. Postavy a schopnosti
 
 ### G.0 Zadání uživatele (2026-11-03), má přednost před G.3

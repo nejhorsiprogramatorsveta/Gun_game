@@ -15,3 +15,5 @@ knockback = 170.0
 recoil = 550.0
 pellets = 8
 sprite = ExtResource("2")
+magazine_size = 2
+reload_time = 1.0

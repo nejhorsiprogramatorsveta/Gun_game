@@ -4,6 +4,7 @@ extends Control
 
 const PRACTICE_SCENE_PATH := "res://src/match/match.tscn"
 const LOBBY_SCENE_PATH := "res://src/ui/lobby.tscn"
+const SETTINGS_PATH := "res://src/ui/settings_screen.tscn"
 const ERROR_COLOR := Color(1.0, 0.45, 0.4)
 const INFO_COLOR := Color(0.75, 0.78, 0.85)
 
@@ -15,7 +16,8 @@ const INFO_COLOR := Color(0.75, 0.78, 0.85)
 @onready var _host_button: Button = %HostButton
 @onready var _join_button: Button = %JoinButton
 @onready var _changelog_button: Button = %ChangelogButton
-@onready var _logs_button: Button = %LogsButton
+@onready var _controls_button: Button = %ControlsButton
+@onready var _settings_button: Button = %SettingsButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _changelog_dialog: AcceptDialog = %ChangelogDialog
 @onready var _changelog_text: RichTextLabel = %ChangelogText
@@ -48,8 +50,10 @@ func _ready() -> void:
 	_join_button.pressed.connect(_on_join_pressed)
 	_address_edit.text_submitted.connect(func(_text: String) -> void: _on_join_pressed())
 	_changelog_button.pressed.connect(_on_changelog_pressed)
-	# Diagnostics for play tests (docs/PLAYTEST.md): the folder with godot.log files.
-	_logs_button.pressed.connect(func() -> void: OS.shell_open(ProjectSettings.globalize_path("user://logs")))
+	_controls_button.pressed.connect(_on_controls_pressed)
+	_settings_button.pressed.connect(func() -> void:
+		_remember_inputs()
+		get_tree().change_scene_to_file(SETTINGS_PATH))
 	_changelog_dialog.visibility_changed.connect(_on_changelog_visibility_changed)
 	_quit_button.pressed.connect(get_tree().quit)
 	Session.phase_changed.connect(_on_session_phase_changed)
@@ -62,13 +66,34 @@ func _ready() -> void:
 
 func _on_changelog_pressed() -> void:
 	var entry := Changelog.latest()
+	_changelog_dialog.title = tr("CHANGELOG_TITLE")
 	_changelog_text.text = Changelog.format_entry(entry) if not entry.is_empty() else tr("CHANGELOG_EMPTY")
+	_show_text_dialog()
+
+
+## The shared text dialog (changelog, controls help).
+func _show_text_dialog() -> void:
 	_changelog_text.scroll_to_line(0)
 	# Scrolling text does not contribute a useful minimum size to AcceptDialog.
 	var available_size := Vector2i(Vector2(get_window().size) * 0.9)
 	_changelog_dialog.min_size = Vector2i(clampi(available_size.x, 280, 840), clampi(available_size.y, 180, 560))
 	_changelog_dialog.popup_centered_clamped(_changelog_dialog.min_size, 0.9)
 	_changelog_text.grab_focus()
+
+
+## Controls help with the current (possibly rebound) keys; rebinding is in Settings.
+func _on_controls_pressed() -> void:
+	var lines: PackedStringArray = []
+	for spec: Array in [["CONTROLS_MOVE", [&"move_left", &"move_right"]], ["CONTROLS_JUMP", [&"jump"]],
+			["CONTROLS_DOWN", [&"down"]], ["CONTROLS_FIRE", [&"fire"]], ["CONTROLS_ABILITY", [&"ability"]]]:
+		var keys: PackedStringArray = []
+		for action: StringName in spec[1]:
+			keys.append(KeyBindings.action_text(action))
+		lines.append(tr(spec[0]).format({"keys": "  |  ".join(keys)}))
+	lines.append_array([tr("CONTROLS_AIM"), tr("CONTROLS_RELOAD"), tr("CONTROLS_ESC"), tr("CONTROLS_F3"), "", tr("CONTROLS_REBIND_HINT")])
+	_changelog_dialog.title = tr("CONTROLS_TITLE")
+	_changelog_text.text = "\n".join(lines)
+	_show_text_dialog()
 
 
 func _on_changelog_visibility_changed() -> void:

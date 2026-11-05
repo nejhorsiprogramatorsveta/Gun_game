@@ -10,12 +10,15 @@ extends Control
 ## One table (free-for-all) or one per team (2 v 2: red on the left, blue on the right).
 var _tables: Array[ScoreTable] = []
 var _team_mode := false
+## Keys of the ability (bindings cannot change during a match).
+var _ability_keys := ""
 var _net_label := Label.new()
 var _weapon_label := Label.new()
 
 
 func _ready() -> void:
 	_team_mode = Session.phase == Session.Phase.IN_MATCH and Session.team_mode
+	_ability_keys = KeyBindings.action_text(&"ability")
 	if _team_mode:
 		var left := _score_panel.duplicate() as PanelContainer
 		add_child(left)
@@ -27,7 +30,7 @@ func _ready() -> void:
 		for team in Teams.COUNT:
 			var table := ScoreTable.new()
 			(left if team == 0 else _score_panel).add_child(table)
-			table.setup(tr(Teams.NAME_KEYS[team]), Teams.color(team), Teams.MAX_PER_TEAM)
+			table.setup(tr(Teams.NAME_KEYS[team]), Teams.color(team), Teams.MAX_PER_TEAM, true)
 			_tables.append(table)
 	else:
 		var table := ScoreTable.new()
@@ -89,7 +92,9 @@ func _show_local_weapon(players: Array) -> void:
 			var weapon := player.current_weapon()
 			_weapon_label.visible = weapon != null and player.visible
 			if weapon:
-				_weapon_label.text = tr("HUD_WEAPON").format({"weapon": tr(weapon.name_key)}) + _ability_text(player)
+				var ammo := tr("HUD_RELOADING") if player.is_reloading() \
+						else tr("HUD_AMMO").format({"ammo": player.ammo, "max": weapon.magazine_size})
+				_weapon_label.text = tr("HUD_WEAPON").format({"weapon": tr(weapon.name_key), "ammo": ammo}) + _ability_text(player)
 			return
 	_weapon_label.visible = false
 
@@ -100,5 +105,5 @@ func _ability_text(player: Player) -> String:
 		return ""
 	var ability_name := tr(ability.name_key)
 	if player.ability_cooldown <= 0.0:
-		return "\n" + tr("HUD_ABILITY_READY").format({"ability": ability_name})
+		return "\n" + tr("HUD_ABILITY_READY").format({"ability": ability_name, "keys": _ability_keys})
 	return "\n" + tr("HUD_ABILITY_COOLDOWN").format({"ability": ability_name, "seconds": ("%.1f" % player.ability_cooldown).replace(".", ",")})

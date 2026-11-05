@@ -95,20 +95,26 @@ text = "MENU_JOIN"
 [node name="ExtraRow" type="HBoxContainer" parent="Center/Column"]
 layout_mode = 2
 
+[node name="ControlsButton" type="Button" parent="Center/Column/ExtraRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MENU_CONTROLS"
+
+[node name="SettingsButton" type="Button" parent="Center/Column/ExtraRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MENU_SETTINGS"
+
 [node name="ChangelogButton" type="Button" parent="Center/Column/ExtraRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "MENU_CHANGELOG"
-
-[node name="LogsButton" type="Button" parent="Center/Column/ExtraRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "MENU_LOGS_TOOLTIP"
-text = "MENU_LOGS"
 
 [node name="QuitButton" type="Button" parent="Center/Column"]
 unique_name_in_owner = true

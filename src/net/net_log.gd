@@ -23,6 +23,9 @@ const MAX_SPIKE_LINES := 5
 ## Callable(peer_id) -> {"rtt", "rtt_var", "loss", "throttle"} (EnetDirectConnector.peer_stats);
 ## left empty in unit tests.
 var peer_stats := Callable()
+## Callable() -> {"sent", "received", "sent_packets", "received_packets"} since the last call
+## (EnetDirectConnector.take_traffic); empty in unit tests.
+var traffic := Callable()
 
 var _window_start_ms := -1
 var _fps_min := -1.0
@@ -91,7 +94,8 @@ func tick(now_ms: int, is_host: bool, fps: float, ping_ms: int, inputs: Dictiona
 			_queue_max[slot] = maxi(_queue_max.get(slot, 0), inputs[peer_id].size())
 	if now_ms - _window_start_ms < INTERVAL_MS:
 		return ""
-	var frame := "fps=%d min=%d tick_gap_max=%dms hitches=%d" % [fps, _fps_min, _tick_gap_max, _hitches]
+	var frame := "fps=%d min=%d tick_gap_max=%dms hitches=%d %s %s" % [fps, _fps_min, _tick_gap_max, _hitches,
+			_traffic_text(now_ms - _window_start_ms), _performance_text()]
 	var report: String
 	if is_host:
 		var slots: PackedStringArray = []
@@ -100,9 +104,11 @@ func tick(now_ms: int, is_host: bool, fps: float, ping_ms: int, inputs: Dictiona
 				slots.append(_host_slot_text(peer_id, players[peer_id].slot, inputs[peer_id]))
 		report = "host %s | %s" % [frame, " | ".join(slots)]
 	else:
-		report = "client ping=%dms avg=%dms max=%dms %s snapshots=%d dropped=%d gap_max=%dms gaps>%dms=%d correction_max=%.1fpx corrections>%dpx=%d %s" % [
+		report = "client ping=%dms avg=%dms max=%dms %s snapshots=%d dropped=%d gap_max=%dms gaps>%dms=%d interp_holds=%d correction_max=%.1fpx corrections>%dpx=%d %s" % [
 			ping_ms, _ping_sum / maxi(_ping_samples, 1), _ping_max, _enet_text(1), _snapshots, _snapshots_dropped,
-			_snapshot_gap_max, GAP_MS, _snapshot_gaps, _correction_max, CORRECTION_PX, _corrections, frame]
+			_snapshot_gap_max, GAP_MS, _snapshot_gaps, RemoteInterpolator.hold_frames, _correction_max, CORRECTION_PX,
+			_corrections, frame]
+		RemoteInterpolator.hold_frames = 0
 	_reset(now_ms)
 	return DiagLog.line("net", report)
 
@@ -113,6 +119,23 @@ func _host_slot_text(peer_id: int, slot: int, buffer: Object) -> String:
 		var stats: Dictionary = buffer.take_stats()
 		text += " inputs=%d starved=%d stalls=%d skipped=%d" % [stats.received, stats.starved, stats.stalls, stats.skipped]
 	return text
+
+
+func _traffic_text(window_ms: int) -> String:
+	if not traffic.is_valid():
+		return "net=n/a"
+	var data: Dictionary = traffic.call()
+	if data.is_empty():
+		return "net=n/a"
+	var seconds := maxf(window_ms / 1000.0, 0.001)
+	return "up=%.1fkB/s down=%.1fkB/s pkts_up=%d/s pkts_down=%d/s" % [data.sent / 1024.0 / seconds,
+			data.received / 1024.0 / seconds, data.sent_packets / seconds, data.received_packets / seconds]
+
+
+static func _performance_text() -> String:
+	return "mem=%dMB nodes=%d draws=%d" % [Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+			Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
+			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
 
 
 func _enet_text(peer_id: int) -> String:

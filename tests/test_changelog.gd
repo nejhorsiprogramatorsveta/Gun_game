@@ -138,7 +138,7 @@ func test_data_has_ordered_unique_builds_and_complete_translations() -> void:
 			check(build > 0 and build < previous_build, "archived builds are positive and newest first")
 			check(not str(entry.version).is_empty(), "archived build has its version")
 			previous_build = build
-		var keys: PackedStringArray = entry.change_keys
+		var keys := Changelog.entry_keys(entry)
 		check(not keys.is_empty(), "each entry describes at least one change")
 		var seen_keys: Dictionary[String, bool] = {}
 		for key in keys:
@@ -192,6 +192,27 @@ func test_release_notes_use_current_metadata_and_only_latest_changes() -> void:
 		check(notes.contains(file_name), "release notes preserve the download filename: " + file_name)
 	check(notes.contains("https://example.test/repo#readme"), "release notes use the supplied repository guide link")
 	check(notes.contains("https://example.test/repo/tree/test123"), "release notes link to this build's actual source commit instead of the fixed release tag")
+	_restore_build(saved)
+
+
+func test_sections_group_changes_in_display_order() -> void:
+	var saved := _set_build("9.8.7", _current_build())
+	var latest := Changelog.latest()
+	var flat: PackedStringArray = []
+	var titles: PackedStringArray = []
+	for section: Dictionary in latest.sections:
+		check(not section.changes.is_empty(), "empty sections are left out")
+		titles.append(section.title)
+		flat.append_array(section.changes)
+	check_eq(flat, latest.changes, "sections contain exactly the entry's changes in order")
+	var order := [tr("CHANGELOG_SECTION_MECHANICS"), tr("CHANGELOG_SECTION_FIXES"), tr("CHANGELOG_SECTION_OTHER")]
+	var last := -1
+	for title in titles:
+		check(order.find(title) > last, "sections keep the order mechanics, fixes, other")
+		last = order.find(title)
+	var text := Changelog.format_entry(latest)
+	for title in titles:
+		check(text.contains("\n" + title + "\n• "), "menu text has the section title above its bullets: " + title)
 	_restore_build(saved)
 
 

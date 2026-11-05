@@ -30,6 +30,11 @@ var aim := 0
 var last_input_seq := 0
 ## Authority: seconds until the current weapon may fire again.
 var fire_cooldown := 0.0
+## Rounds left in the magazine and seconds of reloading left (authority decides; clients
+## get both via the snapshot). reload_started_ms only drives the reload animation.
+var ammo := 0
+var reload_time_left := 0.0
+var reload_started_ms := -100000
 ## Ability runtime state (authority decides; clients receive it in snapshots).
 var ability_cooldown := 0.0
 var ability_time_left := 0.0
@@ -69,6 +74,7 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 	name_label.add_theme_color_override("font_color", SLOT_COLORS[slot % SLOT_COLORS.size()].lightened(0.3))
 	add_child(name_label)
 	_name_label = name_label
+	refill_magazine()
 	if character and character.sprite_sheet:
 		_visual = PlayerVisual.new()
 		_visual.setup(character)
@@ -97,6 +103,45 @@ func simulate(input: InputFrame, delta: float) -> void:
 
 func current_weapon() -> WeaponData:
 	return character.weapon if character else null
+
+
+## Full magazine, no reload (spawn and every respawn).
+func refill_magazine() -> void:
+	var weapon := current_weapon()
+	ammo = weapon.magazine_size if weapon else 0
+	reload_time_left = 0.0
+
+
+func is_reloading() -> bool:
+	return reload_time_left > 0.0
+
+
+## Authority, every tick: counts the reload down; true while the weapon cannot fire yet.
+func tick_reload(delta: float) -> bool:
+	if reload_time_left <= 0.0:
+		return false
+	reload_time_left = maxf(reload_time_left - delta, 0.0)
+	if reload_time_left > 0.0:
+		return true
+	refill_magazine()
+	return false
+
+
+## Authority: one shot fired; the last round starts the reload.
+func use_round() -> void:
+	ammo = maxi(ammo - 1, 0)
+	var weapon := current_weapon()
+	if ammo == 0 and weapon:
+		reload_time_left = weapon.reload_time
+		reload_started_ms = Time.get_ticks_msec()
+
+
+## 0..1 while reloading (for the animation), -1 otherwise.
+func reload_progress() -> float:
+	var weapon := current_weapon()
+	if not is_reloading() or weapon == null:
+		return -1.0
+	return clampf((Time.get_ticks_msec() - reload_started_ms) / (weapon.reload_time * 1000.0), 0.0, 1.0)
 
 
 ## Cooldowns and activation on press (not while held); shared by host and prediction.
@@ -132,7 +177,7 @@ func snapshot_state() -> Dictionary:
 			"jumps_left": motor_state.jumps_left, "jump_buffer_timer": motor_state.jump_buffer_timer,
 			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths,
 			"ability_cooldown": ability_cooldown, "ability_active": ability_active(), "firing": is_firing(),
-			"boost_time_left": motor_state.boost_time_left}
+			"boost_time_left": motor_state.boost_time_left, "ammo": ammo, "reloading": is_reloading()}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -170,7 +215,7 @@ func _process(delta: float) -> void:
 	if _visual:
 		_visual.position = visual_offset
 		_visual.update_look(facing, InputFrame.aim_to_vector(aim), motor_state.on_floor, velocity, is_firing(),
-				ability_active() and visible)
+				ability_active() and visible, reload_progress() if visible else -1.0)
 	var blink_off := invulnerable and (Time.get_ticks_msec() / 100) % 2 == 0
 	modulate.a = 0.35 if blink_off else 1.0
 
@@ -180,7 +225,7 @@ func _process(delta: float) -> void:
 func is_firing() -> bool:
 	if Time.get_ticks_msec() - last_fire_ms < FIRING_VISUAL_MS:
 		return true
-	return _is_local_client() and Input.is_action_pressed("fire") and can_fire() and visible
+	return _is_local_client() and Input.is_action_pressed("fire") and can_fire() and visible and not is_reloading()
 
 
 func _is_local_client() -> bool:
@@ -205,6 +250,13 @@ func _apply_state(state: Dictionary) -> void:
 	ability_cooldown = state.get("ability_cooldown", 0.0)
 	# Clients only need "active or not" for drawing; the exact time stays on the host.
 	ability_time_left = 1.0 if state.get("ability_active", false) else 0.0
+	ammo = state.get("ammo", ammo)
+	var reloading: bool = state.get("reloading", false)
+	if reloading and not is_reloading():
+		reload_started_ms = Time.get_ticks_msec()
+	var weapon := current_weapon()
+	# Clients only show the reload; its exact timing stays on the host.
+	reload_time_left = (weapon.reload_time if weapon else 1.0) if reloading else 0.0
 	invulnerable = state.invulnerable
 	queue_redraw()
 
@@ -216,6 +268,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	visual_offset = Vector2.ZERO
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, true)
 	fire_cooldown = 0.0
+	refill_magazine()
 	ability_time_left = 0.0
 	invulnerable_time = 0.0
 	invulnerable = false

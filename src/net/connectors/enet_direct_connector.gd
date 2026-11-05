@@ -66,6 +66,20 @@ static func peer_stats(multiplayer_peer: MultiplayerPeer, peer_id: int) -> Dicti
 	}
 
 
+## Diagnostics (NetLog): bytes and packets sent/received by this computer since the last
+## call (ENet counters are reset by reading them), or {} if unavailable.
+static func take_traffic(multiplayer_peer: MultiplayerPeer) -> Dictionary:
+	var enet := multiplayer_peer as ENetMultiplayerPeer
+	if enet == null or enet.host == null:
+		return {}
+	return {
+		"sent": enet.host.pop_statistic(ENetConnection.HOST_TOTAL_SENT_DATA),
+		"received": enet.host.pop_statistic(ENetConnection.HOST_TOTAL_RECEIVED_DATA),
+		"sent_packets": enet.host.pop_statistic(ENetConnection.HOST_TOTAL_SENT_PACKETS),
+		"received_packets": enet.host.pop_statistic(ENetConnection.HOST_TOTAL_RECEIVED_PACKETS),
+	}
+
+
 ## Classifies a local interface address: &"tailscale", &"lan", &"public", &"ipv6",
 ## or empty when useless for friends (loopback, link-local...).
 static func address_kind(ip: String, interface_label: String = "") -> StringName:

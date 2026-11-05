@@ -40,6 +40,22 @@ script = ExtResource("2")
 size = Vector2(320, 16)
 one_way = true
 
+[node name="HighLeftBlock" type="StaticBody2D" parent="."]
+position = Vector2(250, 170)
+script = ExtResource("2")
+size = Vector2(140, 24)
+
+[node name="HighRightBlock" type="StaticBody2D" parent="."]
+position = Vector2(890, 170)
+script = ExtResource("2")
+size = Vector2(140, 24)
+
+[node name="HighCenter" type="StaticBody2D" parent="."]
+position = Vector2(540, 110)
+script = ExtResource("2")
+size = Vector2(200, 16)
+one_way = true
+
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Spawn1" type="Marker2D" parent="SpawnPoints"]

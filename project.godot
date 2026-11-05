@@ -6,7 +6,7 @@ config_version=5
 [application]
 
 config/name="gun_game"
-config/version="0.2.7"
+config/version="0.2.8"
 run/main_scene="res://src/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -17,7 +17,8 @@ Session="*res://src/autoload/session.gd"
 
 [debug]
 
-file_logging/max_log_files=10
+file_logging/enable_file_logging=false
+file_logging/enable_file_logging.pc=false
 
 [display]
 
@@ -45,7 +46,7 @@ move_right={
 }
 jump={
 "deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":87), Object(InputEventKey,"physical_keycode":32), Object(InputEventKey,"physical_keycode":4194320)]
+"events": [Object(InputEventKey,"physical_keycode":87), Object(InputEventKey,"physical_keycode":32)]
 }
 down={
 "deadzone": 0.2,

@@ -14,3 +14,5 @@ spread_degrees = 1.5
 knockback = 800.0
 recoil = 120.0
 sprite = ExtResource("2")
+magazine_size = 15
+reload_time = 1.0

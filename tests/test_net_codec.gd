@@ -31,7 +31,8 @@ func test_snapshot_roundtrip() -> void:
 	var states: Array[Dictionary] = [
 		{"slot": 0, "position": Vector2(400.5, -20.25), "velocity": Vector2(120, -820), "facing": -1, "active": true, "invulnerable": true, "aim": 32768, "last_seq": 65535, "lives": 5,
 				"on_floor": true, "prev_buttons": InputFrame.JUMP | InputFrame.DOWN, "jumps_left": 2, "jump_buffer_timer": 0.125, "drop_timer": 0.25,
-				"kills": 7, "deaths": 3, "ability_cooldown": 3.21, "ability_active": true, "firing": true, "boost_time_left": 0.05},
+				"kills": 7, "deaths": 3, "ability_cooldown": 3.21, "ability_active": true, "firing": true, "boost_time_left": 0.05,
+				"ammo": 17, "reloading": true},
 		{"slot": 3, "position": Vector2(1, 2), "velocity": Vector2(99999, 0), "facing": 1, "active": false, "invulnerable": false, "aim": 0, "last_seq": 7, "lives": 0},
 	]
 	var data := NetCodec.encode_snapshot(1234, 3, states)
@@ -54,6 +55,7 @@ func test_snapshot_roundtrip() -> void:
 			"ability cooldown in ticks (rounded up) and active flag")
 	check_eq([is_equal_approx(a.boost_time_left, 0.05), b.boost_time_left], [true, 0.0],
 			"jetpack state for prediction replay")
+	check_eq([a.ammo, a.reloading, b.ammo, b.reloading], [17, true, 0, false], "magazine and reload flag")
 
 
 func test_snapshot_rejects_malformed() -> void:

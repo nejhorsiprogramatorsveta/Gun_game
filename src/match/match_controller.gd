@@ -81,6 +81,8 @@ func _ready() -> void:
 		_net.snapshot_received.connect(_on_snapshot_received)
 		_net.kill_announced.connect(_on_kill_announced)
 		_net_log.peer_stats = func(peer_id: int) -> Dictionary: return EnetDirectConnector.peer_stats(multiplayer.multiplayer_peer, peer_id)
+		_net_log.traffic = func() -> Dictionary: return EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)
+		EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)  # start counting with the match
 		if _net.lag.is_enabled():
 			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
 	else:
@@ -204,6 +206,7 @@ func _on_player_fell(player: Player) -> void:
 				_net.send_kill_announced(event.killer_slot, event.streak)
 	player.set_active(false)
 	if _networked:
+		DiagLog.event("match", "fall slot%d lives_left=%d" % [player.slot, player.lives - 1])
 		player.lives -= 1
 		if player.lives <= 0:
 			_elimination_order.append(player.peer_id)
@@ -217,6 +220,8 @@ func _on_player_hit(attacker_peer_id: int, victim: Player) -> void:
 
 
 func _on_kill_announced(killer_slot: int, streak: int) -> void:
+	if _networked:
+		DiagLog.event("match", "kill by slot%d streak=%d" % [killer_slot, streak])
 	for player in _players.values():
 		if player.slot == killer_slot:
 			var popup := KillPopup.new()

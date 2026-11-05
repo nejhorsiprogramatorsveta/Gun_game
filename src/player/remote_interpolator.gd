@@ -9,6 +9,10 @@ const MAX_BUFFERED := 20
 ## Bigger jumps (e.g. a respawn) are shown instantly instead of sliding across the arena.
 const TELEPORT_DISTANCE := 200.0
 
+## Diagnostics (NetLog): frames in which a remote player had to be held at its last known
+## state because no newer snapshot had arrived (visible as stutter). Shared by all players.
+static var hold_frames := 0
+
 ## [{time: int (local ms), state: Dictionary}], oldest first.
 var _buffer: Array[Dictionary] = []
 var _delay_ms := INTERPOLATION_DELAY_MS
@@ -36,6 +40,7 @@ func sample(now_ms: int) -> Dictionary:
 		var newer: Dictionary = _buffer[i + 1]
 		if render_time < newer.time:
 			return _blend(older, newer, render_time)
+	hold_frames += 1
 	return _buffer[-1].state  # no newer data yet: hold the last known state
 
 

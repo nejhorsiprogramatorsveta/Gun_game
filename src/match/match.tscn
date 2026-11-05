@@ -23,7 +23,7 @@ offset_top = 12.0
 offset_right = 1264.0
 offset_bottom = 40.0
 theme_override_colors/font_color = Color(0.8, 0.82, 0.88, 1)
-text = "PRACTICE_HINT"
+text = ""
 
 [node name="MatchHud" type="Control" parent="Hud"]
 layout_mode = 3

@@ -158,6 +158,7 @@ func share_addresses() -> Array[Dictionary]:
 
 func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT) -> void:
 	leave()
+	DiagLog.begin_game()
 	var peer := _connector.host(port)
 	if peer == null:
 		_emit_ended(tr("ERROR_HOST_FAILED").format({"port": port}))
@@ -182,7 +183,8 @@ func join_game(join_text: String, player_name: String) -> void:
 	if _join_code.is_empty():
 		_emit_ended(tr("ERROR_MISSING_CODE"))
 		return
-	DiagLog.event("conn", "joining %s" % DiagLog.describe_address(address))
+	DiagLog.begin_game()
+	DiagLog.event("conn", "joining %s" % DiagLog.describe_join(address))
 	var peer := _connector.join(address)
 	if peer == null:
 		_emit_ended(tr("ERROR_INVALID_ADDRESS"))

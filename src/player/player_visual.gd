@@ -12,6 +12,9 @@ const WEAPON_GRIP := Vector2(4, 6)
 const PIXEL_SCALE := 2.0
 ## Shoulder of the weapon arm relative to the player's origin (world px).
 const SHOULDER := Vector2(0, -10)
+## Reload: the gun dips by up to this angle (rad); the bar above the head (world px).
+const RELOAD_DIP := 1.1
+const RELOAD_BAR := Rect2(-20, -98, 40, 6)
 ## Horizontal speed above which the walk animation plays.
 const WALK_SPEED := 30.0
 ## [name, first frame, frame count, frames per second, loop]
@@ -26,6 +29,8 @@ var _weapon_frames: Array[AtlasTexture] = []
 var _ability: AbilityData
 var _ability_loop: AnimatedSprite2D
 var _was_ability_active := false
+## Reload progress 0..1, or -1 when not reloading.
+var _reload_progress := -1.0
 
 
 func setup(character: CharacterData) -> void:
@@ -59,10 +64,11 @@ func setup(character: CharacterData) -> void:
 
 ## Called every frame by the Player with its current state.
 func update_look(facing: int, aim_direction: Vector2, on_floor: bool, velocity: Vector2, firing: bool,
-		ability_active := false) -> void:
+		ability_active := false, reload_progress := -1.0) -> void:
 	_update_ability(ability_active, facing)
+	_update_reload(reload_progress, facing)
 	var animation := "idle"
-	if firing:
+	if firing and reload_progress < 0.0:
 		animation = "shoot"
 	elif not on_floor:
 		animation = "jump" if velocity.y < 0.0 else "fall"
@@ -74,12 +80,33 @@ func update_look(facing: int, aim_direction: Vector2, on_floor: bool, velocity: 
 	if _weapon_frames.is_empty():
 		return
 	_weapon.rotation = aim_direction.angle()
+	if reload_progress >= 0.0:  # dip the gun towards the ground and bring it back up
+		_weapon.rotation += sin(reload_progress * PI) * RELOAD_DIP * (1.0 if aim_direction.x >= 0.0 else -1.0)
 	_weapon.flip_v = aim_direction.x < 0.0
 	_weapon.offset = Vector2(-WEAPON_GRIP.x, -(WEAPON_FRAME_SIZE.y - WEAPON_GRIP.y) if _weapon.flip_v else -WEAPON_GRIP.y)
 	var flash := firing and _body.frame == 0
 	_weapon.texture = _weapon_frames[1 if flash else 0]
 	# The gun kicks back a little on the flash frame.
 	_weapon.position = SHOULDER - aim_direction * (3.0 if flash else 0.0)
+
+
+## Reload: a falling magazine when it starts, a progress bar above the head while it runs.
+func _update_reload(progress: float, facing: int) -> void:
+	if progress >= 0.0 and _reload_progress < 0.0 and get_parent() and get_parent().get_parent():
+		var drop := MagazineDrop.new()
+		drop.setup(facing)
+		get_parent().get_parent().add_child(drop)
+		drop.global_position = global_position + SHOULDER + Vector2(6.0 * facing, 6.0)
+	if progress >= 0.0 or _reload_progress >= 0.0:
+		queue_redraw()
+	_reload_progress = progress
+
+
+func _draw() -> void:
+	if _reload_progress < 0.0:
+		return
+	draw_rect(RELOAD_BAR.grow(2.0), Color(0.05, 0.04, 0.08, 0.85))
+	draw_rect(Rect2(RELOAD_BAR.position, Vector2(RELOAD_BAR.size.x * _reload_progress, RELOAD_BAR.size.y)), Color(1.0, 0.82, 0.3))
 
 
 ## Ability effects: a loop while active (shield) and a burst when it starts (ring, trail, smoke).
