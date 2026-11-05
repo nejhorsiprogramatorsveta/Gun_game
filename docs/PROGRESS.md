@@ -8,6 +8,7 @@
 - Návod popisuje postavy, zbraně (limity odhozu a zpětného rázu), schopnosti, pravidla zápasu, texty (uvozovky), vydání (verze + changelog) a kontroly.
 - `session.gd` má 312 řádků (limit ~300) – rozdělit při další změně Session.
 - **Pozor před dalším herním commitem:** verze `0.1.14` + archivace changelogu (build z `version.json`).
+- **Opravit s dalším herním commitem:** v `data/changelog.tres` je archivní záznam `0.1.12` omylem s `"build": 42`, správně **43** (commit jen s dokumentací `e8075a1` zvýšil počet commitů). Hráči to nevidí (menu ukazuje jen nejnovější verzi). Číslo buildu vždy brát z `version.json` AŽ po přečtení výstupu; dokumentační commity build také zvyšují.
 - Necommitnuté změny: žádné.
 
 ## Další krok
