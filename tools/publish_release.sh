@@ -51,7 +51,7 @@ gh release upload dev --repo "$GITHUB_REPOSITORY" --clobber \
 # Existing updaters must not see the new manifest before every game file exists.
 gh release upload dev version.json --repo "$GITHUB_REPOSITORY" --clobber
 gh release edit dev --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false --latest \
-  --title "${GAME_NAME} v${version}" --notes-file notes.md
+  --title "${GAME_TITLE:-$GAME_NAME} v${version}" --notes-file notes.md
 
 promotion="$(gh release view dev --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease)"
 python3 - "$promotion" <<'PY'

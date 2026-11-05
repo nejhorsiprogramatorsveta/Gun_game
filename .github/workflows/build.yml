@@ -23,7 +23,10 @@ permissions:
   contents: write
 
 env:
+  # File names and the user data folder stay "gun_game" (updater URLs, saved settings);
+  # GAME_TITLE is only the name players see on the release page.
   GAME_NAME: gun_game
+  GAME_TITLE: Dojo Knockout
 
 jobs:
   build:

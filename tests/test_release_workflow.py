@@ -105,10 +105,12 @@ class ReleaseWorkflowTests(unittest.TestCase):
         (self.work / "build_info.json").write_text(json.dumps(info), encoding="utf-8")
         (self.work / "version.json").write_text(json.dumps(info), encoding="utf-8")
 
-    def _run(self):
+    def _run(self, extra_env=None):
         env = os.environ.copy()
+        env.pop("GAME_TITLE", None)  # CI sets it for the whole job; tests decide explicitly
         env.update({"GAME_NAME": "gun_game", "GITHUB_REPOSITORY": "example/game",
                     "GH_TOKEN": "local-mock-token", "PATH": str(self.bin_dir) + os.pathsep + env["PATH"]})
+        env.update(extra_env or {})
         result = subprocess.run([str(BASH), str(PUBLISHER).replace("\\", "/")], cwd=self.work,
                                 env=env, capture_output=True, text=True, timeout=30)
         self.assertNotIn(env["GH_TOKEN"], result.stdout + result.stderr)
@@ -138,6 +140,14 @@ class ReleaseWorkflowTests(unittest.TestCase):
             self.assertIn(option, mutations[2])
         self.assertEqual(mutations[2][mutations[2].index("--title") + 1], "gun_game v0.1.1")
         self.assertEqual(self._read_state()["legacy"], "draft")
+
+    def test_release_title_uses_the_display_name_when_set(self):
+        result = self._run({"GAME_TITLE": "Dojo Knockout"})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        promotion = self._mutations()[2]
+        self.assertEqual(promotion[promotion.index("--title") + 1], "Dojo Knockout v0.1.1")
+        for filename in ("gun_game-windows.exe", "gun_game-macos.zip", "gun_game-linux.zip"):
+            self.assertTrue(any(arg.endswith(filename) for arg in self._mutations()[0]), "file names keep GAME_NAME")
 
     def test_missing_dev_or_failed_manifest_download_never_mutates(self):
         for failure in ("missing_dev", "download"):

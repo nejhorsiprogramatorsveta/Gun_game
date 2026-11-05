@@ -1,16 +1,19 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M6 – automaticky ověřený M6.3 + úpravy rozvržení (verze `0.1.15`).** Chybí jen ruční test 4 lidí a rozhodnutí o `v0.2.0`. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
-- **Menu:** Trénink je tlačítko na celou šířku, výběr postavy a mapy je pod ním (pokyn uživatele).
-- **Lobby hostitele bez posouvání** (pokyn uživatele): menší nadpis, mezery, karty (58 px, písmo 13), tlačítka 40 px a písmo nápověd 14, širší sloupec 760 px. V okně 1280 × 775 se vejde bez posuvníku; `ScrollContainer` zůstává jen jako pojistka pro velmi malá okna.
-- **M6.3 – 4 hráči (boti), všechny 3 mapy:** host + 3 klienti (1 s lagem 100 ms / 3 %), náhodný pohyb, nepřetržitá střelba, schopnosti → vždy celý zápas, výsledky, návrat do lobby, 0 chyb skriptů. Host po startu: 0 snímků nad 16,7 ms (z ~4100; zpracování max. 1,1 ms, fyzika max. 9 ms headless), s oknem 120 FPS bez pomalých snímků; max. ~34 střel naráz. Fronta vstupů 0–3. Klient s lagem: ping ~150–175 ms, korekce až ~100 px při zásazích (odhoz se nepredikuje – viz M4.1 / budoucí práce). Špička ~95 ms jen při načtení scény.
+**M6 hotový a vydaný jako `v0.2.0`; hra se jmenuje „Dojo Knockout“** (pokyn uživatele 2026-11-05). Ruční test 4 lidí zatím neproběhl. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+- Název: nadpis v menu (`GAME_TITLE` v CSV), titulek okna (`main_menu.gd`), název vydání na GitHubu (`GAME_TITLE` v `build.yml` → `publish_release.sh`, výchozí dál `GAME_NAME`), README. **Beze změny** (záměrně): `config/name="gun_game"` (složka s nastavením a logy), názvy souborů `gun_game-*.exe/zip` (URL aktualizací), repozitář.
+- M6.3 výsledky (0.1.15): 4 boti na 3 mapách bez chyb, bez pomalých snímků – viz PLAN.md M6.
 - `session.gd` má 317 řádků (limit ~300) – při další změně Session přesunout handshake do `src/net/session_auth.gd`.
-- **Pozor před dalším herním commitem:** verze `0.1.16` (nebo `0.2.0` dle uživatele) + archivace changelogu (build z `version.json` – přímé stahování z GitHubu občas nedopovídá, pak přes API `releases/latest` → asset `version.json`).
+- **Pozor před dalším herním commitem:** verze `0.2.1` + archivace changelogu (build přes API `releases/latest` → asset `version.json`, AŽ po přečtení výstupu).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**Rozhodnutí uživatele:** vydat `v0.2.0` (dokončení M6) a ruční test 4 lidí (aspoň 2 přes internet / Tailscale). Potom nabídnout: „budoucí práce – chování zbraní“ (PLAN.md G.0a), M4.1 (Wi-Fi log), rozdělení `session.gd`, nebo další milník (PLAN.md K: M7 je volitelný noray; zvážit grafiku – pixel art, PLAN.md Q).
+**Rozhodnutí uživatele, co dál.** Nabídnout:
+- ruční test 4 lidí (aspoň 2 přes Tailscale) + poslat logy `[net]` → M4.1 sekání a korekce při zásazích (odhoz se u klienta nepredikuje),
+- „budoucí práce – chování zbraní“ (PLAN.md G.0a): úbytek odhozu se vzdáleností, viditelný konec dostřelu, zásobník,
+- grafika – pixel art postav a map (PLAN.md Q; zdroj grafiky zatím nevyřešený),
+- údržba: rozdělit `session.gd`.
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -56,6 +59,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, vydání v0.2.0 + název „Dojo Knockout“ (Claude):** `GAME_TITLE` v CSV a CI, titulek okna, `publish_release.sh` (`GAME_TITLE` s výchozím `GAME_NAME`), test titulku v `tests/test_release_workflow.py` (CI proměnnou v testech výslovně odstraňuje), README.
 - **2026-11-05, rozvržení menu/lobby + M6.3 test 4 hráčů, verze 0.1.15 (Claude):** `main_menu.tscn` (Trénink na celou šířku), `lobby.tscn`/`lobby.gd` (kompaktnější), výsledky testu 4 botů a profilace zapsány.
 - **2026-11-05, M6.1 + M6.2 mapy a výběr mapy, verze 0.1.14 (Claude):** `ArenaData`, `data/arenas/{rooftops,temple_steps,hanging_bridges}.tres`, 2 nové scény arén, `ContentDB` arény, `ArenaChoice`, `Session.arena_id` + `_begin_match(slots, arena)`, `Settings.practice_arena`, výběr v menu a lobby, lobby ve `ScrollContainer`, `tests/test_arenas.gd`, oprava changelogu 0.1.12 → 43, EDITING_GUIDE o mapách.
 - **2026-11-05, M5.4 návod + delší plyn, verze 0.1.13 (Claude):** `docs/EDITING_GUIDE.md`, `slow_cloud` délka 540, akceptační ověření přidání postavy přes data.
@@ -218,6 +222,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, v0.2.0:** 104/104 unit testů, lokalizace OK, 10/10 testů vydávání (nový: titulek z `GAME_TITLE`, názvy souborů dál `gun_game-*`). **Neověřeno:** ruční hra 4 lidí, internet, Windows.
 - **2026-11-05, rozvržení + M6.3 (0.1.15):** 104/104 unit testů, lokalizace OK; screenshot menu a lobby hostitele (bez posuvníku, 1280 × 775); test 4 botů na 3 mapách (výsledky viz „Kde jsme skončili“). **Neověřeno:** ruční hra 4 lidí, internet, Windows, slabší notebook.
 - **2026-11-05, M6.1 + M6.2 (0.1.14):** 104/104 unit testů (3 mapy, záložní mapa, ≥ 4 spawny s plošinou pod každým, nic mimo hranice), lokalizace OK. Trénink na obou nových mapách (postavy stojí na zemi, screenshoty). Síťový test se 3 procesy: host zvolí Visuté mosty → oba klienti vidí změnu v lobby a všichni hrají Visuté mosty. Screenshot lobby hostitele (po opravě posuvu). **Neověřeno:** ruční hraní nových map, 4 hráči, Windows.
 - **2026-11-05, M5.4 (0.1.13):** 102/102 unit testů, lokalizace OK; ruční akceptační ověření dočasné postavy přes `.tres` + CSV (objevila se v ContentDB a menu). **Neověřeno:** návod prakticky nevyzkoušel nikdo jiný; ruční hraní, Windows.

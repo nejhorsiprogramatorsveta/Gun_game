@@ -26,6 +26,7 @@ Respond to the user in Czech. Code, identifiers, commits in English (Conventiona
 Player-facing text only via tr() keys in localization/translations.csv.
 
 ## Purpose
+Game title (player-facing): "Dojo Knockout" (GAME_TITLE in CSV and CI); internal name stays gun_game (files, user dir).
 Online 2–4 player 2D knockback arena shooter (original, Gun Mayhem-like mechanics). Host-authoritative listen server.
 Friends (mainly Windows) download ZIP from GitHub Releases. MVP: keyboard only.
 
@@ -48,7 +49,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.1.15, next 0.1.16 or 0.2.0 when the user decides).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.0, next 0.2.1).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 

@@ -32,6 +32,7 @@ var _manual_download := false
 
 
 func _ready() -> void:
+	get_window().title = tr("GAME_TITLE")  # the project/user-data name stays "gun_game"
 	_version_label.text = tr("MENU_VERSION").format({"version": BuildInfo.display_string()})
 	_name_edit.max_length = Session.MAX_NAME_LENGTH
 	_name_edit.text = Settings.player_name

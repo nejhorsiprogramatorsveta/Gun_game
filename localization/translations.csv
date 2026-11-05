@@ -1,5 +1,5 @@
 keys,cs
-GAME_TITLE,Gun Game
+GAME_TITLE,Dojo Knockout
 MENU_PRACTICE,Trénink
 MENU_HOST,Hostovat
 MENU_JOIN,Připojit
@@ -164,3 +164,5 @@ MENU_PRACTICE_ARENA,Mapa pro trénink (a první mapa při hostování)
 LOBBY_ARENA,"Mapa:"
 CHANGELOG_ARENAS,"Dvě nové mapy: Chrámové schody a Visuté mosty. Mapu vybírá hostitel v lobby, v tréninku ji vybereš v menu."
 CHANGELOG_LAYOUT,"Větší tlačítko Trénink (výběr postavy a mapy pod ním); lobby hostitele se vejde na obrazovku bez posouvání."
+CHANGELOG_NEW_NAME,"Hra má nové jméno: Dojo Knockout."
+CHANGELOG_V020,"Verze 0.2.0 shrnuje dosavadní obsah: 6 postav s vlastní zbraní a schopností, 3 mapy, výběr postavy a mapy v lobby a zápasy až pro 4 hráče."
