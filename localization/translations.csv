@@ -163,3 +163,4 @@ ARENA_HANGING_BRIDGES_NAME,Visuté mosty
 MENU_PRACTICE_ARENA,Mapa pro trénink (a první mapa při hostování)
 LOBBY_ARENA,"Mapa:"
 CHANGELOG_ARENAS,"Dvě nové mapy: Chrámové schody a Visuté mosty. Mapu vybírá hostitel v lobby, v tréninku ji vybereš v menu."
+CHANGELOG_LAYOUT,"Větší tlačítko Trénink (výběr postavy a mapy pod ním); lobby hostitele se vejde na obrazovku bez posouvání."

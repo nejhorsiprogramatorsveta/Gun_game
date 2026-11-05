@@ -36,26 +36,27 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 placeholder_text = "MENU_NAME_PLACEHOLDER"
 
-[node name="PracticeRow" type="HBoxContainer" parent="Center/Column"]
-layout_mode = 2
-
-[node name="PracticeButton" type="Button" parent="Center/Column/PracticeRow"]
+[node name="PracticeButton" type="Button" parent="Center/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-size_flags_horizontal = 3
 text = "MENU_PRACTICE"
+
+[node name="PracticeRow" type="HBoxContainer" parent="Center/Column"]
+layout_mode = 2
 
 [node name="CharacterOption" type="OptionButton" parent="Center/Column/PracticeRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 48)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+size_flags_horizontal = 3
 tooltip_text = "MENU_PRACTICE_CHARACTER"
 
 [node name="ArenaOption" type="OptionButton" parent="Center/Column/PracticeRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 48)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+size_flags_horizontal = 3
 tooltip_text = "MENU_PRACTICE_ARENA"
 
 [node name="HostButton" type="Button" parent="Center/Column"]

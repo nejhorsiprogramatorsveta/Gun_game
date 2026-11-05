@@ -26,13 +26,13 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Column" type="VBoxContainer" parent="Scroll/Center"]
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(760, 0)
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="Scroll/Center/Column"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 30
 text = "LOBBY_TITLE"
 horizontal_alignment = 1
 
@@ -40,7 +40,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 
 [node name="PlayerList" type="VBoxContainer" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
@@ -49,11 +49,11 @@ layout_mode = 2
 [node name="ShareSection" type="VBoxContainer" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
 [node name="ShareTitle" type="Label" parent="Scroll/Center/Column/ShareSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "LOBBY_SHARE_TITLE"
 
 [node name="RoomCodeLabel" type="Label" parent="Scroll/Center/Column/ShareSection"]
@@ -71,15 +71,17 @@ columns = 3
 [node name="InternetHint" type="Label" parent="Scroll/Center/Column/ShareSection"]
 unique_name_in_owner = true
 auto_translate_mode = 2
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(760, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
+theme_override_font_sizes/font_size = 14
 autowrap_mode = 3
 
 [node name="SafetyHint" type="Label" parent="Scroll/Center/Column/ShareSection"]
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(760, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
+theme_override_font_sizes/font_size = 14
 text = "LOBBY_SHARE_SAFETY"
 autowrap_mode = 3
 
@@ -92,12 +94,12 @@ horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "LOBBY_START"
 
 [node name="LeaveButton" type="Button" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "LOBBY_LEAVE"

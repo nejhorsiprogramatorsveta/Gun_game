@@ -1,20 +1,16 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**M6 – kroky M6.1 + M6.2 hotové (verze `0.1.14`): 3 mapy a výběr mapy.** Zbývá M6.3. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
-- Nové originální mapy **Chrámové schody** (dvě boční základny, propast, schody z plošin) a **Visuté mosty** (tři ostrovy, mosty, vysoké římsy); původní **Střechy**. Zatím barevné plošiny (pixel art viz PLAN.md Q).
-- Lobby: mapu vybírá jen hostitel (rozbalovací seznam pod kartami postav), ostatní ji vidí; mapa se posílá i se startem zápasu (`_begin_match(slots, arena)`), takže všichni hrají stejnou. Trénink: výběr mapy v menu vedle postavy (zároveň první mapa při hostování).
-- Lobby je v posuvném kontejneru (u hostitele se obsah nevešel na výšku – nadpis a „Odejít“ byly uříznuté); mapa hned pod kartami, menší karty.
-- Changelog opraven: archivní 0.1.12 = sestavení 43 (bylo omylem 42). Protokol 12.
-- `session.gd` má 317 řádků (limit ~300) – **další úkol na Session: přesunout handshake (`_on_auth_message`, `_handle_hello`, `_handle_auth_reply`, `_drop_peer`, `_pending_names`, `_rejected_peers`) do `src/net/session_auth.gd`** a ověřit síťovými testy chybových hlášek.
-- **Pozor před dalším herním commitem:** verze `0.1.15` + archivace changelogu (build z `version.json`, AŽ po přečtení výstupu).
+**M6 – automaticky ověřený M6.3 + úpravy rozvržení (verze `0.1.15`).** Chybí jen ruční test 4 lidí a rozhodnutí o `v0.2.0`. M4.1 (sekání Wi-Fi) čeká na log z dalšího hraní.
+- **Menu:** Trénink je tlačítko na celou šířku, výběr postavy a mapy je pod ním (pokyn uživatele).
+- **Lobby hostitele bez posouvání** (pokyn uživatele): menší nadpis, mezery, karty (58 px, písmo 13), tlačítka 40 px a písmo nápověd 14, širší sloupec 760 px. V okně 1280 × 775 se vejde bez posuvníku; `ScrollContainer` zůstává jen jako pojistka pro velmi malá okna.
+- **M6.3 – 4 hráči (boti), všechny 3 mapy:** host + 3 klienti (1 s lagem 100 ms / 3 %), náhodný pohyb, nepřetržitá střelba, schopnosti → vždy celý zápas, výsledky, návrat do lobby, 0 chyb skriptů. Host po startu: 0 snímků nad 16,7 ms (z ~4100; zpracování max. 1,1 ms, fyzika max. 9 ms headless), s oknem 120 FPS bez pomalých snímků; max. ~34 střel naráz. Fronta vstupů 0–3. Klient s lagem: ping ~150–175 ms, korekce až ~100 px při zásazích (odhoz se nepredikuje – viz M4.1 / budoucí práce). Špička ~95 ms jen při načtení scény.
+- `session.gd` má 317 řádků (limit ~300) – při další změně Session přesunout handshake do `src/net/session_auth.gd`.
+- **Pozor před dalším herním commitem:** verze `0.1.16` (nebo `0.2.0` dle uživatele) + archivace changelogu (build z `version.json` – přímé stahování z GitHubu občas nedopovídá, pak přes API `releases/latest` → asset `version.json`).
 - Necommitnuté změny: žádné.
 
 ## Další krok
-**M6.3 – 4 hráči, výkon a vydání `v0.2.0`** (PLAN.md K, M6).
-- Síťový test se 4 procesy na všech 3 mapách (spawny, respawn, konec zápasu, výsledky), měření FPS/pingu z `[net]` logu.
-- Profilace: FPS a čas snímku s 4 hráči a hodně střelami (brokovnice, kulomet) – headless i s oknem; případné optimalizace.
-- Zeptat se uživatele, zda vydat `0.2.0` (zvýšení minor verze je samostatné rozhodnutí, CI ho povolí), a na ruční test se 4 hráči (aspoň 2 přes internet).
+**Rozhodnutí uživatele:** vydat `v0.2.0` (dokončení M6) a ruční test 4 lidí (aspoň 2 přes internet / Tailscale). Potom nabídnout: „budoucí práce – chování zbraní“ (PLAN.md G.0a), M4.1 (Wi-Fi log), rozdělení `session.gd`, nebo další milník (PLAN.md K: M7 je volitelný noray; zvážit grafiku – pixel art, PLAN.md Q).
 
 ## ODLOŽENO NA KONEC PROJEKTU (uživatel 2026-11-03: „Windows ověříme až na konci, pokud neřeknu jinak“)
 **Neptat se na to v každé session.**
@@ -60,6 +56,7 @@
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-05, rozvržení menu/lobby + M6.3 test 4 hráčů, verze 0.1.15 (Claude):** `main_menu.tscn` (Trénink na celou šířku), `lobby.tscn`/`lobby.gd` (kompaktnější), výsledky testu 4 botů a profilace zapsány.
 - **2026-11-05, M6.1 + M6.2 mapy a výběr mapy, verze 0.1.14 (Claude):** `ArenaData`, `data/arenas/{rooftops,temple_steps,hanging_bridges}.tres`, 2 nové scény arén, `ContentDB` arény, `ArenaChoice`, `Session.arena_id` + `_begin_match(slots, arena)`, `Settings.practice_arena`, výběr v menu a lobby, lobby ve `ScrollContainer`, `tests/test_arenas.gd`, oprava changelogu 0.1.12 → 43, EDITING_GUIDE o mapách.
 - **2026-11-05, M5.4 návod + delší plyn, verze 0.1.13 (Claude):** `docs/EDITING_GUIDE.md`, `slow_cloud` délka 540, akceptační ověření přidání postavy přes data.
 - **2026-11-05, jedna zbraň na postavu, verze 0.1.12 (Claude):** `CharacterData.weapon`, 6 postav upraveno, odstraněno přepínání (`project.godot`, `InputFrame`, `Player`, `WeaponSystem`, `CombatRules`, `NetCodec`, `MatchController`), HUD/lobby/CSV, testy.
@@ -221,6 +218,7 @@
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-05, rozvržení + M6.3 (0.1.15):** 104/104 unit testů, lokalizace OK; screenshot menu a lobby hostitele (bez posuvníku, 1280 × 775); test 4 botů na 3 mapách (výsledky viz „Kde jsme skončili“). **Neověřeno:** ruční hra 4 lidí, internet, Windows, slabší notebook.
 - **2026-11-05, M6.1 + M6.2 (0.1.14):** 104/104 unit testů (3 mapy, záložní mapa, ≥ 4 spawny s plošinou pod každým, nic mimo hranice), lokalizace OK. Trénink na obou nových mapách (postavy stojí na zemi, screenshoty). Síťový test se 3 procesy: host zvolí Visuté mosty → oba klienti vidí změnu v lobby a všichni hrají Visuté mosty. Screenshot lobby hostitele (po opravě posuvu). **Neověřeno:** ruční hraní nových map, 4 hráči, Windows.
 - **2026-11-05, M5.4 (0.1.13):** 102/102 unit testů, lokalizace OK; ruční akceptační ověření dočasné postavy přes `.tres` + CSV (objevila se v ContentDB a menu). **Neověřeno:** návod prakticky nevyzkoušel nikdo jiný; ruční hraní, Windows.
 - **2026-11-05, jedna zbraň (0.1.12):** 102/102 unit testů (každá postava má zvolenou zbraň), lokalizace OK. Trénink: všech 6 postav střílí svou zbraní (brokovnice 8 broků, odstřelovačka 1 rána / 0,5 s), HUD „zbraň | schopnost“. Síťový zápas se 3 hráči bez chyb. **Neověřeno:** ruční hraní, Windows.

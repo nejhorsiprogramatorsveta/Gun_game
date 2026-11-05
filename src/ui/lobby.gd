@@ -74,7 +74,7 @@ func _build_character_cards() -> void:
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.add_theme_constant_override("v_separation", 6)
 	var column := _player_list.get_parent()
 	column.add_child(title)
 	column.add_child(grid)
@@ -85,8 +85,8 @@ func _build_character_cards() -> void:
 		var button := Button.new()
 		button.toggle_mode = true
 		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		button.custom_minimum_size = Vector2(230, 70)
-		button.add_theme_font_size_override("font_size", 15)
+		button.custom_minimum_size = Vector2(248, 58)
+		button.add_theme_font_size_override("font_size", 13)
 		button.pressed.connect(_on_character_pressed.bind(String(id)))
 		grid.add_child(button)
 		_character_buttons[String(id)] = button
