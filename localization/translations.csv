@@ -258,3 +258,5 @@ CHANGELOG_LOWER_PING,"Výrazně nižší ping: hostitel zpracuje vstupy připoje
 CHANGELOG_INSTANT_SHOTS,"Vlastní střely se ukážou hned po stisku, ne až po odpovědi hostitele, a když hostitel zpracuje více vstupů najednou, střely nelétají v hloučku."
 CHANGELOG_SMOOTH_PLAYERS_0210,"Ostatní hráči se nesekají, ani když jejich připojení posílá data po dávkách: každý se přehrává podle svého vlastního časování a při krátkém výpadku se jeho pohyb dopočítá místo zamrznutí."
 CHANGELOG_DIAG_0210,"Diagnostika: v logu je pro každého hráče zpoždění zobrazení a kolísání spojení, u hostitele čekání na vstupy a jejich dohánění; opravena volná paměť na Windows."
+CHANGELOG_DIAG_MEMORY_0211,"Diagnostický log ukazuje skutečně volnou paměť počítače: dřív do ní na všech systémech započítával i odkládací soubor (na Windows bez něj mohl ukázat skoro celou RAM)."
+CHANGELOG_CODE_0211,"Vnitřní úpravy kódu (rozdělení velkých skriptů) – hra se hraje úplně stejně, jen se v ní lépe vyznáme při dalších změnách."

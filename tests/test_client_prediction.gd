@@ -176,23 +176,23 @@ func test_snapshot_delivery_defers_replay_and_rejects_old_ticks() -> void:
 	var session := tree.root.get_node("Session")
 	var previous_phase: int = session.phase
 	session.phase = session.Phase.IN_MATCH
-	var controller: Node = load("res://src/match/match_controller.gd").new()
+	var players: Dictionary[int, Player] = {}
+	var client := MatchClient.new(players, 2, null, null, NetLog.new())
 	var snapshot := {"tick": 0xFFFFFFFF, "countdown": 1, "states": []}
-	controller._on_snapshot_received(snapshot)
-	check_eq(controller._countdown_display, 0, "delivery queues state without running simulation outside physics")
-	check_eq(controller._pending_snapshot, snapshot, "latest authoritative state queued for physics")
+	client.receive_snapshot(snapshot)
+	check_eq(client.countdown_display, 0, "delivery queues state without running simulation outside physics")
+	check_eq(client.pending_snapshot, snapshot, "latest authoritative state queued for physics")
 	snapshot = {"tick": 0, "countdown": 0, "states": []}
-	controller._on_snapshot_received(snapshot)
-	check_eq(controller._last_snapshot_tick, 0, "u32 tick wrap accepted")
-	controller._on_snapshot_received({"tick": 0xFFFFFFFE, "countdown": 3, "states": []})
-	check_eq(controller._pending_snapshot, snapshot, "old tick cannot overwrite queued state")
-	controller._on_snapshot_received({"tick": 0, "countdown": 3, "states": []})
-	check_eq(controller._pending_snapshot, snapshot, "duplicate tick ignored")
+	client.receive_snapshot(snapshot)
+	check_eq(client.last_snapshot_tick, 0, "u32 tick wrap accepted")
+	client.receive_snapshot({"tick": 0xFFFFFFFE, "countdown": 3, "states": []})
+	check_eq(client.pending_snapshot, snapshot, "old tick cannot overwrite queued state")
+	client.receive_snapshot({"tick": 0, "countdown": 3, "states": []})
+	check_eq(client.pending_snapshot, snapshot, "duplicate tick ignored")
 	session.phase = session.Phase.RESULTS
-	controller._on_snapshot_received({"tick": 1, "countdown": 3, "states": []})
-	check_eq(controller._last_snapshot_tick, 0, "late match packets ignored during scene transition")
+	client.receive_snapshot({"tick": 1, "countdown": 3, "states": []})
+	check_eq(client.last_snapshot_tick, 0, "late match packets ignored during scene transition")
 	session.phase = previous_phase
-	controller.free()
 
 
 func test_recoil_and_reload_are_predicted_without_correction() -> void:
@@ -203,10 +203,10 @@ func test_recoil_and_reload_are_predicted_without_correction() -> void:
 func _check_recoil_prediction(character_id: StringName) -> void:
 	var host := _player()
 	host.character = ContentDB.get_character(character_id)
-	host.refill_magazine()
+	host.gun.refill()
 	var client := _player()
 	client.character = host.character
-	client.refill_magazine()
+	client.gun.refill()
 	var prediction := ClientPrediction.new()
 	prediction.reconcile(client, host.snapshot_state())
 	var confirmed := {}
@@ -222,7 +222,7 @@ func _check_recoil_prediction(character_id: StringName) -> void:
 	check(shots >= 2, "%s: the host fired (%d shots)" % [character_id, shots])
 	check(not host.velocity.is_zero_approx() or not host.position.is_zero_approx(), "recoil moved the shooter")
 	check(client.position.is_equal_approx(host.position), "%s: prediction applies the same recoil" % character_id)
-	check_eq(client.ammo, host.ammo, "%s: same rounds left" % character_id)
+	check_eq(client.gun.ammo, host.gun.ammo, "%s: same rounds left" % character_id)
 	var correction := prediction.reconcile(client, confirmed)
 	check(correction < 1.0, "%s: replay from a mid-burst snapshot needs no visible correction (%.3f px)" % [character_id, correction])
 	host.free()

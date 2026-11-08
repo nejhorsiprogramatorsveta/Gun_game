@@ -92,8 +92,8 @@ func _show_local_weapon(players: Array) -> void:
 			var weapon := player.current_weapon()
 			_weapon_label.visible = weapon != null and player.visible
 			if weapon:
-				var ammo := tr("HUD_RELOADING") if player.is_reloading() \
-						else tr("HUD_AMMO").format({"ammo": player.ammo, "max": weapon.magazine_size})
+				var ammo := tr("HUD_RELOADING") if player.gun.is_reloading() \
+						else tr("HUD_AMMO").format({"ammo": player.gun.ammo, "max": weapon.magazine_size})
 				_weapon_label.text = tr("HUD_WEAPON").format({"weapon": tr(weapon.name_key), "ammo": ammo}) + _ability_text(player)
 			return
 	_weapon_label.visible = false

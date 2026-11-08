@@ -3,7 +3,7 @@ extends Node2D
 ## the authority (host, or this computer in practice) simulates every player from inputs
 ## and sends snapshots; clients predict their own movement and interpolate opponents.
 ## Network matches: countdown, lives, elimination, winner -> results -> same lobby (T.1).
-## Practice: endless lives and no countdown.
+## Practice: endless lives and no countdown. The client side lives in MatchClient.
 
 const PLAYER_SCENE := preload("res://src/player/player.tscn")
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
@@ -44,16 +44,8 @@ var _elimination_order: Array[int] = []
 
 # Authority: inputs received from clients, peer_id -> InputBuffer.
 var _inputs: Dictionary[int, InputBuffer] = {}
-
-# Client: own input history (newest first) for redundancy against packet loss.
-var _input_seq := 0
-var _input_history: Array[InputFrame] = []
-var _prediction := ClientPrediction.new()
-var _last_snapshot_tick := -1
-var _pending_snapshot: Dictionary = {}
-## Client: from this time (msec) the own movement is predicted, see _apply_snapshot.
-var _movement_starts_ms := 0
-var _stats := NetStats.new()
+## Network clients only: prediction, input sending and snapshots.
+var _client: MatchClient
 var _net_log := NetLog.new()
 
 @onready var _net: Node = $MatchNet
@@ -73,6 +65,7 @@ func _ready() -> void:
 	_effects.setup(_net if _networked else null, _is_authority)
 	if _networked and not _is_authority:  # own shots are predicted on clients
 		_weapons.local_slot = Session.match_slots.get(multiplayer.get_unique_id(), -1)
+		_client = MatchClient.new(_players, multiplayer.get_unique_id(), _net, _weapons, _net_log)
 	if _networked:
 		for peer_id: int in Session.match_slots:
 			_spawn(peer_id, Session.match_slots[peer_id], Session.players.get(peer_id, {}).get("name", "?"))
@@ -84,11 +77,12 @@ func _ready() -> void:
 		Session.phase_changed.connect(_on_session_phase_changed)
 		Session.ended.connect(func(_message: String) -> void: get_tree().change_scene_to_file.call_deferred(MAIN_MENU_PATH))
 		_net.input_received.connect(_on_input_received)
-		_net.snapshot_received.connect(_on_snapshot_received)
+		if _client:
+			_net.snapshot_received.connect(_client.receive_snapshot)
+			_net_log.client_extra = _client.interpolation_text
 		_net.kill_announced.connect(_on_kill_announced)
 		_net_log.peer_stats = func(peer_id: int) -> Dictionary: return EnetDirectConnector.peer_stats(multiplayer.multiplayer_peer, peer_id)
 		_net_log.traffic = func() -> Dictionary: return EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)
-		_net_log.client_extra = _interpolation_text
 		EnetDirectConnector.take_traffic(multiplayer.multiplayer_peer)  # start counting with the match
 		if _net.lag.is_enabled():
 			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
@@ -112,10 +106,10 @@ func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 	var spawns := _arena.spawn_points()
 	player.reset_to(spawns[slot % spawns.size()])
 	_players[peer_id] = player
-	# Remote players get their own playback timeline (SnapshotTimeline). On the host this
-	# only smooths how client-controlled players are drawn (tiny minimum delay).
+	# Remote players get their own playback timeline (RemoteView). On the host this only
+	# smooths how client-controlled players are drawn (tiny minimum delay).
 	if _networked and peer_id != multiplayer.get_unique_id():
-		player.timeline = SnapshotTimeline.new() if not _is_authority else SnapshotTimeline.new(HOST_DISPLAY_MIN_DELAY_MS)
+		player.remote_view = RemoteView.new(SnapshotTimeline.new() if not _is_authority else SnapshotTimeline.new(HOST_DISPLAY_MIN_DELAY_MS))
 
 
 func _physics_process(delta: float) -> void:
@@ -123,16 +117,15 @@ func _physics_process(delta: float) -> void:
 		return
 	if _is_authority:
 		_simulate_tick(delta)
-	else:
-		if not _pending_snapshot.is_empty():
-			_apply_snapshot(_pending_snapshot)
-			_pending_snapshot = {}
-		_send_local_input(delta)
+	elif _client:
+		_client.physics_tick(delta)
+		_countdown_display = _client.countdown_display
+	var ping := _client.stats.ping_ms() if _client else -1
 	_hud.show_state(_players.values(), _countdown_display, _networked)
-	_hud.show_ping(_stats.ping_ms() if not _is_authority else -1)
+	_hud.show_ping(ping)
 	if _networked:
 		var report := _net_log.tick(Time.get_ticks_msec(), _is_authority, Engine.get_frames_per_second(),
-				_stats.ping_ms(), _inputs, _players)
+				ping, _inputs, _players)
 		if not report.is_empty():
 			print(report)
 
@@ -178,7 +171,7 @@ func _simulate_tick(delta: float) -> void:
 			player.simulate(input, delta)
 			_weapons.spawn_shot(player, input, inputs.size() - 1 - i)
 			_abilities.tick(player, _players.values())
-		if not inputs.is_empty() and player.timeline:
+		if not inputs.is_empty() and player.remote_view:
 			player.record_for_display()
 		player.invulnerable_time = maxf(player.invulnerable_time - delta, 0.0)
 		player.invulnerable = player.invulnerable_time > 0.0
@@ -279,68 +272,6 @@ func _check_match_end() -> void:
 	var results := MatchRanking.results(alive, eliminated, Session.team_mode)
 	await get_tree().create_timer(RESULTS_DELAY).timeout
 	Session.end_match(results)
-
-
-# --- Client --------------------------------------------------------------------
-
-func _send_local_input(delta: float) -> void:
-	var local_player: Player = _players.get(multiplayer.get_unique_id())
-	if local_player == null:
-		return
-	_input_seq = (_input_seq + 1) & 0xFFFF
-	var frame := InputFrame.sample_local(local_player)
-	frame.seq = _input_seq
-	if _prediction.predict(local_player, frame, delta, Time.get_ticks_msec() < _movement_starts_ms) and local_player.fired_this_tick:
-		_weapons.spawn_predicted(local_player, frame)  # the shot appears now, the host confirms it later
-	_input_history.push_front(frame)
-	if _input_history.size() > NetCodec.INPUT_HISTORY:
-		_input_history.pop_back()
-	_stats.record_input_sent(_input_seq, Time.get_ticks_msec())
-	_net.send_input(NetCodec.encode_input(_input_history))
-
-
-func _on_snapshot_received(snapshot: Dictionary) -> void:
-	if Session.phase != Session.Phase.IN_MATCH:
-		return
-	var tick: int = snapshot.tick
-	if _last_snapshot_tick >= 0 and (tick == _last_snapshot_tick or ((tick - _last_snapshot_tick) & 0xFFFFFFFF) >= 0x80000000):
-		_net_log.record_snapshot_dropped()
-		return
-	_last_snapshot_tick = tick
-	var now := Time.get_ticks_msec()
-	_net_log.record_snapshot_arrival(now)
-	# Remote players get EVERY snapshot (a bunch keeps all its positions); the own player
-	# is reconciled with the newest one on the next physics tick. Ping counts from arrival.
-	for state: Dictionary in snapshot.states:
-		for player in _players.values():
-			if player.slot == state.slot:
-				if player.peer_id == multiplayer.get_unique_id():
-					_stats.record_ack(state.last_seq, now)
-				else:
-					player.receive_state(state, SnapshotTimeline.tick_ms(tick))
-	_pending_snapshot = snapshot
-
-
-## move_and_slide() uses the engine physics delta, so replay must run on a physics tick.
-func _apply_snapshot(snapshot: Dictionary) -> void:
-	var now := Time.get_ticks_msec()
-	_countdown_display = ceili(snapshot.countdown / 10.0)
-	# Inputs sent from this time on reach the host after its countdown ended, so predict
-	# them as moving (roughly: time left - round trip + half a snapshot interval).
-	_movement_starts_ms = now + snapshot.countdown * 100 - maxi(_stats.ping_ms(), 0) + 16 if snapshot.countdown > 0 else 0
-	for state: Dictionary in snapshot.states:
-		for player in _players.values():
-			if player.slot == state.slot and player.peer_id == multiplayer.get_unique_id():
-				_net_log.record_correction(_prediction.reconcile(player, state))
-
-
-## Diagnostics: display delay / measured jitter of each remote player's timeline.
-func _interpolation_text() -> String:
-	var parts: PackedStringArray = []
-	for player: Player in _players.values():
-		if player.timeline:
-			parts.append("slot%d:%d/%d" % [player.slot, player.timeline.delay_ms, player.timeline.clock.jitter_ms()])
-	return "interp_ms(delay/jitter) " + " ".join(parts)
 
 
 # --- Both ------------------------------------------------------------------------

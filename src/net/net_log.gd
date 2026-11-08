@@ -142,14 +142,19 @@ func _traffic_text(window_ms: int) -> String:
 static func _performance_text() -> String:
 	var memory := OS.get_static_memory_usage()
 	var text := "mem=%dMB " % (memory / 1048576) if memory > 0 else ""
-	var info := OS.get_memory_info()
-	var free: int = info.get("available", -1)
-	if free <= 0 or free > int(info.get("physical", 0)):
-		free = info.get("free", -1)  # Windows reports commit/page-file space as "available"
-	if free > 0:
-		text += "sys_free=%dMB " % (free / 1048576)
+	var free_mb := free_ram_mb(OS.get_memory_info())
+	if free_mb >= 0:
+		text += "sys_free=%dMB " % free_mb
 	return text + "nodes=%d draws=%d" % [Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
 			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
+
+
+## Free physical memory in MB from OS.get_memory_info(), -1 if unknown. Godot 4.7's
+## "available" adds swap / page-file space on every OS (on Windows it is the commit limit,
+## e.g. 57 GB on a laptop), so only "free" says how much RAM the computer has left.
+static func free_ram_mb(info: Dictionary) -> int:
+	var free: int = info.get("free", -1)
+	return free / 1048576 if free > 0 else -1
 
 
 func _enet_text(peer_id: int) -> String:

@@ -49,12 +49,15 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.10, next 0.2.11).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.11, next 0.2.12).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
 ## Architecture (see docs/ARCHITECTURE.md for what exists, docs/PLAN.md section F for the target)
 Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player,client_prediction}.gd,
+src/player/{player_weapon,remote_view,player_labels}.gd (Player parts: player.gun = fire cooldown/ammo/reload,
+player.remote_view = playback of players from other computers, name/percent labels), src/match/match_client.gd
+(client side of a match: input sending, prediction, snapshots), src/net/session_auth.gd (join handshake, child of Session),
 src/arenas/{arena,platform}.gd + arena_*.tscn, data/arenas/*.tres (ArenaData), src/net/arena_choice.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players incl. chosen character),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
@@ -71,7 +74,7 @@ IP masking, network/Tailscale summary), src/net/connection_log.gd (`[sys]`/`[con
 of a match `[net]`: ENet RTT/loss, traffic, snapshots, interpolation holds, input counters, hitches, memory). Player guide docs/PLAYTEST.md;
 Settings screen button "Složka s logem". Read the logs after real play tests.
 Controls: src/core/key_bindings.gd (2 rebindable inputs per action, physical keys, saved in settings.cfg) + src/ui/settings_screen.gd;
-menu "Ovládání" shows the help (no help text inside matches). Reload: WeaponData.magazine_size/reload_time, Player.use_round/tick_reload,
+menu "Ovládání" shows the help (no help text inside matches). Reload: WeaponData.magazine_size/reload_time, PlayerWeapon.use_round/tick_reload,
 snapshot carries ammo, FLAG_RELOADING and exact weapon timers (see the protocol notes below), src/player/magazine_drop.gd + PlayerVisual reload animation.
 Changelog entries use mechanics_keys / fix_keys / other_keys (sections in "Co je nového" and release notes).
 src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cleans names; used by session.gd).
@@ -81,16 +84,16 @@ M4 movement prediction is implemented: clients immediately simulate only their o
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
 Snapshots (protocol 19, 60 Hz, 6-byte header + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
 remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
-reload time (0.1 ms grid, Player._count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
+reload time (0.1 ms grid, PlayerWeapon.count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
 move_and_slide() must use the physics delta during replay. The own player's shots (cooldown, ammo, reload, RECOIL) are
-predicted via Player.tick_weapon inside simulate(); the client also shows its own bullets at once (WeaponSystem.spawn_predicted,
+predicted via Player.tick_weapon (PlayerWeapon.tick) inside simulate(); the client also shows its own bullets at once (WeaponSystem.spawn_predicted,
 paired in order with the host's spawn events, which carry the shooter slot). Lowest latency (play tests 2026-11-05):
 the host simulates each client input as soon as it arrives and exactly once (InputBuffer.take_for_tick: 1 per tick, none
 while the next is late, up to 4 to catch up; catch-up bullets are fast-forwarded), ENet sends are flushed at once,
 ENet throttling is disabled, ping is measured on snapshot arrival. Remote players play back on their own timeline
 (SnapshotTimeline per player: host tick for the host's player, the owner's input sequence for client-controlled players)
-with an adaptive delay and short extrapolation; the host draws client-controlled players the same way (Player._display),
+with an adaptive delay and short extrapolation; the host draws client-controlled players the same way (RemoteView.display_offset),
 hits use real positions. Damage percent (user 2026-11-05): CombatRules.damage_multiplier 1.0-2.5 at 0-100 %, knockback
 limits apply at 0 %. Small corrections use a visual offset; projectiles, hits, knockback, damage, respawns, countdown and
 lives remain host-authoritative.

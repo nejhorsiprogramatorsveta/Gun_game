@@ -3,8 +3,8 @@ extends Node
 ## Owns hosting/joining, the version handshake and the lobby player list.
 ## Host-authoritative: only the host (peer 1) changes `players` and broadcasts them.
 ##
-## The join handshake (version + room code) uses SceneMultiplayer authentication; messages
-## are built/checked in Handshake. Until it completes, a peer cannot send or receive any RPC.
+## The join handshake (version + room code) lives in the child SessionAuth: until it
+## completes, a peer cannot send or receive any RPC.
 
 signal phase_changed(phase: Phase)
 signal players_changed
@@ -18,10 +18,6 @@ const MAX_PLAYERS := LobbyValidator.MAX_PLAYERS
 const MIN_PLAYERS_TO_START := 2
 const MAX_NAME_LENGTH := LobbyValidator.MAX_NAME_LENGTH
 const CONNECT_TIMEOUT := 10.0
-## Host drops peers that do not finish the handshake in time.
-const AUTH_TIMEOUT := 5.0
-## Gives a rejection message time to arrive before the host drops the peer.
-const REJECT_DISCONNECT_DELAY := 0.5
 
 var phase := Phase.OFFLINE
 ## peer_id -> {"name": String, "character": String, "team": int, "ready": bool (character
@@ -43,15 +39,9 @@ var arena_id := ""
 var team_mode := false
 
 var _connector: Connector = EnetDirectConnector.new()
-var _local_name := ""
 var _join_address := ""
-var _join_code := ""
-## Host: names of peers that passed the handshake but are not connected yet.
-var _pending_names: Dictionary[int, String] = {}
-## Host: rejected peers waiting to be dropped (they may also leave on their own).
-var _rejected_peers: Dictionary[int, bool] = {}
-## Client: why the host refused us (shown when the connection closes).
-var _rejection_message := ""
+## Join handshake (room code, version, pending names), see session_auth.gd.
+var _auth := SessionAuth.new()
 
 
 func _ready() -> void:
@@ -62,9 +52,7 @@ func _ready() -> void:
 	add_child(ArenaChoice.new())  # arena choice RPCs, see arena_choice.gd
 	add_child(TeamChoice.new())  # game mode and team RPCs, see team_choice.gd
 	add_child(ConnectionLog.new())  # diagnostics in the game log, see connection_log.gd
-	api.auth_callback = _on_auth_message
-	api.auth_timeout = AUTH_TIMEOUT
-	api.peer_authenticating.connect(_on_peer_authenticating)
+	add_child(_auth)  # join handshake, see session_auth.gd
 	api.peer_authentication_failed.connect(_on_peer_authentication_failed)
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -179,8 +167,7 @@ func join_game(join_text: String, player_name: String) -> void:
 	leave()
 	var parts := Handshake.split_join_text(join_text)
 	var address := parts[0]
-	_join_code = parts[1]
-	if _join_code.is_empty():
+	if parts[1].is_empty():
 		_emit_ended(tr("ERROR_MISSING_CODE"))
 		return
 	DiagLog.begin_game()
@@ -189,9 +176,8 @@ func join_game(join_text: String, player_name: String) -> void:
 	if peer == null:
 		_emit_ended(tr("ERROR_INVALID_ADDRESS"))
 		return
-	_local_name = player_name
+	_auth.prepare_join(parts[1], player_name)
 	_join_address = address
-	_rejection_message = ""
 	multiplayer.multiplayer_peer = peer
 	_set_phase(Phase.CONNECTING)
 	get_tree().create_timer(CONNECT_TIMEOUT).timeout.connect(_on_connect_timeout.bind(peer))
@@ -212,8 +198,7 @@ func _close(message: String) -> void:
 	team_mode = false
 	players.clear()
 	match_slots.clear()
-	_pending_names.clear()
-	_rejected_peers.clear()
+	_auth.reset()
 	players_changed.emit()
 	_emit_ended(message)
 
@@ -228,62 +213,11 @@ func _set_phase(new_phase: Phase) -> void:
 	phase_changed.emit(phase)
 
 
-# --- Handshake -------------------------------------------------------------
-
-func _on_peer_authenticating(id: int) -> void:
-	if not multiplayer.is_server():
-		(multiplayer as SceneMultiplayer).send_auth(id, Handshake.make_hello(_join_code, _local_name))
-
-
-func _on_auth_message(id: int, data: PackedByteArray) -> void:
-	if multiplayer.is_server() and (_rejected_peers.has(id) or _pending_names.has(id)):
-		return  # one hello per connection: no guessing room codes while waiting to be dropped
-	var message := Handshake.decode(data)
-	if message.is_empty():
-		return
-	if multiplayer.is_server():
-		_handle_hello(id, message)
-	else:
-		_handle_auth_reply(message)
-
-
-func _handle_hello(id: int, hello: Dictionary) -> void:
-	var api := multiplayer as SceneMultiplayer
-	var reason := Handshake.check_hello(hello, room_code)
-	if reason.is_empty() and phase != Phase.LOBBY:
-		reason = "ERROR_MATCH_IN_PROGRESS"
-	elif reason.is_empty() and players.size() + _pending_names.size() >= MAX_PLAYERS:
-		reason = "ERROR_LOBBY_FULL"
-	if not reason.is_empty():
-		DiagLog.event("conn", "peer %d rejected: %s" % [id, reason])
-		api.send_auth(id, Handshake.make_reject(reason))
-		_rejected_peers[id] = true
-		get_tree().create_timer(REJECT_DISCONNECT_DELAY).timeout.connect(_drop_peer.bind(id))
-		return
-	_pending_names[id] = Handshake.requested_name(hello)
-	api.send_auth(id, Handshake.make_accept())
-	api.complete_auth(id)
-
-
-func _handle_auth_reply(reply: Dictionary) -> void:
-	if Handshake.is_accept(reply):
-		(multiplayer as SceneMultiplayer).complete_auth(1)
-	else:
-		_rejection_message = Handshake.rejection_text(reply)
-
-
-func _drop_peer(id: int) -> void:
-	if is_host() and _rejected_peers.has(id):
-		_rejected_peers.erase(id)
-		multiplayer.multiplayer_peer.disconnect_peer(id)
-
-
 # --- Connection events -----------------------------------------------------
 
 func _on_peer_connected(id: int) -> void:
 	if multiplayer.is_server():
-		var requested_name: String = _pending_names.get(id, "")
-		_pending_names.erase(id)
+		var requested_name := _auth.take_requested_name(id)
 		players[id] = {"name": LobbyValidator.clean_name(requested_name, players.size() + 1),
 				"character": CharacterChoice.first_free(players, ""), "team": Teams.smaller_team(players), "ready": false}
 		broadcast_players()
@@ -294,22 +228,19 @@ func _on_peer_connected(id: int) -> void:
 func _on_peer_disconnected(id: int) -> void:
 	if not multiplayer.is_server():
 		return
-	_pending_names.erase(id)
 	if players.erase(id):
 		broadcast_players()
 
 
+## Client: the host did not finish the handshake (SessionAuth handles the host side).
 func _on_peer_authentication_failed(id: int) -> void:
-	if multiplayer.is_server():
-		_rejected_peers.erase(id)
-		_pending_names.erase(id)
-	elif id == 1:
+	if not multiplayer.is_server() and id == 1:
 		_on_connection_lost()
 
 
 func _on_connection_lost() -> void:
-	if not _rejection_message.is_empty():
-		_close(_rejection_message)
+	if not _auth.rejection_message.is_empty():
+		_close(_auth.rejection_message)
 	elif phase == Phase.CONNECTING:
 		_close(tr("ERROR_CONNECTION_FAILED").format({"address": _join_address}))
 	else:

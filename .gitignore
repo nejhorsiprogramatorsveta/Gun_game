@@ -12,6 +12,7 @@ build_info.json
 
 # OS / editor junk
 .DS_Store
+__pycache__/
 Thumbs.db
 *.tmp
 

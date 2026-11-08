@@ -70,6 +70,19 @@ func test_input_buffer_counts_cut_inputs_and_resets() -> void:
 	check_eq(buffer.take_stats().received, 0, "counters reset")
 
 
+func test_free_memory_ignores_swap_and_page_file() -> void:
+	var gb := 1024 * 1048576
+	# Windows: "available" is the commit limit (RAM + page file), as in the 0.2.9 play test.
+	var windows := {"physical": 16 * gb, "free": 6 * gb, "available": 57 * gb, "stack": 1048576}
+	check_eq(NetLog.free_ram_mb(windows), 6 * 1024, "Windows: free RAM, not the commit limit")
+	# Windows without a page file: the commit limit is below the physical size.
+	var no_page_file := {"physical": 16 * gb, "free": 6 * gb, "available": 15 * gb}
+	check_eq(NetLog.free_ram_mb(no_page_file), 6 * 1024, "no page file: still free RAM")
+	# macOS / Linux: "available" = free RAM + free swap.
+	check_eq(NetLog.free_ram_mb({"physical": 16 * gb, "free": 3 * gb, "available": 5 * gb}), 3 * 1024, "swap not counted")
+	check_eq(NetLog.free_ram_mb({"physical": -1, "free": -1, "available": -1}), -1, "unknown stays unknown")
+
+
 func test_diag_log_hides_addresses() -> void:
 	check_eq(DiagLog.mask("cannot reach 192.168.1.20:24642 or 100.101.102.103"), "cannot reach <lan>:24642 or <lan>",
 			"IPv4 replaced by its kind")
