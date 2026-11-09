@@ -67,13 +67,15 @@ src/combat/{combat_rules,projectile,weapon_system,ability_system}.gd, src/abilit
 src/ui/{match_hud,results}.gd (lives/K/D scoreboard, kill notices, results -> same lobby, PLAN.md T.1/T.4).
 src/match/match_score.gd (host-owned last-bullet attribution and 2-second multikill window).
 src/net/net_stats.gd (client ping from input ack, shown with FPS bottom-left in match_hud, F3 toggles).
-src/match/input_buffer.gd (host per-client input queue with catch-up so it does not add constant delay; neutral input after 0.25 s silence).
+src/match/practice_dummy.gd (practice target brain: walks/pauses/jumps on the spot, turns before edges, walls and players
+via physics rays, never steers in the air or shoots). src/match/input_buffer.gd (host per-client input queue with catch-up so it does not add constant delay; neutral input after 0.25 s silence).
 Diagnostics: ONE log file user://logs/last_game.log = the last online game only (src/core/diag_file_logger.gd, a Godot Logger;
 replaced on host/join, 4 MB cap, Godot's own godot.log is disabled and old godot*.log files are deleted). src/net/diag_log.gd (timestamps,
 IP masking, network/Tailscale summary), src/net/connection_log.gd (`[sys]`/`[conn]` events, lobby ENet ping), src/net/net_log.gd (every 5 s
 of a match `[net]`: ENet RTT/loss, traffic, snapshots, interpolation holds, input counters, hitches, memory). Player guide docs/PLAYTEST.md;
 Settings screen button "Složka s logem". Read the logs after real play tests.
-Controls: src/core/key_bindings.gd (2 rebindable inputs per action, physical keys, saved in settings.cfg) + src/ui/settings_screen.gd;
+Controls: src/core/key_bindings.gd (2 rebindable inputs per action, physical keys, saved in settings.cfg with [meta] controls_version;
+defaults are WASD only since 0.2.12 - older saves drop Space/arrows; Q = manual reload, InputFrame.RELOAD) + src/ui/settings_screen.gd;
 menu "Ovládání" shows the help (no help text inside matches). Reload: WeaponData.magazine_size/reload_time, PlayerWeapon.use_round/tick_reload,
 snapshot carries ammo, FLAG_RELOADING and exact weapon timers (see the protocol notes below), src/player/magazine_drop.gd + PlayerVisual reload animation.
 Changelog entries use mechanics_keys / fix_keys / other_keys (sections in "Co je nového" and release notes).
@@ -82,7 +84,7 @@ src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cle
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
-Snapshots (protocol 19, 60 Hz, 6-byte header + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
+Snapshots (protocol 20, 60 Hz, 6-byte header + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
 remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
 reload time (0.1 ms grid, PlayerWeapon.count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;

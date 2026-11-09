@@ -37,13 +37,16 @@ U každé nové verze se tento postup opakuje.
 
 | Akce | Klávesy |
 |---|---|
-| Pohyb | A / D nebo šipky |
-| Skok (i dvojskok ve vzduchu) | W, mezerník nebo šipka nahoru |
-| Seskok z tenké plošiny | S nebo šipka dolů |
+| Pohyb | A / D |
+| Skok (i dvojskok ve vzduchu) | W |
+| Seskok z tenké plošiny | S |
 | Míření | myš (střílí se tam, kde je kurzor) |
 | Střelba | levé tlačítko myši (drž pro opakovanou střelbu) |
-| Schopnost *(přijde v M5)* | pravé tlačítko myši nebo E |
+| Přebití (i před vystřílením zásobníku) | Q |
+| Schopnost postavy (po smrti hned připravená) | pravé tlačítko myši nebo E |
 | Zpět do menu | Esc |
+
+Klávesy jdou změnit v menu Nastavení (dvě na každou akci).
 
 ## Jak hrát s kamarády
 

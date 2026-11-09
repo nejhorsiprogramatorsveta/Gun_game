@@ -85,12 +85,13 @@ func _show_text_dialog() -> void:
 func _on_controls_pressed() -> void:
 	var lines: PackedStringArray = []
 	for spec: Array in [["CONTROLS_MOVE", [&"move_left", &"move_right"]], ["CONTROLS_JUMP", [&"jump"]],
-			["CONTROLS_DOWN", [&"down"]], ["CONTROLS_FIRE", [&"fire"]], ["CONTROLS_ABILITY", [&"ability"]]]:
+			["CONTROLS_DOWN", [&"down"]], ["CONTROLS_FIRE", [&"fire"]], ["CONTROLS_RELOAD", [&"reload"]],
+			["CONTROLS_ABILITY", [&"ability"]]]:
 		var keys: PackedStringArray = []
 		for action: StringName in spec[1]:
 			keys.append(KeyBindings.action_text(action))
 		lines.append(tr(spec[0]).format({"keys": "  |  ".join(keys)}))
-	lines.append_array([tr("CONTROLS_AIM"), tr("CONTROLS_RELOAD"), tr("CONTROLS_DAMAGE"), tr("CONTROLS_ESC"), tr("CONTROLS_F3"), "",
+	lines.append_array([tr("CONTROLS_AIM"), tr("CONTROLS_DAMAGE"), tr("CONTROLS_ESC"), tr("CONTROLS_F3"), "",
 			tr("CONTROLS_REBIND_HINT")])
 	_changelog_dialog.title = tr("CONTROLS_TITLE")
 	_changelog_text.text = "\n".join(lines)

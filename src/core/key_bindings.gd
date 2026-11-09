@@ -5,12 +5,17 @@ class_name KeyBindings
 ## the key of the player's layout. Saved by Settings in user://settings.cfg as short codes
 ## ("key:65", "mouse:1"); broken or unknown codes fall back to the defaults.
 
-const ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"jump", &"down", &"fire", &"ability"]
+const ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"jump", &"down", &"fire", &"ability", &"reload"]
 const NAME_KEYS := {
 	&"move_left": "ACTION_MOVE_LEFT", &"move_right": "ACTION_MOVE_RIGHT", &"jump": "ACTION_JUMP",
-	&"down": "ACTION_DOWN", &"fire": "ACTION_FIRE", &"ability": "ACTION_ABILITY",
+	&"down": "ACTION_DOWN", &"fire": "ACTION_FIRE", &"ability": "ACTION_ABILITY", &"reload": "ACTION_RELOAD",
 }
 const SLOTS := 2
+## Version of saved controls (Settings stores it with them). 2 (0.2.12): WASD only.
+const VERSION := 2
+## Space and the arrow keys were default inputs before VERSION 2; older saves drop them
+## (Settings saved every binding, so a default cannot be told apart from a choice).
+const REMOVED_IN_V2: Array[Key] = [KEY_SPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]
 ## Reserved: Esc leaves the match / cancels, F3 toggles the FPS overlay.
 const RESERVED_KEYS: Array[Key] = [KEY_ESCAPE, KEY_F3]
 const MOUSE_BUTTON_KEYS := {
@@ -41,20 +46,34 @@ static func reset_to_defaults() -> void:
 		_set_events(action, _defaults[action])
 
 
-## saved: action (String) -> PackedStringArray of codes, as written by serialize().
-static func apply(saved: Dictionary) -> void:
+## saved: action (String) -> PackedStringArray of codes, as written by serialize();
+## saved_version: VERSION it was written with (older saves are migrated).
+static func apply(saved: Dictionary, saved_version: int = VERSION) -> void:
 	capture_defaults()
+	var kept_defaults: Array[StringName] = []
+	var used_codes := {}
 	for action in ACTIONS:
 		var codes: Variant = saved.get(String(action))
-		if typeof(codes) != TYPE_PACKED_STRING_ARRAY and typeof(codes) != TYPE_ARRAY:
-			continue
 		var events: Array[InputEvent] = []
-		for code: Variant in codes:
-			var event := decode(str(code))
-			if event and events.size() < SLOTS:
-				events.append(event)
-		if not events.is_empty():  # never leave an action without any input
-			_set_events(action, events)
+		if typeof(codes) == TYPE_PACKED_STRING_ARRAY or typeof(codes) == TYPE_ARRAY:
+			for code: Variant in codes:
+				var event := decode(str(code))
+				if event and events.size() < SLOTS and not (saved_version < 2 and _removed_in_v2(event)):
+					events.append(event)
+		if events.is_empty():  # never leave an action without any input: keep the defaults
+			kept_defaults.append(action)
+			continue
+		_set_events(action, events)
+		for event in events:
+			used_codes[encode(event)] = true
+	# Defaults (e.g. of an action added after the save) must not take a key that the
+	# player already uses for something else.
+	for action in kept_defaults:
+		var free: Array[InputEvent] = []
+		for event: InputEvent in _defaults[action]:
+			if not encode(event).is_empty() and not used_codes.has(encode(event)):
+				free.append(event)
+		_set_events(action, free)
 
 
 static func serialize() -> Dictionary:
@@ -162,6 +181,11 @@ static func action_text(action: StringName) -> String:
 	for event in events(action):
 		labels.append(display(event))
 	return " / ".join(labels) if not labels.is_empty() else "–"
+
+
+static func _removed_in_v2(event: InputEvent) -> bool:
+	var key := event as InputEventKey
+	return key != null and REMOVED_IN_V2.has(key.physical_keycode)
 
 
 static func _set_events(action: StringName, new_events: Array) -> void:

@@ -5,7 +5,7 @@ Hostovat bude kamarád, ostatní se připojí. Hra si sama zapisuje měření do
 po hraní nám ho každý pošle.
 
 ## Před hraním
-1. Všichni spusťte hru a nechte ji aktualizovat na stejnou verzi (vlevo dole v menu, např. „Verze 0.2.11“).
+1. Všichni spusťte hru a nechte ji aktualizovat na stejnou verzi (vlevo dole v menu, např. „Verze 0.2.12“).
    Kdo má jinou verzi, toho hra do lobby nepustí.
 2. Domluvte se, jak se spojíte:
    - **stejná Wi-Fi / síť**: hostitel pošle adresu z řádku „Stejná Wi-Fi / síť“,

@@ -126,3 +126,12 @@ func test_interpolation_blends_and_snaps_on_teleport() -> void:
 	interpolator.push(1200, state.call(900.0, true))
 	var jumped := interpolator.sample(1150 + RemoteInterpolator.INTERPOLATION_DELAY_MS)
 	check_eq(jumped.position, Vector2(900, 0), "big jump (respawn) is not interpolated")
+
+
+func test_reload_button_travels_in_input_and_snapshot() -> void:
+	var frames := NetCodec.decode_input(NetCodec.encode_input([InputFrame.create(0, InputFrame.RELOAD | InputFrame.FIRE, 0, 3)] as Array[InputFrame]))
+	check_eq(frames[0].buttons, InputFrame.RELOAD | InputFrame.FIRE, "reload bit kept in the input")
+	var state := {"slot": 0, "position": Vector2.ZERO, "velocity": Vector2.ZERO, "facing": 1, "active": true,
+			"invulnerable": false, "aim": 0, "last_seq": 1, "lives": 3, "prev_buttons": InputFrame.RELOAD}
+	var decoded: Dictionary = NetCodec.decode_snapshot(NetCodec.encode_snapshot(1, 0, [state] as Array[Dictionary])).states[0]
+	check_eq(decoded.prev_buttons, InputFrame.RELOAD, "previous buttons keep the reload bit for replay")

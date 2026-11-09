@@ -46,6 +46,8 @@ var _elimination_order: Array[int] = []
 var _inputs: Dictionary[int, InputBuffer] = {}
 ## Network clients only: prediction, input sending and snapshots.
 var _client: MatchClient
+## Practice only: walks the target around without letting it fall off on its own.
+var _dummy: PracticeDummy
 var _net_log := NetLog.new()
 
 @onready var _net: Node = $MatchNet
@@ -88,8 +90,9 @@ func _ready() -> void:
 			$Hud/HintLabel.text = tr("DEBUG_FAKE_LAG").format({"lag": _net.lag.rtt_ms, "loss": _net.lag.loss_percent})
 	else:
 		_spawn(multiplayer.get_unique_id(), 0, Settings.player_name)
-		# A practice target: never sends input, so it just stands, falls and gets knocked back.
+		# A practice target: walks around (PracticeDummy), never shoots; only hits knock it off.
 		_spawn(PRACTICE_DUMMY_ID, 1, tr("PRACTICE_DUMMY"))
+		_dummy = PracticeDummy.new(_players[PRACTICE_DUMMY_ID])
 
 
 func _spawn(peer_id: int, slot: int, display_name: String) -> void:
@@ -163,7 +166,7 @@ func _simulate_tick(delta: float) -> void:
 	for peer_id in _players:
 		var player := _players[peer_id]
 		# Read the inputs even while dead, so the queue does not fill up and delay the respawn.
-		var inputs := _inputs_for(peer_id, player)
+		var inputs := _inputs_for(peer_id, player, delta)
 		if not player.visible:
 			continue
 		for i in inputs.size():  # 0-4 inputs, each simulated exactly once (InputBuffer)
@@ -190,14 +193,14 @@ func _simulate_tick(delta: float) -> void:
 			_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, ceili(_countdown * 10.0), states))
 
 
-## The inputs to simulate this tick: the local player's own, the practice dummy's neutral
-## one, or what a client's InputBuffer releases (none while its next input is late).
-func _inputs_for(peer_id: int, player: Player) -> Array[InputFrame]:
+## The inputs to simulate this tick: the local player's own, the practice dummy's, or what
+## a client's InputBuffer releases (none while its next input is late).
+func _inputs_for(peer_id: int, player: Player, delta: float) -> Array[InputFrame]:
 	var inputs: Array[InputFrame] = []
 	if peer_id == multiplayer.get_unique_id():
 		inputs.append(InputFrame.sample_local(player))
 	elif peer_id == PRACTICE_DUMMY_ID:
-		inputs.append(InputFrame.new())
+		inputs.append(_dummy.next_input(delta))
 	else:
 		inputs = _inputs.get_or_add(peer_id, InputBuffer.new()).take_for_tick()
 	return inputs

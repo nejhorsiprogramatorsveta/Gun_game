@@ -279,3 +279,30 @@ func test_jetpack_is_predicted_without_correction() -> void:
 	check(correction < 1.0, "replay from a mid-flight snapshot needs no visible correction (%.3f px)" % correction)
 	host.free()
 	client.free()
+
+
+func test_manual_reload_is_predicted_without_correction() -> void:
+	var host := _player()
+	host.character = ContentDB.get_character(&"krugermann")
+	host.gun.refill()
+	var client := _player()
+	client.character = host.character
+	client.gun.refill()
+	var prediction := ClientPrediction.new()
+	prediction.reconcile(client, host.snapshot_state())
+	var aim := InputFrame.aim_from_vector(Vector2(1, 0))
+	var confirmed := {}
+	for seq in range(1, 120):
+		var buttons := InputFrame.FIRE if seq < 30 else (InputFrame.RELOAD if seq < 34 else 0)
+		var input := InputFrame.create(0, buttons, aim, seq)
+		host.simulate(input, DT)
+		prediction.predict(client, input, DT, false)
+		if seq == 60:
+			confirmed = NetCodec.decode_snapshot(NetCodec.encode_snapshot(1, 0, [host.snapshot_state()] as Array[Dictionary])).states[0]
+	check(confirmed.reloading and confirmed.ammo > 0, "the host reloads after Q with rounds still left (%d)" % confirmed.ammo)
+	check_eq([client.gun.ammo, client.gun.is_reloading()], [host.gun.ammo, host.gun.is_reloading()], "client predicted the same reload")
+	var correction := prediction.reconcile(client, confirmed)
+	check(correction < 1.0, "replay from a mid-reload snapshot needs no correction (%.3f px)" % correction)
+	check(is_equal_approx(client.gun.reload_time_left, host.gun.reload_time_left), "same reload time left after replay")
+	host.free()
+	client.free()

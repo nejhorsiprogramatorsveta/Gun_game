@@ -208,6 +208,7 @@ ACTION_JUMP,Skok
 ACTION_DOWN,Seskok z plošiny
 ACTION_FIRE,Střelba
 ACTION_ABILITY,Schopnost
+ACTION_RELOAD,Přebití
 KEY_MOUSE_LEFT,Levé tlačítko myši
 KEY_MOUSE_RIGHT,Pravé tlačítko myši
 KEY_MOUSE_MIDDLE,Prostřední tlačítko myši
@@ -241,9 +242,9 @@ CONTROLS_MOVE,Pohyb doleva | doprava: {keys}
 CONTROLS_JUMP,Skok (ve vzduchu ještě jednou = dvojskok): {keys}
 CONTROLS_DOWN,Seskok z dřevěné plošiny: {keys}
 CONTROLS_FIRE,Střelba (podržet): {keys}
-CONTROLS_ABILITY,Schopnost postavy: {keys}
+CONTROLS_ABILITY,Schopnost postavy (po smrti je hned znovu připravená): {keys}
 CONTROLS_AIM,Míření: myš (postava se dívá ke kurzoru)
-CONTROLS_RELOAD,Přebíjení: samo po vystřílení zásobníku (1 s)
+CONTROLS_RELOAD,"Přebití (1 s): samo po vystřílení zásobníku, dřív klávesou {keys}"
 CONTROLS_ESC,"Esc: odejít ze zápasu (hostitel ukončí zápas všem)"
 CONTROLS_F3,F3: zobrazí nebo skryje FPS a ping
 CONTROLS_REBIND_HINT,Klávesy změníš v Nastavení.
@@ -260,3 +261,7 @@ CHANGELOG_SMOOTH_PLAYERS_0210,"Ostatní hráči se nesekají, ani když jejich p
 CHANGELOG_DIAG_0210,"Diagnostika: v logu je pro každého hráče zpoždění zobrazení a kolísání spojení, u hostitele čekání na vstupy a jejich dohánění; opravena volná paměť na Windows."
 CHANGELOG_DIAG_MEMORY_0211,"Diagnostický log ukazuje skutečně volnou paměť počítače: dřív do ní na všech systémech započítával i odkládací soubor (na Windows bez něj mohl ukázat skoro celou RAM)."
 CHANGELOG_CODE_0211,"Vnitřní úpravy kódu (rozdělení velkých skriptů) – hra se hraje úplně stejně, jen se v ní lépe vyznáme při dalších změnách."
+CHANGELOG_MANUAL_RELOAD,"Přebití na Q: zásobník jde přebít i dřív, než ho vystřílíš (trvá stejně 1 s). Klávesu změníš v Nastavení."
+CHANGELOG_ABILITY_RESET,"Po smrti je schopnost hned připravená – čekání na ni se při respawnu vynuluje."
+CHANGELOG_WASD_ONLY,"Ovládání jen WASD: mezerník a šipky už nic nedělají (uložené ovládání ze starších verzí se samo upraví). Jiné klávesy si můžeš nastavit v Nastavení."
+CHANGELOG_MOVING_DUMMY,"Cvičný panák v tréninku chodí po své plošině, zastavuje se a poskakuje. Sám nespadne – shodit ho musíš ty. Nestřílí."

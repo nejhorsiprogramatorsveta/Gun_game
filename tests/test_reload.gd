@@ -62,3 +62,23 @@ func test_reload_state_reaches_clients() -> void:
 	check_eq([client.gun.is_reloading(), client.gun.ammo, client.gun.reload_progress()], [false, 10, -1.0], "and stops it")
 	host.free()
 	client.free()
+
+
+func test_manual_reload_only_with_rounds_missing() -> void:
+	var krugermann := _player(&"krugermann")
+	var size := krugermann.current_weapon().magazine_size
+	var reload := InputFrame.create(0, InputFrame.RELOAD)
+	check(not krugermann.tick_weapon(reload, 1.0 / 60.0) and not krugermann.gun.is_reloading(), "full magazine: Q does nothing")
+	krugermann.gun.use_round()
+	krugermann.gun.use_round()
+	check(not krugermann.tick_weapon(reload, 1.0 / 60.0), "Q never fires")
+	check(krugermann.gun.is_reloading(), "rounds missing: Q starts the reload")
+	check_eq(krugermann.gun.ammo, size - 2, "rounds stay until the reload ends")
+	var left := krugermann.gun.reload_time_left
+	krugermann.tick_weapon(reload, 0.5)
+	check(krugermann.gun.reload_time_left < left, "holding Q does not restart the reload")
+	var fire := InputFrame.create(0, InputFrame.FIRE)
+	check(not krugermann.tick_weapon(fire, 0.25), "no shot while reloading")
+	krugermann.tick_weapon(InputFrame.new(), 0.25)
+	check_eq([krugermann.gun.ammo, krugermann.gun.is_reloading()], [size, false], "after 1 s the magazine is full")
+	krugermann.free()

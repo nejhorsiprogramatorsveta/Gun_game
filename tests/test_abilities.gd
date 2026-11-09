@@ -133,3 +133,12 @@ func test_client_matches_a_late_host_effect_and_drops_unconfirmed_ones() -> void
 	effects._process(0.0)
 	check(effects.get_child(1).is_queued_for_deletion(), "a prediction the host never confirms is removed")
 	effects.free()
+
+
+func test_respawn_makes_the_ability_ready() -> void:
+	var balvan := _player(&"balvan", 1, Vector2.ZERO)
+	balvan.tick_ability(_press(true), 0.1)
+	check(balvan.ability_cooldown > 0.0, "used: cooldown runs")
+	balvan.reset_to(Vector2(100, 0))
+	check_eq([balvan.ability_cooldown, balvan.ability_active()], [0.0, false], "after a death the ability is ready again")
+	balvan.free()

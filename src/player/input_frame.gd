@@ -8,7 +8,9 @@ const JUMP := 1
 const FIRE := 2
 const ABILITY := 4
 const DOWN := 8
-const ALL_BUTTONS := JUMP | FIRE | ABILITY | DOWN
+## Reload before the magazine is empty (key Q by default).
+const RELOAD := 16
+const ALL_BUTTONS := JUMP | FIRE | ABILITY | DOWN | RELOAD
 ## Aim angle is sent as u16: a full turn = 65536 steps (~0.005°).
 const AIM_STEPS := 65536
 
@@ -42,6 +44,8 @@ static func sample_local(origin: Player) -> InputFrame:
 		held |= ABILITY
 	if Input.is_action_pressed("down"):
 		held |= DOWN
+	if Input.is_action_pressed("reload"):
+		held |= RELOAD
 	var move := int(signf(Input.get_axis("move_left", "move_right")))
 	return create(move, held, aim_from_vector(origin.get_global_mouse_position() - origin.global_position))
 

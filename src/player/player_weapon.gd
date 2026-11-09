@@ -30,11 +30,14 @@ static func count_down(seconds: float, delta: float) -> float:
 	return left / NetCodec.WEAPON_TIMER_UNITS if left > 0.0 else 0.0
 
 
-## One tick: cooldown and reload, then a shot if wanted and allowed. True when a shot is
-## fired (the caller adds the recoil).
-func tick(wants_to_fire: bool, delta: float) -> bool:
+## One tick: cooldown and reload, then a reload on request (magazine not full) or a shot if
+## wanted and allowed. True when a shot is fired (the caller adds the recoil).
+func tick(wants_to_fire: bool, wants_reload: bool, delta: float) -> bool:
 	fire_cooldown = count_down(fire_cooldown, delta)
 	if tick_reload(delta):
+		return false
+	if wants_reload and can_reload():
+		start_reload()
 		return false
 	var weapon := _player.current_weapon()
 	if weapon == null or not wants_to_fire or fire_cooldown > 0.0:
@@ -70,8 +73,21 @@ func tick_reload(delta: float) -> bool:
 ## Authority: one shot fired; the last round starts the reload.
 func use_round() -> void:
 	ammo = maxi(ammo - 1, 0)
+	if ammo == 0:
+		start_reload()
+
+
+## A manual reload makes sense only with rounds missing and no reload running.
+func can_reload() -> bool:
 	var weapon := _player.current_weapon()
-	if ammo == 0 and weapon:
+	return weapon != null and not is_reloading() and ammo < weapon.magazine_size
+
+
+## Starts the reload (automatic on the last round, or manual); tick_reload() then fills the
+## whole magazine.
+func start_reload() -> void:
+	var weapon := _player.current_weapon()
+	if weapon:
 		reload_time_left = weapon.reload_time
 		reload_started_ms = Time.get_ticks_msec()
 

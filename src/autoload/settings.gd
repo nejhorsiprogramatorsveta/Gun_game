@@ -24,7 +24,7 @@ func _ready() -> void:
 	if config.has_section("controls"):
 		for action in config.get_section_keys("controls"):
 			controls[action] = config.get_value("controls", action, PackedStringArray())
-	KeyBindings.apply(controls)
+	KeyBindings.apply(controls, int(config.get_value("meta", "controls_version", 1)))
 
 
 func save() -> void:
@@ -32,6 +32,7 @@ func save() -> void:
 	config.set_value("player", "name", player_name)
 	config.set_value("practice", "character", practice_character)
 	config.set_value("practice", "arena", practice_arena)
+	config.set_value("meta", "controls_version", KeyBindings.VERSION)
 	var controls := KeyBindings.serialize()
 	for action: String in controls:
 		config.set_value("controls", action, controls[action])

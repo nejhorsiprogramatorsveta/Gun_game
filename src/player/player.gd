@@ -96,10 +96,10 @@ func current_weapon() -> WeaponData:
 	return character.weapon if character else null
 
 
-## Shared by the host and the own client's prediction: cooldown, reload, ammo and the
-## shooter's recoil. Returns true when a shot is fired this tick.
+## Shared by the host and the own client's prediction: cooldown, reload (also manual), ammo
+## and the shooter's recoil. Returns true when a shot is fired this tick.
 func tick_weapon(input: InputFrame, delta: float) -> bool:
-	if not gun.tick(input.is_held(InputFrame.FIRE) and can_fire(), delta):
+	if not gun.tick(input.is_held(InputFrame.FIRE) and can_fire(), input.is_held(InputFrame.RELOAD), delta):
 		return false
 	velocity += CombatRules.recoil(InputFrame.aim_to_vector(input.aim), current_weapon())
 	return true
@@ -247,6 +247,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	damage = 0.0
 	gun.refill()
 	ability_time_left = 0.0
+	ability_cooldown = 0.0  # after a death the ability is ready again
 	invulnerable_time = 0.0
 	invulnerable = false
 	out_of_bounds_time = 0.0
