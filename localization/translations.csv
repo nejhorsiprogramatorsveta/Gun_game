@@ -138,7 +138,7 @@ ABILITY_TELEPORT_NAME,Přesun
 ABILITY_TELEPORT_DESCRIPTION,"Přenese se kousek směrem ke kurzoru a zastaví se."
 CHANGELOG_DASH_TELEPORT,"Jiskra má úskok (E): rychlý přesun do strany i ve vzduchu. Stín má přesun (E): teleport směrem ke kurzoru."
 ABILITY_GAS_BLAST_NAME,Odfukovací plyn
-ABILITY_GAS_BLAST_DESCRIPTION,"Vypustí před sebe dlouhý pás zeleného plynu (3 s). Soupeře, který se ho dotkne, hned odfoukne směrem od Krügermanna – kam, ukazují šipky v plynu."
+ABILITY_GAS_BLAST_DESCRIPTION,"Vypustí před sebe dlouhý pás zeleného plynu (3 s). Soupeře, který v něm zůstane 0,2 s, odfoukne směrem od Krügermanna – kam, ukazují šipky v plynu."
 ABILITY_PLATFORM_NAME,Plošina
 ABILITY_PLATFORM_DESCRIPTION,"Postaví pod sebou na 3 s plošinu, i ve vzduchu."
 CHANGELOG_KRUGERMANN,"Postava Mlha se nově jmenuje Krügermann a má zpomalovací oblak (E): zelený oblak ke kurzoru zpomalí soupeře na 3 s."
@@ -272,4 +272,5 @@ CHANGELOG_GAS_BLAST,"Krügermann: zpomalovací oblak je pryč, nově má odfukov
 CHANGELOG_SHIELD_FIRE,"Balvan může za štítem střílet. Štít teď zmenší na pětinu i odfouknutí plynem."
 CHANGELOG_BALVAN_HMG,"Balvan má místo útočné pušky těžký kulomet: 100 nábojů, silný odhoz. Na zemi je přesný, ale ve skoku nebo pádu hodně rozptyluje."
 CHANGELOG_SPREAD_SYNC,"Vlastní kulky na obrazovce letí přesně stejným směrem jako ty skutečné u hostitele, i u zbraní s rozptylem."
+CHANGELOG_GAS_DELAY,"Krügermannův plyn odfoukne až po 0,2 s v něm (rychlým skokem se dá proběhnout) a o něco slaběji. Odfouknutý hráč už navíc neuvidí, jak s ním obraz poskočí."
 CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouhý most a pod ním menší plošiny. Jakmile má někdo jen 3 životy, začne odspodu stoupat láva – kdo se jí dotkne, hned přijde o život. Zastaví se těsně pod horním mostem a hráči se pak oživují jen na něm."

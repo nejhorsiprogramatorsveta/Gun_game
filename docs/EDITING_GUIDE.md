@@ -106,7 +106,7 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px, nyní 320 – dosah, ne melee), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru), `damage` (procenta poškození za zásah, nyní 9) |
 | `dash.tres` (úskok) | Jiskra | `speed` (px/s po dobu `duration`) |
 | `teleport.tres` (přesun) | Stín | `distance` – max. vzdálenost ke kurzoru (px) |
-| `gas_blast.tres` (odfukovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `blow_speed` (rychlost odfouknutí do strany, px/s, dělí se váhou soupeře), `blow_lift` (rychlost nahoru) |
+| `gas_blast.tres` (odfukovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `blow_delay` (kolik sekund musí soupeř v plynu vydržet, než ho odfoukne; 0,2), `blow_speed` (rychlost odfouknutí do strany, px/s, dělí se váhou soupeře; 1250), `blow_lift` (rychlost nahoru; 380) |
 | `platform.tres` (plošina) | Architekt | `width` (px), `lifetime` (s) |
 
 - **Varianta existujícího druhu** (např. silnější štít pro jinou postavu) = zkopírovat `.tres`, změnit `id`

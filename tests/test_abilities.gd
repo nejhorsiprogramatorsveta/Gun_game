@@ -85,27 +85,48 @@ func test_jetpack_lifts_up_and_can_be_steered() -> void:
 	jiskra.free()
 
 
-func test_gas_blows_opponents_away_at_once() -> void:
+## Keeps calling blow() like Player.simulate does once per tick; returns how many ticks it
+## took until the player was blown (-1 = never within `limit`).
+func _ticks_until_blown(effects: AreaEffects, player: Player, limit: int = 60) -> int:
+	for tick in range(1, limit + 1):
+		if effects.blow(player):
+			return tick
+	return -1
+
+
+func test_gas_blows_opponents_after_a_fifth_of_a_second() -> void:
 	var effects := AreaEffects.new()
 	var gas := ContentDB.get_ability(&"gas_blast") as GasBlastAbility
 	effects._add(gas, 7, 100, Vector2(500, 300), 1)
+	var delay := roundi(gas.blow_delay * Engine.physics_ticks_per_second)
+	check_eq(delay, 12, "0.2 s = 12 physics ticks")
 	var blown: Array = []
 	effects.player_blown.connect(func(owner_peer_id: int, victim: Player) -> void: blown.append([owner_peer_id, victim]))
 	var owner := _player(&"krugermann", 7, Vector2(500, 300))
-	check(not effects.blow(owner) and owner.velocity.is_zero_approx(), "the owner is not blown by his own gas")
+	check_eq(_ticks_until_blown(effects, owner), -1, "the owner is never blown by his own gas")
 	var victim := _player(&"balvan", 8, Vector2(660, 330))
-	check(effects.blow(victim), "an opponent inside is blown")
+	for tick in delay - 1:
+		check(not effects.blow(victim) and victim.velocity.is_zero_approx(), "tick %d inside: not yet" % (tick + 1))
+	check(blown.is_empty(), "no credit before the blow")
+	check(effects.blow(victim), "after 0.2 s inside: blown")
 	var weight := victim.character.weight
-	check(is_equal_approx(victim.velocity.x, gas.blow_speed / weight), "at once at full speed, away from Krügermann (%.0f)" % victim.velocity.x)
+	check(is_equal_approx(victim.velocity.x, gas.blow_speed / weight), "away from Krügermann (%.0f px/s)" % victim.velocity.x)
 	check(victim.velocity.y <= -gas.blow_lift / weight + 0.01, "and upwards")
 	var speed := victim.velocity.x
 	check(effects.blow(victim) and is_equal_approx(victim.velocity.x, speed), "staying inside does not stack up")
 	check(not blown.is_empty() and blown.all(func(entry: Array) -> bool: return entry == [7, victim]), "the authority credits Krügermann")
-	var edge := _player(&"jiskra", 9, Vector2(500 - gas.length / 2.0 - Player.BODY_SIZE.x / 2.0 + 2.0, 300))
-	check(effects.blow(edge) and edge.velocity.x > 0.0, "touching the end of the strip is enough")
-	var outside := _player(&"stin", 10, Vector2(560, 300 + gas.height / 2.0 + Player.BODY_SIZE.y / 2.0 + 5.0))
-	check(not effects.blow(outside), "below the strip nothing happens")
-	for node in [effects, owner, victim, edge, outside]:
+	var visitor := _player(&"jiskra", 9, Vector2(660, 330))
+	for tick in delay - 1:
+		effects.blow(visitor)
+	visitor.position = Vector2(660, 600)
+	check(not effects.blow(visitor) and visitor.gas_ticks == 0, "stepping out resets the count")
+	visitor.position = Vector2(660, 330)
+	check_eq(_ticks_until_blown(effects, visitor), delay, "back inside: the full 0.2 s again")
+	var edge := _player(&"jiskra", 10, Vector2(500 - gas.length / 2.0 - Player.BODY_SIZE.x / 2.0 + 2.0, 300))
+	check(_ticks_until_blown(effects, edge) == delay and edge.velocity.x > 0.0, "touching the end of the strip counts")
+	var outside := _player(&"stin", 11, Vector2(560, 300 + gas.height / 2.0 + Player.BODY_SIZE.y / 2.0 + 5.0))
+	check_eq(_ticks_until_blown(effects, outside), -1, "below the strip nothing happens")
+	for node in [effects, owner, victim, visitor, edge, outside]:
 		node.free()
 
 
@@ -115,16 +136,31 @@ func test_gas_blows_left_spares_respawned_and_shield_holds() -> void:
 	var gas := ContentDB.get_ability(&"gas_blast") as GasBlastAbility
 	effects._add(gas, 7, 1, Vector2(500, 300), -1)
 	var jiskra := _player(&"jiskra", 8, Vector2(450, 300))
-	check(effects.blow(jiskra) and is_equal_approx(jiskra.velocity.x, -gas.blow_speed / jiskra.character.weight), "left gas blows left")
+	check(_ticks_until_blown(effects, jiskra) > 0 and is_equal_approx(jiskra.velocity.x, -gas.blow_speed / jiskra.character.weight), "left gas blows left")
 	var respawned := _player(&"stin", 9, Vector2(450, 300))
 	respawned.invulnerable = true
-	check(not effects.blow(respawned), "just respawned: not blown (like bullets)")
+	check_eq(_ticks_until_blown(effects, respawned), -1, "just respawned: not blown (like bullets)")
+	check_eq(respawned.gas_ticks, 0, "and the time does not count")
 	var balvan := _player(&"balvan", 10, Vector2(450, 300))
 	balvan.ability_time_left = 1.0
-	effects.blow(balvan)
+	_ticks_until_blown(effects, balvan)
 	check(is_equal_approx(balvan.velocity.x, -gas.blow_speed / balvan.character.weight * 0.2), "the shield cuts the blow to a fifth")
 	for node in [effects, jiskra, respawned, balvan]:
 		node.free()
+
+
+func test_gas_time_travels_in_snapshots_and_resets_on_respawn() -> void:
+	var host := _player(&"jiskra", 8, Vector2.ZERO)
+	host.gas_ticks = 7
+	var state: Dictionary = NetCodec.decode_snapshot(NetCodec.encode_snapshot(1, 0, [host.snapshot_state()] as Array[Dictionary])).states[0]
+	check_eq(state.gas_ticks, 7, "gas time in the snapshot")
+	var client := _player(&"jiskra", 8, Vector2.ZERO)
+	client.restore_state(state)
+	check_eq(client.gas_ticks, 7, "a replay starts from the host's count")
+	host.reset_to(Vector2.ZERO)
+	check_eq(host.gas_ticks, 0, "respawn clears it")
+	host.free()
+	client.free()
 
 
 func test_area_effects_owner_immunity_dedupe_and_host_position() -> void:

@@ -1,7 +1,8 @@
 class_name GasCloud
 extends Node2D
 ## Krügermann's gas: a long horizontal strip of bubbly green gas that blows other players
-## away the moment they touch it (AreaEffects.blow) and fades after `lifetime` seconds.
+## away once they stay in it for `blow_delay` seconds (AreaEffects.blow) and fades after
+## `lifetime` seconds.
 ## Arrows drifting through the gas show which way it blows.
 
 const PUFFS: Texture2D = preload("res://assets/sprites/effects/gas_puffs.png")
@@ -21,9 +22,11 @@ var direction := 1
 ## Half of the strip's width and height (px).
 var half_size := Vector2(270, 45)
 var lifetime := 3.0
-## Blow speed (px/s) before the victim's weight: sideways and upwards.
-var blow_speed := 1500.0
-var blow_lift := 450.0
+## Seconds in the gas (in a row) before it blows; blow speed (px/s) before the victim's
+## weight: sideways and upwards.
+var blow_delay := 0.2
+var blow_speed := 1250.0
+var blow_lift := 380.0
 var _age := 0.0
 
 
@@ -35,6 +38,12 @@ func _init() -> void:
 func touches(point: Vector2, body_half_size: Vector2 = Vector2.ZERO) -> bool:
 	var offset := (point - global_position).abs()
 	return offset.x <= half_size.x + body_half_size.x and offset.y <= half_size.y + body_half_size.y
+
+
+## Physics ticks a player must spend in the gas before it blows (whole ticks, so the host
+## and the victim's prediction count exactly the same).
+func delay_ticks() -> int:
+	return maxi(roundi(blow_delay * Engine.physics_ticks_per_second), 1)
 
 
 ## Velocity the gas gives a victim of weight 1.

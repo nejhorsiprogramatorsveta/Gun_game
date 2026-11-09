@@ -17,8 +17,8 @@ const NO_LAVA := 0xFFFF
 ## u16 ability cooldown in physics ticks (1/60 s), f32 movement ability (jetpack) time left,
 ## u8 rounds left in the magazine, u16 fire cooldown and u16 reload time left (both in
 ## WEAPON_TIMER_UNITS per second, exact enough that the client replays shots and recoil on
-## the same ticks as the host), u8 damage percent.
-const SNAPSHOT_PLAYER_BYTES := 45
+## the same ticks as the host), u8 damage percent, u8 ticks in a row in an opponent's gas.
+const SNAPSHOT_PLAYER_BYTES := 46
 const WEAPON_TIMER_UNITS := 10000.0
 const MAX_SNAPSHOT_PLAYERS := 4
 const COOLDOWN_TICKS_PER_SECOND := 60.0
@@ -103,6 +103,7 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 		data.encode_u16(offset + 40, _timer_units(state.get("fire_cooldown", 0.0)))
 		data.encode_u16(offset + 42, _timer_units(state.get("reload_time_left", 0.0)))
 		data.encode_u8(offset + 44, clampi(roundi(float(state.get("damage", 0.0))), 0, int(CombatRules.MAX_DAMAGE)))
+		data.encode_u8(offset + 45, clampi(int(state.get("gas_ticks", 0)), 0, 255))
 	return data
 
 
@@ -155,6 +156,7 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"fire_cooldown": data.decode_u16(offset + 40) / WEAPON_TIMER_UNITS,
 			"reload_time_left": data.decode_u16(offset + 42) / WEAPON_TIMER_UNITS,
 			"damage": float(mini(data.decode_u8(offset + 44), int(CombatRules.MAX_DAMAGE))),
+			"gas_ticks": data.decode_u8(offset + 45),
 		})
 	var lava := data.decode_u16(6)
 	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "lava": -1 if lava == NO_LAVA else lava, "states": states}

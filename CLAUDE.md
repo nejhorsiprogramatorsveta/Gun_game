@@ -35,7 +35,8 @@ Godot 4.7.2-stable (non-.NET), GDScript (static typing), Compatibility renderer.
 
 ## Commands (pinned Godot lives in .tools/, never use a system-wide godot)
 All verified in M1 on macOS arm64:
-- Setup dev env (once): `tools/setup_env.sh` (add `--with-templates` for local exports, ~1 GB)
+- Setup dev env (once): `tools/setup_env.sh` (add `--with-templates` for local exports, ~1 GB). Afterwards the downloaded
+  archives `.tools/*.zip` / `*.tpz` are only a download cache and may be deleted (~1.4 GB; deleted 2026-11-09); `build/` too.
 - Import (after clean clone or new assets; 1st run logs harmless translation errors): `tools/godot --headless --path . --import`
 - Run game: `tools/godot --path .`   Editor: `tools/godot --path . --editor`
 - Tests: `tools/godot --headless --path . -s tests/run_tests.gd` (exit 1 on failure)
@@ -85,7 +86,7 @@ src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cle
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
-Snapshots (protocol 22, 60 Hz, 8-byte header incl. u16 lava level + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
+Snapshots (protocol 23, 60 Hz, 8-byte header incl. u16 lava level + 46 bytes/player) carry complete motor memory (floor contact, previous buttons,
 remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
 reload time (0.1 ms grid, PlayerWeapon.count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
@@ -105,8 +106,8 @@ Changelog is implemented: data/changelog.tres + localization CSV are shared by s
 the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
 archive that entry under its published version/build and add a new current entry. Do not guess the next build number.
-M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c gas/platform world effects (src/combat/area_effects.gd) done; since 0.2.13 Krügermann's gas (gas_blast, GasCloud) BLOWS opponents away at once
-(AreaEffects.blow inside Player.simulate, direction carried by the effect RPC, credited via player_blown), Balvan can shoot behind his shield
+M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c gas/platform world effects (src/combat/area_effects.gd) done; since 0.2.13 Krügermann's gas (gas_blast, GasCloud) BLOWS opponents away after 0.2 s inside
+(0.2.15: Player.gas_ticks counted in AreaEffects.blow inside Player.simulate and sent in snapshots, direction carried by the effect RPC, credited via player_blown), Balvan can shoot behind his shield
 and carries heavy_machine_gun (WeaponData.air_spread_degrees); shot spread is seeded by (slot, input seq, pellet) so predicted bullets match the host; keep everything arcade, recoil >= CombatRules.MIN_RECOIL; M5.3 lobby character choice done (src/net/character_choice.gd) (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement (they apply at 0 % damage; the damage multiplier comes on top, user 2026-11-05). Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
 The user replaced the previous dev/stable split (2026-11-04): keep ONE existing release `dev`,
 promoted to stable/latest, and change its visible version/title and assets. The `dev` slug is retained for

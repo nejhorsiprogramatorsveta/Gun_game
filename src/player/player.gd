@@ -39,6 +39,8 @@ var ability_cooldown := 0.0
 var ability_time_left := 0.0
 ## True on the tick the ability was activated (host applies effects on others).
 var ability_started := false
+## Physics ticks in a row spent in an opponent's gas (AreaEffects.blow); in snapshots.
+var gas_ticks := 0
 ## Gas and platforms of the match (set by MatchController); null in unit tests.
 var effects: AreaEffects
 ## Authority: seconds of respawn protection left.
@@ -146,7 +148,8 @@ func snapshot_state() -> Dictionary:
 			"drop_timer": motor_state.drop_timer, "kills": kills, "deaths": deaths,
 			"ability_cooldown": ability_cooldown, "ability_active": ability_active(), "firing": is_firing(),
 			"boost_time_left": motor_state.boost_time_left, "ammo": gun.ammo, "reloading": gun.is_reloading(),
-			"fire_cooldown": gun.fire_cooldown, "reload_time_left": gun.reload_time_left, "damage": damage}
+			"fire_cooldown": gun.fire_cooldown, "reload_time_left": gun.reload_time_left, "damage": damage,
+			"gas_ticks": gas_ticks}
 
 
 ## Restore all movement memory before replaying inputs, including contact and press edges.
@@ -162,6 +165,7 @@ func restore_state(state: Dictionary) -> void:
 	motor_state.drop_timer = state.drop_timer
 	motor_state.boost_time_left = state.get("boost_time_left", 0.0)
 	gun.restore(state)
+	gas_ticks = state.get("gas_ticks", 0)
 	set_collision_mask_value(PlayerMotor.ONE_WAY_LAYER, visible and motor_state.drop_timer <= 0.0)
 
 
@@ -247,6 +251,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	gun.refill()
 	ability_time_left = 0.0
 	ability_cooldown = 0.0  # after a death the ability is ready again
+	gas_ticks = 0
 	invulnerable_time = 0.0
 	invulnerable = false
 	out_of_bounds_time = 0.0

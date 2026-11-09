@@ -43,27 +43,37 @@ func spawn(ability: AbilityData, owner_peer_id: int, seq: int, at: Vector2, dire
 		_unconfirmed[_key(ability.id, owner_peer_id, seq)] = Time.get_ticks_msec()
 
 
-## Shared by the host and the victim's client prediction (Player.simulate, before moving):
-## a player touching an opponent's gas is blown away at once. The velocity is SET (sideways)
-## and the lift is kept at least, so it is the same however long the player stays inside;
-## divided by weight, scaled by a shield; just-respawned players are spared like by bullets.
-## The authority credits the gas owner for a fall (player_blown). True if blown.
+## Shared by the host and the victim's client prediction (Player.simulate, before moving),
+## once per tick: a player who stays in an opponent's gas for its delay (Player.gas_ticks,
+## sent in snapshots so a replay counts the same) is blown away. The velocity is SET
+## (sideways) and the lift is kept at least, so it is the same however long the player stays
+## inside; divided by weight, scaled by a shield; just-respawned players are spared like by
+## bullets. The authority credits the gas owner for a fall (player_blown). True if blown.
 func blow(player: Player) -> bool:
-	if player.invulnerable:
+	var cloud := _gas_touching(player)
+	if cloud == null or player.invulnerable:
+		player.gas_ticks = 0
 		return false
+	player.gas_ticks = mini(player.gas_ticks + 1, 255)
+	if player.gas_ticks < cloud.delay_ticks():
+		return false
+	var weight := player.character.weight if player.character else 1.0
+	var push := cloud.blow_velocity() / maxf(weight, 0.1) * player.knockback_scale()
+	player.velocity.x = push.x
+	player.velocity.y = minf(player.velocity.y, push.y)
+	if _is_authority:
+		player_blown.emit(cloud.owner_peer_id, player)
+	return true
+
+
+## The first opponent's gas the player's body overlaps (teammates' gas does not count).
+func _gas_touching(player: Player) -> GasCloud:
 	for effect in _effects.values():
 		var cloud := effect as GasCloud
-		if cloud == null or cloud.owner_peer_id == player.peer_id or not cloud.touches(player.global_position, Player.BODY_SIZE / 2.0) \
-				or Teams.allies(teams.get(cloud.owner_peer_id, Teams.NONE), player.team):
-			continue
-		var weight := player.character.weight if player.character else 1.0
-		var push := cloud.blow_velocity() / maxf(weight, 0.1) * player.knockback_scale()
-		player.velocity.x = push.x
-		player.velocity.y = minf(player.velocity.y, push.y)
-		if _is_authority:
-			player_blown.emit(cloud.owner_peer_id, player)
-		return true
-	return false
+		if cloud and cloud.owner_peer_id != player.peer_id and cloud.touches(player.global_position, Player.BODY_SIZE / 2.0) \
+				and not Teams.allies(teams.get(cloud.owner_peer_id, Teams.NONE), player.team):
+			return cloud
+	return null
 
 
 func _process(_delta: float) -> void:

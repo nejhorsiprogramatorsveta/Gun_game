@@ -52,8 +52,13 @@ func test_shockwave_and_cloud_spare_teammates() -> void:
 	effects._add(gas, 7, 1, Vector2(500, 300), 1)
 	var teammate := _player(&"stin", 8, Vector2(600, 300), 1)
 	var opponent := _player(&"architekt", 9, Vector2(600, 300), 0)
-	check(not effects.blow(teammate) and teammate.velocity.is_zero_approx(), "the teammate's gas does not blow")
-	check(effects.blow(opponent) and opponent.velocity.x > 0.0, "the opponent is blown away")
+	var blown_after := -1
+	for tick in range(1, 61):
+		check(not effects.blow(teammate), "the teammate's gas does not blow")
+		if blown_after < 0 and effects.blow(opponent):
+			blown_after = tick
+	check(teammate.velocity.is_zero_approx() and teammate.gas_ticks == 0, "the teammate stays put")
+	check(blown_after > 0 and opponent.velocity.x > 0.0, "the opponent is blown away (after %d ticks)" % blown_after)
 	for node in [vichr, mate, enemy, effects, teammate, opponent]:
 		node.free()
 
