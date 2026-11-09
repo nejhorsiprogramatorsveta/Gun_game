@@ -464,7 +464,7 @@ Menu → Hostovat/Připojit → LOBBY ──(host: Začít zápas)──► ZÁP
 ### T.5 Prvky map a nebezpečí (ZADÁNÍ UŽIVATELE 2026-11-05, budoucí milník)
 Do arén postupně přidat aktivní prvky, které mění průběh zápasu. Zatím jen plán, nic z toho neexistuje:
 - **Padající bomby:** v náhodných intervalech spadne bomba (stín/varování na zemi ~1 s předem), výbuch hráče v okruhu **odhodí** (stejný knockback model a limity jako u zbraní, `CombatRules`), sám nezabíjí.
-- **Stoupající láva:** v některé aréně pomalu stoupá a zase klesá; dotyk = pád (ztráta života) nebo silné odhození nahoru – rozhodnout při návrhu.
+- **Stoupající láva:** HOTOVO v 0.2.14 jako mapa Peklo (uživatel 2026-11-09): láva dole, začne stoupat, když má kdokoli 3 životy, zastaví se těsně pod horní dlouhou plošinou, dotyk = okamžitá ztráta života, respawn jen nad ní (`src/arenas/lava.gd`). Neklesá.
 - Další nápady k výběru: pohyblivé / mizející plošiny, vítr postrkující do strany, rozbitné bedny, odrazové pružiny.
 - **Síť:** o všem rozhoduje host (časy, pozice, zásahy); klienti dostanou spolehlivou událost se semínkem/časem a prvky jen zobrazují (stejně jako `AreaEffects`). Pohyb vlastní postavy, který prvky ovlivní, musí jít predikovat, jinak korekce.
 - **Data:** parametry prvků v `ArenaData` / vlastních `.tres` (zapnutí, interval, síla), aby šly ladit bez programování; hostitel může prvky v lobby vypnout.

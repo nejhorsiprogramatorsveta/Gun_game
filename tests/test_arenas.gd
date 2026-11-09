@@ -1,8 +1,8 @@
 extends TestCase
 
 
-func test_three_arenas_and_fallback() -> void:
-	check_eq(ContentDB.arena_ids(), [&"hanging_bridges", &"rooftops", &"temple_steps"] as Array[StringName], "arenas (add new ones here)")
+func test_four_arenas_and_fallback() -> void:
+	check_eq(ContentDB.arena_ids(), [&"hanging_bridges", &"hell", &"rooftops", &"temple_steps"] as Array[StringName], "arenas (add new ones here)")
 	check_eq(ContentDB.arena_or_default("").id, ContentDB.DEFAULT_ARENA_ID, "nothing chosen -> default")
 	check_eq(ContentDB.arena_or_default("deleted_map").id, ContentDB.DEFAULT_ARENA_ID, "unknown id -> default")
 

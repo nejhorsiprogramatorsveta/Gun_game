@@ -23,15 +23,27 @@ func is_out_of_bounds(world_position: Vector2) -> bool:
 			or world_position.x > kill_rect.end.x
 
 
+## The arena's rising lava (Peklo), or null.
+func lava() -> Lava:
+	return get_node_or_null("Lava") as Lava
+
+
 ## The spawn point farthest from everyone in `occupied`, so nobody respawns onto a player.
-func free_spawn_point(occupied: Array[Vector2]) -> Vector2:
+## Only points whose feet are above `max_feet_y` count (rising lava, Lava.safe_feet_y); if
+## none is, the highest point.
+func free_spawn_point(occupied: Array[Vector2], max_feet_y: float = INF) -> Vector2:
 	var best := Vector2.ZERO
 	var best_distance := -1.0
+	var highest := Vector2(0.0, INF)
 	for point in spawn_points():
+		if point.y < highest.y:
+			highest = point
+		if point.y + Player.BODY_SIZE.y / 2.0 > max_feet_y:
+			continue
 		var nearest := INF
 		for position in occupied:
 			nearest = minf(nearest, point.distance_to(position))
 		if nearest > best_distance:
 			best_distance = nearest
 			best = point
-	return best
+	return best if best_distance >= 0.0 else highest

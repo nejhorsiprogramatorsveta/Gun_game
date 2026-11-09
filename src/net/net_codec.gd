@@ -9,7 +9,9 @@ const INPUT_HISTORY := 3
 const INPUT_FRAME_BYTES := 4  # s8 move_x, u8 buttons, u16 aim
 const INPUT_PACKET_BYTES := 2 + INPUT_HISTORY * INPUT_FRAME_BYTES
 
-const SNAPSHOT_HEADER_BYTES := 6  # u32 tick, u8 player count, u8 countdown tenths of a second left
+const SNAPSHOT_HEADER_BYTES := 8  # u32 tick, u8 player count, u8 countdown tenths of a second left, u16 lava y
+## Lava field when the arena has no lava.
+const NO_LAVA := 0xFFFF
 ## u8 slot, f32 x, f32 y, s16 vx, s16 vy, u8 flags, u16 aim, u16 last input seq, u8 lives,
 ## u8 previous buttons, u8 jumps left, f32 jump buffer timer, f32 drop timer, u16 kills, u16 deaths,
 ## u16 ability cooldown in physics ticks (1/60 s), f32 movement ability (jetpack) time left,
@@ -62,12 +64,14 @@ static func decode_input(data: PackedByteArray) -> Array[InputFrame]:
 
 ## Player.snapshot_state() includes the movement memory needed to replay pending inputs.
 ## countdown = tenths of a second left before the match starts (max 25.5 s).
-static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]) -> PackedByteArray:
+## lava_y = the lava surface (whole px, Lava.level), -1 = the arena has no lava.
+static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary], lava_y: int = -1) -> PackedByteArray:
 	var data := PackedByteArray()
 	data.resize(SNAPSHOT_HEADER_BYTES + states.size() * SNAPSHOT_PLAYER_BYTES)
 	data.encode_u32(0, tick)
 	data.encode_u8(4, states.size())
 	data.encode_u8(5, clampi(countdown, 0, 255))
+	data.encode_u16(6, clampi(lava_y, 0, NO_LAVA - 1) if lava_y >= 0 else NO_LAVA)
 	for i in states.size():
 		var state := states[i]
 		var offset := SNAPSHOT_HEADER_BYTES + i * SNAPSHOT_PLAYER_BYTES
@@ -102,7 +106,7 @@ static func encode_snapshot(tick: int, countdown: int, states: Array[Dictionary]
 	return data
 
 
-## Returns {tick, countdown, states: Array[Dictionary]} or {} for a malformed packet.
+## Returns {tick, countdown, lava (-1 = none), states: Array[Dictionary]} or {} for a malformed packet.
 static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 	if data.size() < SNAPSHOT_HEADER_BYTES:
 		return {}
@@ -152,7 +156,8 @@ static func decode_snapshot(data: PackedByteArray) -> Dictionary:
 			"reload_time_left": data.decode_u16(offset + 42) / WEAPON_TIMER_UNITS,
 			"damage": float(mini(data.decode_u8(offset + 44), int(CombatRules.MAX_DAMAGE))),
 		})
-	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "states": states}
+	var lava := data.decode_u16(6)
+	return {"tick": data.decode_u32(0), "countdown": data.decode_u8(5), "lava": -1 if lava == NO_LAVA else lava, "states": states}
 
 
 ## True if u16 sequence number `a` is newer than `b` (handles wrap-around at 65535).

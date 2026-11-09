@@ -1,0 +1,106 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/arenas/arena.gd" id="1"]
+[ext_resource type="Script" path="res://src/arenas/platform.gd" id="2"]
+[ext_resource type="Script" path="res://src/arenas/arena_background.gd" id="3"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/hell.png" id="4"]
+[ext_resource type="Script" path="res://src/arenas/lava.gd" id="5"]
+
+[node name="ArenaHell" type="Node2D"]
+script = ExtResource("1")
+kill_rect = Rect2(-700, -800, 2680, 1900)
+
+[node name="Background" type="CanvasLayer" parent="."]
+script = ExtResource("3")
+scene = ExtResource("4")
+show_clouds = false
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+zoom = Vector2(0.6, 0.6)
+
+[node name="TopBridge" type="StaticBody2D" parent="."]
+position = Vector2(90, 250)
+script = ExtResource("2")
+size = Vector2(1100, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="MidLeft" type="StaticBody2D" parent="."]
+position = Vector2(150, 420)
+script = ExtResource("2")
+size = Vector2(260, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="MidRight" type="StaticBody2D" parent="."]
+position = Vector2(870, 420)
+script = ExtResource("2")
+size = Vector2(260, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="LowLeft" type="StaticBody2D" parent="."]
+position = Vector2(30, 560)
+script = ExtResource("2")
+size = Vector2(240, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="LowCenter" type="StaticBody2D" parent="."]
+position = Vector2(520, 560)
+script = ExtResource("2")
+size = Vector2(240, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="LowRight" type="StaticBody2D" parent="."]
+position = Vector2(1010, 560)
+script = ExtResource("2")
+size = Vector2(240, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="BottomLeft" type="StaticBody2D" parent="."]
+position = Vector2(260, 700)
+script = ExtResource("2")
+size = Vector2(220, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="BottomRight" type="StaticBody2D" parent="."]
+position = Vector2(800, 700)
+script = ExtResource("2")
+size = Vector2(220, 16)
+one_way = true
+color = Color(1.35, 1.0, 0.75, 1)
+
+[node name="Lava" type="Node2D" parent="."]
+script = ExtResource("5")
+start_y = 880.0
+top_y = 290.0
+rise_speed = 14.0
+start_at_lives = 3
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(270, 380)
+
+[node name="Spawn2" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1010, 380)
+
+[node name="Spawn3" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(150, 520)
+
+[node name="Spawn4" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1130, 520)
+
+[node name="SpawnTop1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(330, 210)
+
+[node name="SpawnTop2" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(950, 210)
+
+[node name="SpawnTop3" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(640, 210)

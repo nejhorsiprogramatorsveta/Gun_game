@@ -7,6 +7,8 @@ extends RefCounted
 
 ## Whole seconds of the countdown, from the newest snapshot.
 var countdown_display := 0
+## Lava surface from the newest snapshot (-1 = no lava on this arena).
+var lava_y := -1
 var stats := NetStats.new()
 ## Newest snapshot, applied on the next physics tick (see physics_tick).
 var pending_snapshot: Dictionary = {}
@@ -93,6 +95,7 @@ func _send_local_input(delta: float) -> void:
 func _apply_snapshot(snapshot: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
 	countdown_display = ceili(snapshot.countdown / 10.0)
+	lava_y = snapshot.get("lava", -1)
 	# Inputs sent from this time on reach the host after its countdown ended, so predict
 	# them as moving (roughly: time left - round trip + half a snapshot interval).
 	_movement_starts_ms = now + snapshot.countdown * 100 - maxi(stats.ping_ms(), 0) + 16 if snapshot.countdown > 0 else 0

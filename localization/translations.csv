@@ -124,6 +124,7 @@ ABILITY_SHOCKWAVE_NAME,Tlaková vlna
 ABILITY_SHOCKWAVE_DESCRIPTION,Vyšle tlakovou vlnu daleko kolem sebe a odhodí soupeře.
 WEAPON_LIGHT_MACHINE_GUN_NAME,Lehký kulomet
 WEAPON_HEAVY_MACHINE_GUN_NAME,Těžký kulomet
+LAVA_RISING,Láva stoupá!
 WEAPON_REVOLVER_NAME,Revolver
 WEAPON_NAIL_GUN_NAME,Nýtovačka
 WEAPON_DOUBLE_BARREL_NAME,Dvouhlavňová brokovnice
@@ -154,6 +155,7 @@ CHANGELOG_GAS_LONGER,Zpomalovací plyn Krügermanna je o polovinu delší (540 p
 ARENA_ROOFTOPS_NAME,Střechy
 ARENA_TEMPLE_STEPS_NAME,Chrámové schody
 ARENA_HANGING_BRIDGES_NAME,Visuté mosty
+ARENA_HELL_NAME,Peklo
 MENU_PRACTICE_ARENA,Mapa pro trénink (a první mapa při hostování)
 LOBBY_ARENA,"Mapa:"
 CHANGELOG_ARENAS,"Dvě nové mapy: Chrámové schody a Visuté mosty. Mapu vybírá hostitel v lobby, v tréninku ji vybereš v menu."
@@ -270,3 +272,4 @@ CHANGELOG_GAS_BLAST,"Krügermann: zpomalovací oblak je pryč, nově má odfukov
 CHANGELOG_SHIELD_FIRE,"Balvan může za štítem střílet. Štít teď zmenší na pětinu i odfouknutí plynem."
 CHANGELOG_BALVAN_HMG,"Balvan má místo útočné pušky těžký kulomet: 100 nábojů, silný odhoz. Na zemi je přesný, ale ve skoku nebo pádu hodně rozptyluje."
 CHANGELOG_SPREAD_SYNC,"Vlastní kulky na obrazovce letí přesně stejným směrem jako ty skutečné u hostitele, i u zbraní s rozptylem."
+CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouhý most a pod ním menší plošiny. Jakmile má někdo jen 3 životy, začne odspodu stoupat láva – kdo se jí dotkne, hned přijde o život. Zastaví se těsně pod horním mostem a hráči se pak oživují jen na něm."

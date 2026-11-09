@@ -1,7 +1,8 @@
 class_name MatchHud
 extends Control
-## In-match overlay: scoreboard panel(s) (ScoreTable; 2 v 2 = one per team, left and right)
-## and the start countdown. Kill announcements float above the killer (KillPopup).
+## In-match overlay: scoreboard panel(s) (ScoreTable; 2 v 2 = one per team, left and right),
+## the start countdown and short blinking alerts (e.g. rising lava). Kill announcements
+## float above the killer (KillPopup).
 ## Bottom left: FPS and (on clients) ping; F3 hides/shows it.
 
 @onready var _score_panel: PanelContainer = %ScorePanel
@@ -14,6 +15,8 @@ var _team_mode := false
 var _ability_keys := ""
 var _net_label := Label.new()
 var _weapon_label := Label.new()
+var _alert_label := Label.new()
+var _alert_until_ms := 0
 
 
 func _ready() -> void:
@@ -54,6 +57,22 @@ func _ready() -> void:
 	_weapon_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_weapon_label.add_theme_constant_override("outline_size", 4)
 	add_child(_weapon_label)
+	_alert_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_alert_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 140)
+	_alert_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_alert_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_alert_label.add_theme_font_size_override("font_size", 44)
+	_alert_label.add_theme_color_override("font_color", Color(1.0, 0.55, 0.15))
+	_alert_label.add_theme_color_override("font_outline_color", Color(0.15, 0.02, 0.0))
+	_alert_label.add_theme_constant_override("outline_size", 8)
+	_alert_label.visible = false
+	add_child(_alert_label)
+
+
+## A big blinking message for a few seconds (e.g. "Lava is rising!").
+func show_alert(text: String, seconds: float = 3.0) -> void:
+	_alert_label.text = text
+	_alert_until_ms = Time.get_ticks_msec() + int(seconds * 1000.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -66,6 +85,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func show_state(players: Array, countdown: int, show_lives: bool) -> void:
 	_countdown_label.visible = countdown > 0
 	_countdown_label.text = str(countdown)
+	var now := Time.get_ticks_msec()
+	_alert_label.visible = now < _alert_until_ms and (now / 250) % 2 == 0
 	_show_local_weapon(players)
 	var sorted := players.duplicate()
 	sorted.sort_custom(func(a: Player, b: Player) -> bool: return a.slot < b.slot)

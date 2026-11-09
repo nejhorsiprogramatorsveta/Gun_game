@@ -85,6 +85,51 @@ def wood_beam() -> Image.Image:
     return img
 
 
+def lava_surface() -> Image.Image:
+    """4 frames of 32x12 (Peklo): the wavy glowing top of the lava; the wave moves by 8 px
+    per frame and the strip tiles sideways. Transparent above the crest."""
+    frames = []
+    for f in range(4):
+        img = new(32, 12)
+        rnd = random.Random(40 + f)
+        for x in range(32):
+            crest = 3 + round(1.6 * math.sin((x + f * 8) / 32 * math.tau) + 0.8 * math.sin((x + f * 8) / 16 * math.tau))
+            px(img, x, crest, rgb("#fff1a0"))
+            px(img, x, crest + 1, rgb("#ffc93c"))
+            rect(img, x, crest + 2, x, crest + 3, rgb("#ff8a24"))
+            rect(img, x, crest + 4, x, 11, rgb("#e0451c"))
+        for _ in range(3):  # bubbles popping at the crest
+            bx, by = rnd.randrange(1, 31), rnd.randrange(5, 10)
+            px(img, bx, by, rgb("#ffe066")); px(img, bx + 1, by, rgb("#ffb347")); px(img, bx, by + 1, rgb("#b3260f"))
+        frames.append(img)
+    out = new(32 * 4, 12)
+    for i, frame in enumerate(frames):
+        out.paste(frame, (i * 32, 0))
+    return out
+
+
+def lava_fill() -> Image.Image:
+    """32x32 tile under the lava surface: molten rock with darker crust patches and a few
+    glowing cracks that wrap around the edges, so the tiling is hard to spot."""
+    rnd = random.Random(44)
+    img = new(32, 32, rgb("#b3260f"))
+    for _ in range(14):  # darker crust patches
+        cx, cy, r = rnd.randrange(32), rnd.randrange(32), rnd.randrange(1, 4)
+        for y in range(cy - r, cy + r + 1):
+            for x in range(cx - r, cx + r + 1):
+                if (x - cx) ** 2 + (y - cy) ** 2 <= r * r and rnd.random() < 0.8:
+                    img.putpixel((x % 32, y % 32), rgb("#7a160a"))
+    for _ in range(4):  # glowing cracks
+        x, y = rnd.randrange(32), rnd.randrange(32)
+        for _ in range(rnd.randrange(6, 12)):
+            img.putpixel((x % 32, y % 32), rgb("#ff7a24"))
+            x += rnd.choice((1, 1, 0))
+            y += rnd.choice((-1, 0, 1))
+    for _ in range(10):  # single bright specks
+        img.putpixel((rnd.randrange(32), rnd.randrange(32)), rgb("#ffb347"))
+    return img
+
+
 # --- Backgrounds ----------------------------------------------------------------------
 
 W, H = 480, 270
@@ -216,6 +261,32 @@ def bg_hanging_bridges() -> Image.Image:
     return img
 
 
+def bg_hell() -> Image.Image:
+    """Peklo: red-black sky, volcanic ridges, a burning crater, a scorched torii and embers;
+    a lava glow at the bottom."""
+    img = new(W, H)
+    sky(img, rgb("#140404"), rgb("#7a1a08"))
+    rnd = random.Random(51)
+    for _ in range(60):  # embers rising
+        px(img, rnd.randrange(W), rnd.randrange(H - 30), rgb("#ff9a3c") if rnd.random() < 0.6 else rgb("#ffe08a"))
+    # volcano with a glowing crater and a lava stream
+    for y in range(110, H):
+        half = (y - 110) * 1.4 + 10
+        rect(img, int(330 - half), y, int(330 + half), y, rgb("#2a0a06"))
+    rect(img, 320, 108, 340, 111, rgb("#ff7a24")); rect(img, 324, 106, 336, 107, rgb("#ffd060"))
+    for y in range(112, 200):
+        x = 330 + int(6 * math.sin(y / 9.0))
+        rect(img, x - 1, y, x + 1, y, rgb("#ff6a1a"))
+    ridge(img, 200, 34, rgb("#3a0d07"), 52, 0.06)
+    ridge(img, 228, 20, rgb("#220604"), 53, 0.09)
+    torii(img, 110, 236, 15, rgb("#0e0303"))  # scorched shrine gate
+    rect(img, 101, 214, 103, 217, rgb("#ff5a1a"))  # embers on the lintel
+    for y in range(244, H):  # lava glow on the horizon
+        t = (y - 244) / max(1, H - 245)
+        rect(img, 0, y, W - 1, y, mix(rgb("#3a0d07"), rgb("#ff6a1a"), t * 0.9))
+    return img
+
+
 def clouds() -> Image.Image:
     img = new(W, 120)
     rnd = random.Random(41)
@@ -304,6 +375,9 @@ def main() -> None:
     bg_rooftops().save(bgs / "rooftops.png")
     bg_temple_steps().save(bgs / "temple_steps.png")
     bg_hanging_bridges().save(bgs / "hanging_bridges.png")
+    bg_hell().save(bgs / "hell.png")
+    lava_surface().save(tiles / "lava_surface.png")
+    lava_fill().save(tiles / "lava_fill.png")
     clouds().save(bgs / "clouds.png")
     border = rgb("#120e16")
     scaled(frame(rgb("#3a2f4a"), border, rgb("#5a4a70"), rgb("#241c30"))).save(ui / "button_normal.png")

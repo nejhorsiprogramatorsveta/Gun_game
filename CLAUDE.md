@@ -58,7 +58,8 @@ Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_fr
 src/player/{player_weapon,remote_view,player_labels}.gd (Player parts: player.gun = fire cooldown/ammo/reload,
 player.remote_view = playback of players from other computers, name/percent labels), src/match/match_client.gd
 (client side of a match: input sending, prediction, snapshots), src/net/session_auth.gd (join handshake, child of Session),
-src/arenas/{arena,platform}.gd + arena_*.tscn, data/arenas/*.tres (ArenaData), src/net/arena_choice.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
+src/arenas/{arena,platform,lava}.gd + arena_*.tscn, data/arenas/*.tres (ArenaData; map names = ARENA_*_NAME in the CSV;
+hell = Peklo: jump-through platforms only, Lava node rises once any player has 3 lives, respawns above its final level), src/net/arena_choice.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players incl. chosen character),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
 src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,
@@ -84,7 +85,7 @@ src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cle
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
-Snapshots (protocol 21, 60 Hz, 6-byte header + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
+Snapshots (protocol 22, 60 Hz, 8-byte header incl. u16 lava level + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
 remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
 reload time (0.1 ms grid, PlayerWeapon.count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;

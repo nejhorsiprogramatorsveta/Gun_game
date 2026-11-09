@@ -116,9 +116,25 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 
 ## Mapy (arény) – `data/arenas/*.tres` a `src/arenas/arena_*.tscn`
 
+| Mapa (název ve hře) | Data | Scéna (rozložení) | Název v `translations.csv` |
+|---|---|---|---|
+| Střechy | `data/arenas/rooftops.tres` | `src/arenas/arena_rooftops.tscn` | `ARENA_ROOFTOPS_NAME` |
+| Chrámové schody | `data/arenas/temple_steps.tres` | `src/arenas/arena_temple_steps.tscn` | `ARENA_TEMPLE_STEPS_NAME` |
+| Visuté mosty | `data/arenas/hanging_bridges.tres` | `src/arenas/arena_hanging_bridges.tscn` | `ARENA_HANGING_BRIDGES_NAME` |
+| Peklo | `data/arenas/hell.tres` | `src/arenas/arena_hell.tscn` | `ARENA_HELL_NAME` |
+
+- **Přejmenovat mapu:** změň jen text u jejího `ARENA_..._NAME` v `localization/translations.csv` (`id` v `.tres`
+  neměň – podle něj si hra pamatuje vybranou mapu a posílá ji ostatním).
 - Mapa = scéna se skriptem `src/arenas/arena.gd`: plošiny (uzly s `platform.gd`: `position` = levý horní roh,
-  `size`, `one_way = true` pro plošinu, kterou jde proskočit zespodu), uzel `SpawnPoints` se **4** `Marker2D`
-  (místa oživení – kousek nad plošinou) a `Camera` (zoom 0,6). `kill_rect` = hranice, za kterou se ubírá život.
+  `size`, `one_way = true` pro plošinu, kterou jde proskočit zespodu, `color` = odstín), uzel `SpawnPoints` s
+  **aspoň 4** `Marker2D` (místa oživení – kousek nad plošinou; první čtyři = začátek zápasu, sloty 0–3) a `Camera`
+  (zoom 0,6). `kill_rect` = hranice, za kterou se ubírá život. Scénu nejpohodlněji upravíš v editoru Godotu
+  (`tools/godot --path . --editor`, dvojklik na `.tscn`), jde to ale i v textovém editoru.
+- **Láva (Peklo):** uzel `Lava` (`src/arenas/lava.gd`) – `start_y` (hladina na začátku, pod všemi plošinami),
+  `top_y` (kde se zastaví – těsně pod horní plošinou), `rise_speed` (px/s), `start_at_lives` (při kolika životech
+  kteréhokoli hráče začne stoupat; v tréninku se počítají smrti). Kdo se lávy dotkne, hned přijde o život; když
+  láva stoupá, oživuje se jen na spawnech nad `top_y`, takže **nahoře musí nějaké spawny být**. Lávu jde dát do
+  kterékoli mapy – stačí do scény přidat uzel `Lava` s tímto skriptem.
 - **Přidat mapu:** zkopíruj např. `src/arenas/arena_temple_steps.tscn` (uprav v editoru Godotu) a
   `data/arenas/temple_steps.tres` (změň `id`, `name_key` a cestu ke scéně), přidej název `ARENA_..._NAME` do CSV.
   Objeví se v menu u Tréninku i ve výběru hostitele v lobby. Test `tests/test_arenas.gd` hlídá, že pod každým

@@ -48,6 +48,8 @@ var _inputs: Dictionary[int, InputBuffer] = {}
 var _client: MatchClient
 ## Practice only: walks the target around without letting it fall off on its own.
 var _dummy: PracticeDummy
+## Rising lava of the arena (Peklo), or null.
+var _lava: Lava
 var _net_log := NetLog.new()
 
 @onready var _net: Node = $MatchNet
@@ -58,6 +60,9 @@ func _ready() -> void:
 	_networked = Session.phase == Session.Phase.IN_MATCH
 	_arena = ContentDB.arena_or_default(Session.arena_id if _networked else Settings.practice_arena).scene.instantiate()
 	add_child(_arena)
+	_lava = _arena.lava()
+	if _lava:
+		_lava.started_rising.connect(func() -> void: _hud.show_alert(tr("LAVA_RISING")))
 	add_child(_weapons)
 	_weapons.setup(_net if _networked else null)
 	add_child(_effects)
@@ -124,6 +129,8 @@ func _physics_process(delta: float) -> void:
 	elif _client:
 		_client.physics_tick(delta)
 		_countdown_display = _client.countdown_display
+		if _lava and _client.lava_y >= 0:
+			_lava.show_level(_client.lava_y)
 	var ping := _client.stats.ping_ms() if _client else -1
 	_hud.show_state(_players.values(), _countdown_display, _networked)
 	_hud.show_ping(ping)
@@ -164,6 +171,8 @@ func _simulate_tick(delta: float) -> void:
 	_countdown = maxf(_countdown - delta, 0.0)
 	_countdown_display = ceili(_countdown)
 	var frozen := _countdown > 0.0
+	if _lava and not frozen:
+		_lava.tick(_players.values(), _rules.lives, _networked, delta)
 	for peer_id in _players:
 		var player := _players[peer_id]
 		# Read the inputs even while dead, so the queue does not fill up and delay the respawn.
@@ -179,7 +188,9 @@ func _simulate_tick(delta: float) -> void:
 			player.record_for_display()
 		player.invulnerable_time = maxf(player.invulnerable_time - delta, 0.0)
 		player.invulnerable = player.invulnerable_time > 0.0
-		if _arena.is_out_of_bounds(player.position):
+		if _lava and _lava.touches(player):
+			_on_player_fell(player)  # lava: a life lost at once
+		elif _arena.is_out_of_bounds(player.position):
 			player.out_of_bounds_time += delta
 			if player.out_of_bounds_time >= _rules.out_of_bounds_grace:
 				_on_player_fell(player)
@@ -191,7 +202,7 @@ func _simulate_tick(delta: float) -> void:
 			var states: Array[Dictionary] = []
 			for player in _players.values():
 				states.append(player.snapshot_state())
-			_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, ceili(_countdown * 10.0), states))
+			_net.broadcast_snapshot(NetCodec.encode_snapshot(_tick, ceili(_countdown * 10.0), states, roundi(_lava.level) if _lava else -1))
 
 
 ## The inputs to simulate this tick: the local player's own, the practice dummy's, or what
@@ -254,7 +265,7 @@ func _respawn_later(player: Player) -> void:
 	for other: Player in _players.values():
 		if other.visible:
 			occupied.append(other.position)
-	player.reset_to(_arena.free_spawn_point(occupied))
+	player.reset_to(_arena.free_spawn_point(occupied, _lava.safe_feet_y() if _lava else INF))
 	player.invulnerable_time = _rules.respawn_invulnerability
 	player.invulnerable = true
 	player.set_active(true)
