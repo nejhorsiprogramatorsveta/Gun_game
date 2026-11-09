@@ -39,7 +39,7 @@ var ability_cooldown := 0.0
 var ability_time_left := 0.0
 ## True on the tick the ability was activated (host applies effects on others).
 var ability_started := false
-## Clouds and platforms of the match (set by MatchController); null in unit tests.
+## Gas and platforms of the match (set by MatchController); null in unit tests.
 var effects: AreaEffects
 ## Authority: seconds of respawn protection left.
 var invulnerable_time := 0.0
@@ -81,9 +81,8 @@ func set_team(new_team: int) -> void:
 ## One shared movement tick, also used during client prediction and replay.
 func simulate(input: InputFrame, delta: float) -> void:
 	tick_ability(input, delta)
-	var slow := effects.slow_for(self) if effects else Vector2.ONE
-	motor_state.speed_scale = slow.x
-	motor_state.jump_scale = slow.y
+	if effects:
+		effects.blow(self)  # an opponent's gas blows the player away before moving
 	PlayerMotor.step(self, input, motor_state, character, delta)
 	fired_this_tick = tick_weapon(input, delta)
 	aim = input.aim

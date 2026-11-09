@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="GasBlastAbility" format=3]
+
+[ext_resource type="Script" path="res://src/abilities/gas_blast_ability.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"gas_blast"
+name_key = "ABILITY_GAS_BLAST_NAME"
+description_key = "ABILITY_GAS_BLAST_DESCRIPTION"
+cooldown = 9.0
+duration = 0.0
+length = 540.0
+height = 90.0
+gap = 30.0
+lifetime = 3.0
+blow_speed = 1500.0
+blow_lift = 450.0

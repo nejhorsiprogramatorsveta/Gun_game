@@ -84,7 +84,7 @@ src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cle
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
-Snapshots (protocol 20, 60 Hz, 6-byte header + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
+Snapshots (protocol 21, 60 Hz, 6-byte header + 45 bytes/player) carry complete motor memory (floor contact, previous buttons,
 remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
 reload time (0.1 ms grid, PlayerWeapon.count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;
@@ -104,7 +104,9 @@ Changelog is implemented: data/changelog.tres + localization CSV are shared by s
 the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
 archive that entry under its published version/build and add a new current entry. Do not guess the next build number.
-M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c cloud/platform world effects (src/combat/area_effects.gd) done; keep everything arcade, recoil >= CombatRules.MIN_RECOIL; M5.3 lobby character choice done (src/net/character_choice.gd) (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement (they apply at 0 % damage; the damage multiplier comes on top, user 2026-11-05). Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
+M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c gas/platform world effects (src/combat/area_effects.gd) done; since 0.2.13 Krügermann's gas (gas_blast, GasCloud) BLOWS opponents away at once
+(AreaEffects.blow inside Player.simulate, direction carried by the effect RPC, credited via player_blown), Balvan can shoot behind his shield
+and carries heavy_machine_gun (WeaponData.air_spread_degrees); shot spread is seeded by (slot, input seq, pellet) so predicted bullets match the host; keep everything arcade, recoil >= CombatRules.MIN_RECOIL; M5.3 lobby character choice done (src/net/character_choice.gd) (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement (they apply at 0 % damage; the damage multiplier comes on top, user 2026-11-05). Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
 The user replaced the previous dev/stable split (2026-11-04): keep ONE existing release `dev`,
 promoted to stable/latest, and change its visible version/title and assets. The `dev` slug is retained for
 installed clients. Do not create releases or move/push tags. Hide old `v0.1.0` as a draft only after successful

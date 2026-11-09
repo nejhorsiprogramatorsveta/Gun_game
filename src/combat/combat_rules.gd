@@ -45,7 +45,13 @@ static func fire_interval(weapon: WeaponData) -> float:
 	return 1.0 / maxf(weapon.shots_per_second, 0.01)
 
 
-## Shot direction with random spread; the authority sends the result, so peers agree.
-static func spread_direction(aim_direction: Vector2, weapon: WeaponData, random_value: float) -> Vector2:
-	var angle := deg_to_rad(lerpf(-weapon.spread_degrees, weapon.spread_degrees, random_value))
+## Shot direction with spread; random_value 0..1 (WeaponSystem derives it from the input,
+## so the host and the shooter's prediction agree). In the air some guns spread much more.
+static func spread_direction(aim_direction: Vector2, weapon: WeaponData, random_value: float, airborne: bool = false) -> Vector2:
+	var spread := spread_degrees(weapon, airborne)
+	var angle := deg_to_rad(lerpf(-spread, spread, random_value))
 	return aim_direction.normalized().rotated(angle)
+
+
+static func spread_degrees(weapon: WeaponData, airborne: bool) -> float:
+	return weapon.air_spread_degrees if airborne and weapon.air_spread_degrees >= 0.0 else weapon.spread_degrees

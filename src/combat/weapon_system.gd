@@ -41,7 +41,7 @@ func spawn_shot(player: Player, input: InputFrame, catch_up_ticks: int = 0) -> v
 	var aim_direction := InputFrame.aim_to_vector(input.aim)
 	var origin := player.global_position + aim_direction * Player.GUN_LENGTH
 	for pellet in weapon.pellets:
-		var direction := CombatRules.spread_direction(aim_direction, weapon, randf())
+		var direction := _shot_direction(player, input, aim_direction, weapon, pellet)
 		var id := _next_id
 		_next_id += 1
 		var projectile := _spawn(id, origin, direction, weapon, player)
@@ -61,11 +61,25 @@ func spawn_predicted(player: Player, input: InputFrame) -> void:
 	var aim_direction := InputFrame.aim_to_vector(input.aim)
 	var origin := player.global_position + aim_direction * Player.GUN_LENGTH
 	for pellet in weapon.pellets:
-		var projectile := _spawn(_next_predicted_id, origin, CombatRules.spread_direction(aim_direction, weapon, randf()), weapon, null)
+		var projectile := _spawn(_next_predicted_id, origin, _shot_direction(player, input, aim_direction, weapon, pellet), weapon, null)
 		_next_predicted_id -= 1
 		projectile.predicted = true
 		projectile.predicted_ms = Time.get_ticks_msec()
 		_predicted.append(projectile)
+
+
+## Spread of one pellet. A client's shot has an input sequence number, so its random value
+## comes from (slot, seq, pellet): the host and the shooter's own prediction get the same
+## direction and the predicted bullet flies where the real one does. Inputs without a seq
+## (the host's own player, practice) use plain randomness. Airborne = not on the floor
+## after this tick's movement.
+static func _shot_direction(player: Player, input: InputFrame, aim_direction: Vector2, weapon: WeaponData, pellet: int) -> Vector2:
+	var random_value := randf()
+	if input.seq != 0:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = (player.slot << 24) | (input.seq << 8) | pellet
+		random_value = rng.randf()
+	return CombatRules.spread_direction(aim_direction, weapon, random_value, not player.motor_state.on_floor)
 
 
 func _physics_process(_delta: float) -> void:
@@ -108,8 +122,10 @@ func _on_remote_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id:
 	if shooter_slot == local_slot and not _predicted.is_empty():
 		# Our own shot, already shown: pair it (strictly in order, one per pellet). If the
 		# predicted bullet has already hit a wall, the shot has been shown in full.
-		var own: Projectile = _predicted.pop_front()
-		if is_instance_valid(own) and not own.is_queued_for_deletion():
+		# Untyped: the bullet may already be freed, and a freed object in a typed variable is a
+		# script error.
+		var own: Variant = _predicted.pop_front()
+		if is_instance_valid(own) and not (own as Projectile).is_queued_for_deletion():
 			_projectiles.erase(own.id)
 			own.id = id
 			_projectiles[id] = own

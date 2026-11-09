@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://src/data_types/character_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/characters/balvan.png" id="6"]
 [ext_resource type="Resource" path="res://data/abilities/shield.tres" id="5"]
-[ext_resource type="Resource" path="res://data/weapons/assault_rifle.tres" id="3"]
+[ext_resource type="Resource" path="res://data/weapons/heavy_machine_gun.tres" id="3"]
 
 [resource]
 script = ExtResource("1")

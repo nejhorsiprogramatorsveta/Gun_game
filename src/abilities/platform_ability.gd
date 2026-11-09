@@ -14,7 +14,7 @@ func start(user: Player, input: InputFrame) -> void:
 	user.effects.spawn(self, user.peer_id, input.seq, top_left)
 
 
-func create_effect(owner_peer_id: int) -> Node2D:
+func create_effect(owner_peer_id: int, _direction: int) -> Node2D:
 	var platform := TempPlatform.new()
 	platform.owner_peer_id = owner_peer_id
 	platform.lifetime = lifetime

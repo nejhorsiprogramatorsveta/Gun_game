@@ -24,9 +24,6 @@ class State:
 	var facing: int = 1
 	## Movement ability running (JetpackAbility.start): seconds of thrust left.
 	var boost_time_left: float = 0.0
-	## Slowing cloud (AreaEffects.slow_for), set before each step: running and jump multipliers.
-	var speed_scale: float = 1.0
-	var jump_scale: float = 1.0
 
 
 static func step(body: CharacterBody2D, input: InputFrame, state: State, stats: CharacterData, delta: float) -> void:
@@ -59,7 +56,7 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	if state.boost_time_left > 0.0 and stats.ability is JetpackAbility:
 		return _jetpack(velocity, input, state, stats, delta)
 
-	velocity.x = _horizontal(velocity.x, on_floor, input.move_x, stats.move_speed * state.speed_scale, stats, delta)
+	velocity.x = _horizontal(velocity.x, on_floor, input.move_x, stats.move_speed, stats, delta)
 	# The character looks where the player aims (mouse cursor), not where it runs.
 	var aim_x := InputFrame.aim_to_vector(input.aim).x
 	if absf(aim_x) > 0.01:
@@ -72,7 +69,7 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 	# still jumps. In the air only a fresh press jumps, so holding the key does nothing.
 	var wants_jump := state.jump_buffer_timer > 0.0 if on_floor else bool(just_pressed & InputFrame.JUMP)
 	if wants_jump and state.jumps_left > 0:
-		velocity.y = -stats.jump_velocity * state.jump_scale
+		velocity.y = -stats.jump_velocity
 		state.jumps_left -= 1
 		state.jump_buffer_timer = 0.0
 
@@ -86,7 +83,7 @@ static func compute_velocity(velocity: Vector2, on_floor: bool, input: InputFram
 static func _jetpack(velocity: Vector2, input: InputFrame, state: State, stats: CharacterData, delta: float) -> Vector2:
 	var jet := stats.ability as JetpackAbility
 	state.boost_time_left = maxf(state.boost_time_left - delta, 0.0)
-	velocity.x = _horizontal(velocity.x, false, input.move_x, stats.move_speed * state.speed_scale, stats, delta)
+	velocity.x = _horizontal(velocity.x, false, input.move_x, stats.move_speed, stats, delta)
 	velocity.y = move_toward(velocity.y, -jet.lift_speed, jet.thrust * delta)
 	var aim_x := InputFrame.aim_to_vector(input.aim).x
 	if absf(aim_x) > 0.01:

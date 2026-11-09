@@ -27,8 +27,9 @@ func activate(_user: Player, _players: Array) -> Array[Player]:
 	return []
 
 
-## World object this ability leaves behind (cloud, platform), see AreaEffects. null = none.
-func create_effect(_owner_peer_id: int) -> Node2D:
+## World object this ability leaves behind (gas, platform), see AreaEffects. null = none.
+## direction: 1 / -1, the side the user aimed at (the gas blows that way).
+func create_effect(_owner_peer_id: int, _direction: int) -> Node2D:
 	return null
 
 

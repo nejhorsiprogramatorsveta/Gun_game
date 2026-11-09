@@ -63,6 +63,7 @@ func _ready() -> void:
 	add_child(_effects)
 	_weapons.player_hit.connect(_on_player_hit)
 	_abilities.player_hit.connect(_on_player_hit)
+	_effects.player_blown.connect(_on_player_hit)  # a fall after Krügermann's gas counts for him
 	_is_authority = not _networked or multiplayer.is_server()
 	_effects.setup(_net if _networked else null, _is_authority)
 	if _networked and not _is_authority:  # own shots are predicted on clients

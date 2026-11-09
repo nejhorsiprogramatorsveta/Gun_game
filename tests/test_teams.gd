@@ -48,12 +48,12 @@ func test_shockwave_and_cloud_spare_teammates() -> void:
 	check(mate.velocity.is_zero_approx(), "the teammate stays")
 	var effects := AreaEffects.new()
 	effects.teams = {7: 1, 8: 1, 9: 0}
-	var cloud := ContentDB.get_ability(&"slow_cloud") as SlowCloudAbility
-	effects._add(cloud, 7, 1, Vector2(500, 300))
+	var gas := ContentDB.get_ability(&"gas_blast")
+	effects._add(gas, 7, 1, Vector2(500, 300), 1)
 	var teammate := _player(&"stin", 8, Vector2(600, 300), 1)
 	var opponent := _player(&"architekt", 9, Vector2(600, 300), 0)
-	check_eq(effects.slow_for(teammate), Vector2.ONE, "the teammate's cloud does not slow")
-	check(effects.slow_for(opponent).x < 1.0, "the opponent is slowed")
+	check(not effects.blow(teammate) and teammate.velocity.is_zero_approx(), "the teammate's gas does not blow")
+	check(effects.blow(opponent) and opponent.velocity.x > 0.0, "the opponent is blown away")
 	for node in [vichr, mate, enemy, effects, teammate, opponent]:
 		node.free()
 

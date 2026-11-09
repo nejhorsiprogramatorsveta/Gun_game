@@ -246,6 +246,18 @@ def draw_weapon(c: Canvas, spec: dict, flash: bool) -> None:
         c.rect(7, 2, 12, 3, rgb("#22252b"))
     if spec.get("double"):
         c.rect(4 + spec["body"], 4, 4 + length, 4, shade(metal, 1.2), shaded=False)
+    if spec.get("box"):                                          # big ammo box under the receiver
+        c.rect(7, 8, 12, 10, rgb(spec["box"]))
+    if spec.get("bipod"):                                        # folded-out bipod near the muzzle
+        bx = 4 + length - 5
+        for i in range(4):
+            c.px(bx - i, 7 + i, shade(metal, 0.9))
+            c.px(bx + i, 7 + i, shade(metal, 0.9))
+    if spec.get("shroud"):                                       # thick perforated barrel shroud
+        c.rect(4 + spec["body"], 4, length, 7, shade(metal, 1.05))
+        for x in range(6 + spec["body"], length, 2):
+            c.px(x, 5, shade(metal, 0.55))
+            c.px(x, 6, shade(metal, 0.55))
     c.rect(3, 6, 5, 8, hand, shaded=False)                       # front hand on the grip
     if flash:
         mx = 5 + length
@@ -263,6 +275,8 @@ WEAPONS = {
     "battle_rifle": {"body": 11, "length": 21, "stock": True, "mag": 2, "metal": "#3d3a34"},
     "carbine": {"body": 9, "length": 16, "stock": True, "mag": 2},
     "light_machine_gun": {"body": 12, "length": 21, "stock": True, "mag": 2, "metal": "#3f4a3a"},
+    "heavy_machine_gun": {"body": 13, "length": 24, "stock": True, "box": "#5e5a2c", "bipod": True, "shroud": True,
+                          "metal": "#353a40"},
     "sniper": {"body": 10, "length": 23, "stock": True, "scope": True},
     "shotgun": {"body": 9, "length": 18, "stock": True},
     "double_barrel": {"body": 8, "length": 17, "stock": True, "double": True},

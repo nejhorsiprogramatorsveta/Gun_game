@@ -16,6 +16,9 @@ extends Resource
 @export var max_range: float = 1400.0
 ## Random deviation of each shot, ± degrees.
 @export var spread_degrees: float = 1.5
+## Deviation (± degrees) while the shooter is in the air (jumping, falling); negative = the
+## same as spread_degrees. A big value makes a gun accurate only when standing on the ground.
+@export var air_spread_degrees: float = -1.0
 ## Speed (px/s) a hit adds to the target, divided by the target's weight. Keep the totals
 ## within CombatRules.MAX_KNOCKBACK_PER_SHOT / _PER_SECOND (checked by tests/test_weapons.gd).
 @export var knockback: float = 550.0

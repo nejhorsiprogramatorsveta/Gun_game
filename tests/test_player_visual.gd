@@ -57,4 +57,5 @@ func test_every_ability_has_a_pixel_art_effect() -> void:
 	check(is_equal_approx(ring.scale.x * AbilityFx.RING_RADIUS, (ContentDB.get_ability(&"shockwave") as ShockwaveAbility).radius),
 			"the ring grows exactly to the shockwave reach")
 	ring.free()
-	check(SlowCloud.PUFFS != null and ContentDB.get_ability(&"platform") != null, "gas and platform draw themselves")
+	check(GasCloud.PUFFS != null and GasCloud.ARROW != null and ContentDB.get_ability(&"platform") != null,
+			"gas (with direction arrows) and platform draw themselves")

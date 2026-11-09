@@ -77,6 +77,7 @@ tématu `assets/ui/theme.tres`.
 | `projectile_speed` | rychlost střely (px/s) |
 | `max_range` | dostřel (px); pak střela zmizí – brokovnice krátce, odstřelovačka přes celou mapu |
 | `spread_degrees` | náhodný rozptyl ± stupňů |
+| `air_spread_degrees` | rozptyl ± stupňů, když střelec skáče nebo padá; záporné číslo = stejný jako `spread_degrees` (těžký kulomet: 1° na zemi, 15° ve vzduchu) |
 | `knockback` | odhoz jednoho zásahu (dělí se váhou zasaženého) |
 | `recoil` | zpětný ráz střelce při každém výstřelu |
 | `pellets` | počet broků na výstřel (brokovnice > 1, každý brok má vlastní rozptyl a odhoz) |
@@ -101,11 +102,11 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 
 | Soubor (druh) | Postava | Vlastní hodnoty |
 |---|---|---|
-| `shield.tres` (štít) | Balvan | `knockback_multiplier` – násobek odhozu během štítu (0,2); během štítu nestřílí |
+| `shield.tres` (štít) | Balvan | `knockback_multiplier` – násobek odhozu během štítu (0,2; platí i pro Krügermannův plyn); za štítem se dá střílet |
 | `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px, nyní 320 – dosah, ne melee), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru), `damage` (procenta poškození za zásah, nyní 9) |
 | `dash.tres` (úskok) | Jiskra | `speed` (px/s po dobu `duration`) |
 | `teleport.tres` (přesun) | Stín | `distance` – max. vzdálenost ke kurzoru (px) |
-| `slow_cloud.tres` (zpomalovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `speed_scale`, `jump_scale` (zpomalení běhu a skoku soupeřů) |
+| `gas_blast.tres` (odfukovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `blow_speed` (rychlost odfouknutí do strany, px/s, dělí se váhou soupeře), `blow_lift` (rychlost nahoru) |
 | `platform.tres` (plošina) | Architekt | `width` (px), `lifetime` (s) |
 
 - **Varianta existujícího druhu** (např. silnější štít pro jinou postavu) = zkopírovat `.tres`, změnit `id`

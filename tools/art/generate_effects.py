@@ -72,6 +72,21 @@ def gas_puffs():
     return strip(frames)
 
 
+def gas_arrow():
+    """1 frame 12x14: a pale green chevron drifting through Krügermann's gas, pointing right
+    (mirrored in the game for gas that blows left) - shows which way the gas blows."""
+    img = Image.new("RGBA", (12, 14), (0, 0, 0, 0))
+    for i in range(6):
+        for t in range(3):                       # 3 px thick chevron arms
+            px(img, 2 + i + t, 1 + i, rgb("#ffffff", 245))
+            px(img, 2 + i + t, 12 - i, rgb("#ffffff", 245))
+    for i in range(6):
+        px(img, 2 + i, 1 + i, rgb("#c8f7a8", 245))      # light green inner edge for depth
+        px(img, 2 + i, 12 - i, rgb("#c8f7a8", 245))
+    outline(img, rgb("#173d14", 240))
+    return img
+
+
 def shield_bubble():
     """2 frames 48x64: Balvan's energy dome with a hexagon shimmer."""
     frames = []
@@ -153,6 +168,7 @@ def teleport_smoke():
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     gas_puffs().save(OUT / "gas_puffs.png")
+    gas_arrow().save(OUT / "gas_arrow.png")
     shield_bubble().save(OUT / "shield_bubble.png")
     shockwave_ring().save(OUT / "shockwave_ring.png")
     jet_flame().save(OUT / "jet_flame.png")
