@@ -12,6 +12,51 @@ extends Node2D
 ## ability can send players high up without killing them.
 @export var kill_rect := Rect2(-700, -800, 2680, 1900)
 
+## A player is carried only if it was simulated at most this many ticks ago (not after a
+## respawn or a long gap in its inputs).
+const MAX_CARRY_TICKS := 30
+
+var _moving: Array[MovingPlatform] = []
+
+
+func _ready() -> void:
+	for child in get_children():
+		if child is MovingPlatform:
+			_moving.append(child)
+	place_platforms(0)
+
+
+func has_moving_platforms() -> bool:
+	return not _moving.is_empty()
+
+
+## Moves every MovingPlatform to where it is at host tick `tick`.
+func place_platforms(tick: int) -> void:
+	for platform in _moving:
+		platform.place(tick)
+
+
+## Shared by the host and the own client's prediction at the start of Player.simulate:
+## platforms to `tick`, and a player who stood on a moving platform when last simulated
+## (Player.world_tick) moves along with it: sideways by the platform's motion, and the
+## feet are put right on its top. (Adding the vertical motion instead would leave the feet
+## a pixel inside a rising jump-through platform whenever the client's estimate of the host
+## tick is one off, and the player would fall through it.)
+func prepare(player: Player, tick: int) -> void:
+	place_platforms(tick)
+	var last := player.world_tick
+	player.world_tick = tick
+	if _moving.is_empty() or last < 0 or last >= tick or tick - last > MAX_CARRY_TICKS \
+			or not player.motor_state.on_floor or player.motor_state.drop_timer > 0.0:
+		return
+	var feet := player.position + Vector2(0.0, Player.BODY_SIZE.y / 2.0)
+	for platform in _moving:
+		if platform.supports(feet, Player.BODY_SIZE.x / 2.0, last):
+			var top := platform.base_position + platform.offset_at(tick)
+			player.position.x += platform.offset_at(tick).x - platform.offset_at(last).x
+			player.position.y = top.y - Player.BODY_SIZE.y / 2.0 - player.safe_margin
+			return
+
 
 func spawn_points() -> Array[Vector2]:
 	var points: Array[Vector2] = []

@@ -3,12 +3,14 @@ class_name Platform
 extends StaticBody2D
 ## Rectangular arena block, positioned by its top-left corner. Solid blocks use the
 ## "world" layer; one-way blocks can be jumped through from below and dropped through.
-## Drawn with pixel-art tiles (tools/art/generate_world.py): mossy stone for solid blocks,
-## a wooden beam for one-way platforms, at PIXEL_SCALE.
+## Drawn with pixel-art tiles (tools/art/generate_world.py): mossy stone for solid blocks
+## (or grass on earth with `turf`, Hobitín), a wooden beam for one-way platforms, at PIXEL_SCALE.
 
 const STONE_TOP: Texture2D = preload("res://assets/sprites/tiles/stone_top.png")
 const STONE_FILL: Texture2D = preload("res://assets/sprites/tiles/stone_fill.png")
 const WOOD_BEAM: Texture2D = preload("res://assets/sprites/tiles/wood_beam.png")
+const TURF_TOP: Texture2D = preload("res://assets/sprites/tiles/turf_top.png")
+const TURF_FILL: Texture2D = preload("res://assets/sprites/tiles/turf_fill.png")
 const PIXEL_SCALE := 2.0
 
 const WORLD_LAYER_BIT := 1
@@ -22,6 +24,11 @@ const ONE_WAY_LAYER_BIT := 2
 	set(value):
 		one_way = value
 		_rebuild()
+## Solid blocks only: grass on earth instead of mossy stone.
+@export var turf := false:
+	set(value):
+		turf = value
+		queue_redraw()
 ## Tint of the tiles (white = original colours).
 @export var color := Color.WHITE:
 	set(value):
@@ -58,7 +65,8 @@ func _draw() -> void:
 	if one_way:
 		draw_texture_rect(WOOD_BEAM, Rect2(Vector2.ZERO, area), true, color)
 		return
-	var top_height := minf(area.y, STONE_TOP.get_height())
-	draw_texture_rect(STONE_TOP, Rect2(Vector2.ZERO, Vector2(area.x, top_height)), true, color)
+	var top_texture := TURF_TOP if turf else STONE_TOP
+	var top_height := minf(area.y, top_texture.get_height())
+	draw_texture_rect(top_texture, Rect2(Vector2.ZERO, Vector2(area.x, top_height)), true, color)
 	if area.y > top_height:
-		draw_texture_rect(STONE_FILL, Rect2(Vector2(0, top_height), Vector2(area.x, area.y - top_height)), true, color)
+		draw_texture_rect(TURF_FILL if turf else STONE_FILL, Rect2(Vector2(0, top_height), Vector2(area.x, area.y - top_height)), true, color)

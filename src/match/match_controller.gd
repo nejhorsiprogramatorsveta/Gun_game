@@ -74,6 +74,7 @@ func _ready() -> void:
 	if _networked and not _is_authority:  # own shots are predicted on clients
 		_weapons.local_slot = Session.match_slots.get(multiplayer.get_unique_id(), -1)
 		_client = MatchClient.new(_players, multiplayer.get_unique_id(), _net, _weapons, _net_log)
+		_client.arena = _arena
 	if _networked:
 		for peer_id: int in Session.match_slots:
 			_spawn(peer_id, Session.match_slots[peer_id], Session.players.get(peer_id, {}).get("name", "?"))
@@ -111,6 +112,7 @@ func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 		player.set_team(int(Session.players.get(peer_id, {}).get("team", Teams.NONE)))
 		_effects.teams[peer_id] = player.team
 	player.effects = _effects
+	player.arena = _arena
 	add_child(player)
 	var spawns := _arena.spawn_points()
 	player.reset_to(spawns[slot % spawns.size()])
@@ -171,6 +173,7 @@ func _simulate_tick(delta: float) -> void:
 	_countdown = maxf(_countdown - delta, 0.0)
 	_countdown_display = ceili(_countdown)
 	var frozen := _countdown > 0.0
+	_arena.place_platforms(_tick)  # also for bullets and players without input this tick
 	if _lava and not frozen:
 		_lava.tick(_players.values(), _rules.lives, _networked, delta)
 	for peer_id in _players:
@@ -181,6 +184,7 @@ func _simulate_tick(delta: float) -> void:
 			continue
 		for i in inputs.size():  # 0-4 inputs, each simulated exactly once (InputBuffer)
 			var input := InputFrame.create(0, 0, inputs[i].aim, inputs[i].seq) if frozen else inputs[i]
+			input.tick = _tick
 			player.simulate(input, delta)
 			_weapons.spawn_shot(player, input, inputs.size() - 1 - i)
 			_abilities.tick(player, _players.values())

@@ -17,6 +17,7 @@ func predict(player: Player, input: InputFrame, delta: float, frozen: bool) -> b
 	if not _ready or not player.visible:
 		return false
 	var movement := InputFrame.create(0, 0, input.aim, input.seq) if frozen else input
+	movement.tick = input.tick
 	player.simulate(movement, delta)
 	_history.append({"input": movement, "delta": delta, "state": player.snapshot_state()})
 	if _history.size() > MAX_PENDING_INPUTS:
@@ -26,8 +27,9 @@ func predict(player: Player, input: InputFrame, delta: float, frozen: bool) -> b
 
 
 ## Returns how far the prediction was off (px), or -1 when there was nothing to compare
-## (first snapshot, death, respawn or a lost timeline).
-func reconcile(player: Player, state: Dictionary) -> float:
+## (first snapshot, death, respawn or a lost timeline). tick_for(seq) gives the host tick of
+## an input (moving platforms are replayed where they were); empty = no world time.
+func reconcile(player: Player, state: Dictionary, tick_for: Callable = Callable()) -> float:
 	var old_position := player.position
 	var old_display_position := player.position + player.visual_offset
 	var discontinuity: bool = not _ready or player.visible != state.active or player.lives != state.lives
@@ -46,7 +48,11 @@ func reconcile(player: Player, state: Dictionary) -> float:
 				break
 			_history.pop_front()
 	player.restore_state(state)
+	if tick_for.is_valid():
+		player.world_tick = tick_for.call(state.last_seq)
 	for entry in _history:
+		if tick_for.is_valid():
+			entry.input.tick = tick_for.call(entry.input.seq)
 		player.simulate(entry.input, entry.delta)
 		entry.state = player.snapshot_state()
 	var correction := old_display_position - player.position

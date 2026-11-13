@@ -1,0 +1,147 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/arenas/arena.gd" id="1"]
+[ext_resource type="Script" path="res://src/arenas/platform.gd" id="2"]
+[ext_resource type="Script" path="res://src/arenas/arena_background.gd" id="3"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/hobbiton.png" id="4"]
+[ext_resource type="Script" path="res://src/arenas/moving_platform.gd" id="5"]
+
+[node name="ArenaHobbiton" type="Node2D"]
+script = ExtResource("1")
+kill_rect = Rect2(-400, -1100, 3200, 2350)
+
+[node name="Background" type="CanvasLayer" parent="."]
+script = ExtResource("3")
+scene = ExtResource("4")
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(1200, 640)
+zoom = Vector2(0.5, 0.5)
+
+[node name="HillLeft" type="StaticBody2D" parent="."]
+position = Vector2(60, 900)
+script = ExtResource("2")
+size = Vector2(720, 480)
+turf = true
+
+[node name="HillRight" type="StaticBody2D" parent="."]
+position = Vector2(1620, 900)
+script = ExtResource("2")
+size = Vector2(720, 480)
+turf = true
+
+[node name="CenterMid" type="StaticBody2D" parent="."]
+position = Vector2(1080, 690)
+script = ExtResource("2")
+size = Vector2(240, 16)
+one_way = true
+
+[node name="CenterHigh" type="StaticBody2D" parent="."]
+position = Vector2(1120, 510)
+script = ExtResource("2")
+size = Vector2(160, 16)
+one_way = true
+
+[node name="Ferry" type="StaticBody2D" parent="."]
+position = Vector2(800, 930)
+script = ExtResource("5")
+size = Vector2(200, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(600, 0)
+period = 16.0
+
+[node name="LiftLeft" type="StaticBody2D" parent="."]
+position = Vector2(820, 720)
+script = ExtResource("5")
+size = Vector2(160, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(0, -200)
+period = 8.0
+
+[node name="LiftRight" type="StaticBody2D" parent="."]
+position = Vector2(1420, 720)
+script = ExtResource("5")
+size = Vector2(160, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(0, -200)
+period = 8.0
+phase = 0.5
+
+[node name="SwingLeft" type="StaticBody2D" parent="."]
+position = Vector2(150, 700)
+script = ExtResource("5")
+size = Vector2(220, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(300, 0)
+period = 9.0
+
+[node name="SwingRight" type="StaticBody2D" parent="."]
+position = Vector2(2030, 700)
+script = ExtResource("5")
+size = Vector2(220, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(-300, 0)
+period = 9.0
+
+[node name="HighLeft" type="StaticBody2D" parent="."]
+position = Vector2(420, 500)
+script = ExtResource("5")
+size = Vector2(200, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(0, -150)
+period = 7.0
+phase = 0.25
+
+[node name="HighRight" type="StaticBody2D" parent="."]
+position = Vector2(1780, 500)
+script = ExtResource("5")
+size = Vector2(200, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(0, -150)
+period = 7.0
+phase = 0.75
+
+[node name="TopCenter" type="StaticBody2D" parent="."]
+position = Vector2(900, 330)
+script = ExtResource("5")
+size = Vector2(240, 16)
+one_way = true
+color = Color(1.15, 1.05, 0.85, 1)
+travel = Vector2(360, 0)
+period = 10.0
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(250, 860)
+
+[node name="Spawn2" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2150, 860)
+
+[node name="Spawn3" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(550, 860)
+
+[node name="Spawn4" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1850, 860)
+
+[node name="Spawn5" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1150, 650)
+
+[node name="Spawn6" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1250, 650)
+
+[node name="Spawn7" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1200, 470)
+
+[node name="Spawn8" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(690, 860)
+
+[node name="Spawn9" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1710, 860)

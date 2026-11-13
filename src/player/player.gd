@@ -44,6 +44,11 @@ var ability_started := false
 var gas_ticks := 0
 ## Gas and platforms of the match (set by MatchController); null in unit tests.
 var effects: AreaEffects
+## The match's arena (moving platforms carry the player, Arena.prepare); null in unit tests.
+var arena: Arena
+## Host tick of the last simulation (Arena.prepare); -1 after a respawn. Local only: the
+## client's prediction sets it from the snapshot before replaying.
+var world_tick := -1
 ## Authority: seconds of respawn protection left.
 var invulnerable_time := 0.0
 ## Authority: how long the player has been outside the arena (see out_of_bounds_grace).
@@ -83,6 +88,8 @@ func set_team(new_team: int) -> void:
 
 ## One shared movement tick, also used during client prediction and replay.
 func simulate(input: InputFrame, delta: float) -> void:
+	if arena and input.tick >= 0:
+		arena.prepare(self, input.tick)  # moving platforms to this tick, carry the player
 	tick_ability(input, delta)
 	if effects:
 		effects.blow(self)  # an opponent's gas blows the player away before moving
@@ -256,6 +263,7 @@ func reset_to(spawn_position: Vector2) -> void:
 	ability_time_left = 0.0
 	ability_cooldown = 0.0  # after a death the ability is ready again
 	gas_ticks = 0
+	world_tick = -1
 	invulnerable_time = 0.0
 	invulnerable = false
 	out_of_bounds_time = 0.0

@@ -5,7 +5,8 @@ Run from the project root:  python3 tools/art/generate_world.py   (needs Pillow)
 Writes PNGs to assets/; commit them and run the Godot import. Everything is drawn here
 procedurally with fixed random seeds (same result every run), no third-party images.
 
-  assets/sprites/tiles/   stone_top.png 16x16, stone_fill.png 16x16, wood_beam.png 16x8
+  assets/sprites/tiles/   stone_top.png 16x16, stone_fill.png 16x16, wood_beam.png 16x8,
+                          turf_top.png / turf_fill.png 16x16 (grass on earth, Hobitín)
   assets/backgrounds/     <arena>.png 480x270 (static scene), clouds.png 480x120 (drifting)
   assets/ui/              button_*.png (9-slice, 2x pixels), field.png, panel.png, logo.png
 """
@@ -82,6 +83,40 @@ def wood_beam() -> Image.Image:
     for _ in range(10):
         px(img, rnd.randrange(16), rnd.randrange(2, 6), rgb("#6e4629"))
     px(img, 3, 3, rgb("#3b2616")); px(img, 12, 4, rgb("#3b2616"))  # wooden pegs
+    return img
+
+
+def turf_tile(top: bool) -> Image.Image:
+    """Hobitín ground: brown earth with pebbles and roots; `top` adds a lush grass edge with
+    blades sticking up (solid blocks of the hobbit hills)."""
+    rnd = random.Random(61 if top else 62)
+    earth, dark, light = rgb("#7a5232"), rgb("#5e3e25"), rgb("#93683f")
+    img = new(16, 16, earth)
+    for y in range(16):
+        for x in range(16):
+            roll = rnd.random()
+            if roll < 0.14:
+                px(img, x, y, dark)
+            elif roll < 0.2:
+                px(img, x, y, light)
+    for _ in range(2):  # pebbles
+        x, y = rnd.randrange(1, 14), rnd.randrange(6 if top else 1, 14)
+        rect(img, x, y, x + 1, y, rgb("#a89478")); px(img, x, y + 1, rgb("#6e6250"))
+    if not top:
+        x = rnd.randrange(3, 12)  # a thin root
+        for y in range(3, 10):
+            px(img, x + (y // 3) % 2, y, rgb("#4a3020"))
+        return img
+    grass, grass_dark, grass_light = rgb("#5fa844"), rgb("#3f7d2e"), rgb("#8fd16a")
+    rect(img, 0, 0, 15, 4, grass)
+    for x in range(16):
+        px(img, x, 5 + (1 if rnd.random() < 0.4 else 0), grass_dark)  # ragged lower edge
+        if rnd.random() < 0.45:
+            px(img, x, 0, grass_light)
+        if rnd.random() < 0.3:
+            px(img, x, rnd.randrange(1, 4), grass_dark)
+    for x in (3, 11):  # tiny flowers in the grass
+        px(img, x, 1, rgb("#ffe066") if x == 3 else rgb("#ff8fb0"))
     return img
 
 
@@ -287,6 +322,81 @@ def bg_hell() -> Image.Image:
     return img
 
 
+def hills(img, base_y: int, amplitude: int, color: tuple, seed: int, freq: float = 0.02) -> list:
+    """Soft rolling hills (no sharp peaks, unlike ridge()); returns the top y of every column."""
+    rnd = random.Random(seed)
+    waves = [(freq * k * rnd.uniform(0.8, 1.2), rnd.uniform(0, math.tau), 1.0 / k) for k in (1, 2, 3)]
+    tops = []
+    for x in range(W):
+        value = sum(weight * (0.5 + 0.5 * math.sin(x * f + phase)) for f, phase, weight in waves) / 1.83
+        top = int(base_y - value * amplitude)
+        rect(img, x, top, x, H - 1, color)
+        tops.append(top)
+    return tops
+
+
+def hobbit_hole(img, cx, cy, door: tuple, rnd: random.Random):
+    """Round door with a wooden frame and a brass knob, a round window beside it and a
+    chimney with smoke puffs on the hill above (original drawing)."""
+    circle(img, cx, cy, 9, rgb("#3f6e2e"))  # shadow of the doorway in the hill
+    circle(img, cx, cy, 8, rgb("#6b4a2b"))  # wooden frame
+    circle(img, cx, cy, 6, door)
+    for i in range(-5, 6, 3):  # planks
+        rect(img, cx + i, cy - 5, cx + i, cy + 5, mix(door, rgb("#000000"), 0.25))
+    px(img, cx, cy, rgb("#f0d060")); px(img, cx + 1, cy, rgb("#b8902a"))  # brass knob in the middle
+    rect(img, cx - 6, cy + 9, cx + 6, cy + 10, rgb("#d9c08a"))  # doorstep
+    side = rnd.choice((-1, 1))
+    wx = cx + side * 15
+    circle(img, wx, cy - 1, 4, rgb("#6b4a2b"))
+    circle(img, wx, cy - 1, 3, rgb("#ffe9a8"))
+    rect(img, wx - 3, cy - 1, wx + 3, cy - 1, rgb("#6b4a2b")); rect(img, wx, cy - 4, wx, cy + 2, rgb("#6b4a2b"))
+    chimney_x = cx - side * 10
+    rect(img, chimney_x - 1, cy - 20, chimney_x + 2, cy - 13, rgb("#8a7a6a"))
+    rect(img, chimney_x - 2, cy - 21, chimney_x + 3, cy - 20, rgb("#6a5a4a"))
+    for i in range(4):  # smoke drifting up and to the right
+        circle(img, chimney_x + 1 + i * 3, cy - 25 - i * 6, 2 + i // 2, rgb("#f2f2ee", 200 - i * 35))
+
+
+def fence(img, x0, x1, base_y):
+    for x in range(x0, x1 + 1, 6):
+        rect(img, x, base_y - 7, x + 1, base_y, rgb("#8a6a42"))
+    rect(img, x0, base_y - 5, x1 + 1, base_y - 5, rgb("#a07a4c"))
+    rect(img, x0, base_y - 2, x1 + 1, base_y - 2, rgb("#a07a4c"))
+
+
+def big_tree(img, cx, base_y):
+    rect(img, cx - 3, base_y - 26, cx + 3, base_y, rgb("#5a3c22"))
+    rect(img, cx - 6, base_y - 3, cx + 6, base_y, rgb("#5a3c22"))  # roots
+    for ox, oy, r, color in ((-14, -34, 13, "#3f7d2e"), (12, -36, 14, "#3f7d2e"), (0, -48, 16, "#4f8f38"),
+                             (-8, -42, 10, "#5fa844"), (9, -48, 9, "#6cb84f")):
+        circle(img, cx + ox, base_y + oy, r, rgb(color))
+
+
+def bg_hobbiton() -> Image.Image:
+    """Hobitín: a sunny green countryside of rolling hills with round doors dug into them,
+    fences, a winding path, flowers and a big tree (original procedural drawing)."""
+    img = new(W, H)
+    sky(img, rgb("#6fb7e8"), rgb("#d6eef2"))
+    circle(img, 70, 48, 18, rgb("#fff3c4")); circle(img, 70, 48, 14, rgb("#ffe68a"))
+    hills(img, 150, 40, rgb("#9cc98a"), 71, 0.015)  # far, misty hills
+    mid = hills(img, 195, 45, rgb("#6aa84f"), 72, 0.018)
+    rnd = random.Random(73)
+    big_tree(img, 360, mid[360] + 4)
+    for cx, color in ((60, "#2e7d32"), (160, "#e0b030"), (265, "#b03a2e"), (430, "#2d5aa0")):
+        hobbit_hole(img, cx, mid[cx] + 22, rgb(color), rnd)
+    front = hills(img, 238, 22, rgb("#4f8a3a"), 74, 0.025)
+    for x0, x1 in ((20, 120), (300, 420)):
+        fence(img, x0, x1, front[(x0 + x1) // 2] + 2)
+    for x in range(W):  # a winding sandy path along the front hill
+        y = front[x] + 10 + int(4 * math.sin(x / 40.0))
+        rect(img, x, y, x, y + 2, rgb("#d9c08a"))
+    for _ in range(90):  # flowers
+        x = rnd.randrange(W)
+        y = rnd.randrange(front[x] + 1, H)
+        px(img, x, y, rgb(rnd.choice(("#ffe066", "#ff8fb0", "#ffffff", "#e05050"))))
+    return img
+
+
 def clouds() -> Image.Image:
     img = new(W, 120)
     rnd = random.Random(41)
@@ -376,6 +486,9 @@ def main() -> None:
     bg_temple_steps().save(bgs / "temple_steps.png")
     bg_hanging_bridges().save(bgs / "hanging_bridges.png")
     bg_hell().save(bgs / "hell.png")
+    bg_hobbiton().save(bgs / "hobbiton.png")
+    turf_tile(True).save(tiles / "turf_top.png")
+    turf_tile(False).save(tiles / "turf_fill.png")
     lava_surface().save(tiles / "lava_surface.png")
     lava_fill().save(tiles / "lava_fill.png")
     clouds().save(bgs / "clouds.png")

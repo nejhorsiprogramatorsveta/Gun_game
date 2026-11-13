@@ -1,8 +1,8 @@
 extends TestCase
 
 
-func test_four_arenas_and_fallback() -> void:
-	check_eq(ContentDB.arena_ids(), [&"hanging_bridges", &"hell", &"rooftops", &"temple_steps"] as Array[StringName], "arenas (add new ones here)")
+func test_five_arenas_and_fallback() -> void:
+	check_eq(ContentDB.arena_ids(), [&"hanging_bridges", &"hell", &"hobbiton", &"rooftops", &"temple_steps"] as Array[StringName], "arenas (add new ones here)")
 	check_eq(ContentDB.arena_or_default("").id, ContentDB.DEFAULT_ARENA_ID, "nothing chosen -> default")
 	check_eq(ContentDB.arena_or_default("deleted_map").id, ContentDB.DEFAULT_ARENA_ID, "unknown id -> default")
 
@@ -14,8 +14,9 @@ func test_every_arena_has_safe_spawn_points() -> void:
 		check(spawns.size() >= LobbyValidator.MAX_PLAYERS, "%s: a spawn point for each of 6 players" % id)
 		check(spawns[0].x < spawns[1].x and spawns[2].x < spawns[3].x and spawns[4].x < spawns[5].x,
 				"%s: spawns ordered left, right, left, right, centre-left, centre-right" % id)
+		var centre: float = arena.get_node("Camera").position.x
 		for i in 2:
-			check(absf(spawns[4 + i].x - 640.0) < absf(spawns[i].x - 640.0), "%s: spawn %d is nearer the centre" % [id, 4 + i])
+			check(absf(spawns[4 + i].x - centre) < absf(spawns[i].x - centre), "%s: spawn %d is nearer the centre" % [id, 4 + i])
 		for spawn in spawns:
 			check(not arena.is_out_of_bounds(spawn), "%s: spawn %s inside the arena" % [id, spawn])
 			check(_ground_below(arena, spawn) < 120.0, "%s: platform right under spawn %s" % [id, spawn])

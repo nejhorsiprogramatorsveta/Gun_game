@@ -29,6 +29,11 @@ class State:
 static func step(body: CharacterBody2D, input: InputFrame, state: State, stats: CharacterData, delta: float) -> void:
 	body.velocity = compute_velocity(body.velocity, state.on_floor, input, state, stats, delta)
 	body.set_collision_mask_value(ONE_WAY_LAYER, state.drop_timer <= 0.0)
+	# The body remembers floor contact from its own last move; after a prediction rewind
+	# (restore_state) that memory is stale, so snap to the floor the state says we stand on.
+	# Otherwise the replay loses the floor for a tick (and a moving platform's ride with it).
+	if state.on_floor and body.velocity.y >= 0.0 and state.drop_timer <= 0.0:
+		body.apply_floor_snap()
 	body.move_and_slide()
 	state.on_floor = body.is_on_floor()
 	_slide_off_heads(body, delta)

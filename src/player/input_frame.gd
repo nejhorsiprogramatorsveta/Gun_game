@@ -22,6 +22,10 @@ var buttons: int = 0
 var aim: int = 0
 ## Sequence number (u16, wraps) so the host can drop duplicates and old packets.
 var seq: int = 0
+## Local only, never sent: the host match tick this input is simulated at (moving
+## platforms, Arena.prepare). The host sets its tick, a client's prediction its estimate
+## (MatchClient.tick_for); -1 = no world time (unit tests).
+var tick: int = -1
 
 
 static func create(move: int, held_buttons: int, aim_steps: int = 0, sequence: int = 0) -> InputFrame:

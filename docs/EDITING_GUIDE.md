@@ -123,16 +123,23 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | Chrámové schody | `data/arenas/temple_steps.tres` | `src/arenas/arena_temple_steps.tscn` | `ARENA_TEMPLE_STEPS_NAME` |
 | Visuté mosty | `data/arenas/hanging_bridges.tres` | `src/arenas/arena_hanging_bridges.tscn` | `ARENA_HANGING_BRIDGES_NAME` |
 | Peklo | `data/arenas/hell.tres` | `src/arenas/arena_hell.tscn` | `ARENA_HELL_NAME` |
+| Hobitín | `data/arenas/hobbiton.tres` | `src/arenas/arena_hobbiton.tscn` | `ARENA_HOBBITON_NAME` |
 
 - **Přejmenovat mapu:** změň jen text u jejího `ARENA_..._NAME` v `localization/translations.csv` (`id` v `.tres`
   neměň – podle něj si hra pamatuje vybranou mapu a posílá ji ostatním).
 - Mapa = scéna se skriptem `src/arenas/arena.gd`: plošiny (uzly s `platform.gd`: `position` = levý horní roh,
-  `size`, `one_way = true` pro plošinu, kterou jde proskočit zespodu, `color` = odstín), uzel `SpawnPoints` s
+  `size`, `one_way = true` pro plošinu, kterou jde proskočit zespodu, `turf = true` = tráva na hlíně místo kamene,
+  `color` = odstín), uzel `SpawnPoints` s
   **aspoň 6** `Marker2D` (místa oživení – kousek nad plošinou; prvních šest = začátek zápasu, sloty 0–5, v pořadí
   **vlevo, vpravo, vlevo, vpravo, střed-vlevo, střed-vpravo** – týmy pak začínají pohromadě: 2 týmy = levá/pravá strana,
   3 týmy = vlevo/vpravo/uprostřed; další spawny jsou jen pro oživení) a `Camera`
-  (zoom 0,6). `kill_rect` = hranice, za kterou se ubírá život. Scénu nejpohodlněji upravíš v editoru Godotu
+  (zoom 0,6; velký Hobitín 0,5). `kill_rect` = hranice, za kterou se ubírá život. Scénu nejpohodlněji upravíš v editoru Godotu
   (`tools/godot --path . --editor`, dvojklik na `.tscn`), jde to ale i v textovém editoru.
+- **Pohyblivé plošiny (Hobitín):** uzel se skriptem `src/arenas/moving_platform.gd` (umí vše jako `platform.gd`) a navíc
+  `travel` (posun vzdáleného konce dráhy od startu v px, např. `(300, 0)` = 300 px doprava, `(0, -200)` = 200 px nahoru),
+  `period` (sekundy na cestu tam a zpět; nejrychlejší je uprostřed dráhy: π × délka / period – test hlídá max. 120 px/s)
+  a `phase` (0–1, kde v cyklu začíná; 0,5 = na vzdáleném konci, aby se sousední plošiny míjely). Kdo na ní stojí,
+  jede s ní. Spawny dávej na pevné plošiny. Poloha se počítá z času zápasu u hostitele, takže je u všech stejná.
 - **Láva (Peklo):** uzel `Lava` (`src/arenas/lava.gd`) – `start_y` (hladina na začátku, pod všemi plošinami),
   `top_y` (kde se zastaví – těsně pod horní plošinou), `rise_speed` (px/s), `start_at_lives` (při kolika životech
   kteréhokoli hráče začne stoupat; v tréninku se počítají smrti). Kdo se lávy dotkne, hned přijde o život; když

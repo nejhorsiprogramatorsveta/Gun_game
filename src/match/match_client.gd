@@ -10,6 +10,8 @@ var countdown_display := 0
 ## Lava surface from the newest snapshot (-1 = no lava on this arena).
 var lava_y := -1
 var stats := NetStats.new()
+## The match's arena: moving platforms are shown where the own player meets them.
+var arena: Arena
 ## Newest snapshot, applied on the next physics tick (see physics_tick).
 var pending_snapshot: Dictionary = {}
 var last_snapshot_tick := -1
@@ -25,6 +27,9 @@ var _input_history: Array[InputFrame] = []
 var _prediction := ClientPrediction.new()
 ## From this time (msec) the own movement is predicted, see _apply_snapshot.
 var _movement_starts_ms := 0
+## Host tick of the newest snapshot and the own input it had processed last (tick_for).
+var _base_tick := 0
+var _base_seq := 0
 
 
 ## players is the match's live peer_id -> Player dictionary; net is MatchNet.
@@ -86,6 +91,7 @@ func _send_local_input(delta: float) -> void:
 	_input_seq = (_input_seq + 1) & 0xFFFF
 	var frame := InputFrame.sample_local(local_player)
 	frame.seq = _input_seq
+	frame.tick = tick_for(_input_seq)
 	if _prediction.predict(local_player, frame, delta, Time.get_ticks_msec() < _movement_starts_ms) and local_player.fired_this_tick:
 		_weapons.spawn_predicted(local_player, frame)  # the shot appears now, the host confirms it later
 	_input_history.push_front(frame)
@@ -93,6 +99,16 @@ func _send_local_input(delta: float) -> void:
 		_input_history.pop_back()
 	stats.record_input_sent(_input_seq, Time.get_ticks_msec())
 	_net.send_input(NetCodec.encode_input(_input_history))
+	if arena:  # also while dead, so the platforms keep moving
+		arena.place_platforms(tick_for(_input_seq))
+
+
+## Host tick an own input is (or will be) simulated at: the host takes one input per tick,
+## so it is the newest snapshot's tick plus the inputs sent after the one it had processed.
+## Used for moving platforms; a host catching up or waiting makes it a tick or two off,
+## which the next snapshot corrects.
+func tick_for(seq: int) -> int:
+	return _base_tick + (((seq - _base_seq + 0x8000) & 0xFFFF) - 0x8000)
 
 
 func _apply_snapshot(snapshot: Dictionary) -> void:
@@ -105,4 +121,6 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 	for state: Dictionary in snapshot.states:
 		for player in _players.values():
 			if player.slot == state.slot and player.peer_id == _local_peer_id:
-				_net_log.record_correction(_prediction.reconcile(player, state))
+				_base_tick = snapshot.tick
+				_base_seq = state.last_seq
+				_net_log.record_correction(_prediction.reconcile(player, state, tick_for))
