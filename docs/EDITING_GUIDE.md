@@ -182,7 +182,9 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
    verzi odmítne.
 2. V `data/changelog.tres` přesuň dosavadní aktuální záznam (`"build": 0`) pod skutečně vydanou verzi a
    sestavení (zjistíš v `version.json` na stránce vydání) a do nového záznamu `"build": 0` napiš klíče
-   novinek; texty novinek (`CHANGELOG_...`) přidej do CSV. „Co je nového“ ukazuje jen nejnovější verzi.
+   novinek rozdělené do `balance_keys` (Balanc), `new_keys` (Nové) a `other_keys` (Ostatní, i opravy chyb); texty
+   (`CHANGELOG_...`) přidej do CSV jako krátké jednořádkové shrnutí. „Co je nového“ i poznámky k vydání ukazují
+   poslední 3 verze.
 3. Commit a push na `main` – GitHub Actions hru sestaví a vydají; hráčům se nabídne aktualizace.
 
 ## Kontroly po každé změně

@@ -70,9 +70,9 @@ func _ready() -> void:
 
 
 func _on_changelog_pressed() -> void:
-	var entry := Changelog.latest()
+	var text := Changelog.format_recent()
 	_changelog_dialog.title = tr("CHANGELOG_TITLE")
-	_changelog_text.text = Changelog.format_entry(entry) if not entry.is_empty() else tr("CHANGELOG_EMPTY")
+	_changelog_text.text = text if not text.is_empty() else tr("CHANGELOG_EMPTY")
 	_show_text_dialog()
 
 

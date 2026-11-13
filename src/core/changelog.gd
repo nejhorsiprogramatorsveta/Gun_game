@@ -2,20 +2,25 @@ class_name Changelog
 ## The menu and release notes share the same bundled history and translated changes.
 
 const DATA: ChangelogData = preload("res://data/changelog.tres")
-## Sections of one version, in display order: [data field, title key]. Older entries use
-## a single "change_keys" list, shown as the first section.
+## Sections of one version, in display order: [title key, data fields] (user 2026-11-14:
+## "balance changes, new and other"). Older entries use "change_keys" / "mechanics_keys"
+## (shown as new) and "fix_keys" (shown under other).
 const SECTIONS := [
-	["mechanics_keys", "CHANGELOG_SECTION_MECHANICS"],
-	["fix_keys", "CHANGELOG_SECTION_FIXES"],
-	["other_keys", "CHANGELOG_SECTION_OTHER"],
+	["CHANGELOG_SECTION_BALANCE", ["balance_keys"]],
+	["CHANGELOG_SECTION_NEW", ["change_keys", "new_keys", "mechanics_keys"]],
+	["CHANGELOG_SECTION_OTHER", ["fix_keys", "other_keys"]],
 ]
+## "Co je nového" and the release notes show this many newest updates (user 2026-11-14;
+## before: only the newest).
+const RECENT_COUNT := 3
 
 
 ## All change keys of a data entry, in display order.
 static func entry_keys(entry: Dictionary) -> PackedStringArray:
-	var keys: PackedStringArray = entry.get("change_keys", PackedStringArray()).duplicate()
+	var keys: PackedStringArray = []
 	for section in SECTIONS:
-		keys.append_array(entry.get(section[0], PackedStringArray()))
+		for field: String in section[1]:
+			keys.append_array(entry.get(field, PackedStringArray()))
 	return keys
 
 
@@ -34,25 +39,36 @@ static func history() -> Array[Dictionary]:
 			heading = TranslationServer.translate("BUILD_DISPLAY").format({"version": entry.version, "build": entry_build})
 		var changes: PackedStringArray = []
 		var sections: Array[Dictionary] = []
-		for index in SECTIONS.size():
-			var keys: PackedStringArray = entry.get(SECTIONS[index][0], PackedStringArray()).duplicate()
-			if index == 0:
-				keys = entry.get("change_keys", PackedStringArray()) + keys
+		for section in SECTIONS:
 			var texts: PackedStringArray = []
-			for key: String in keys:
-				texts.append(TranslationServer.translate(key))
+			for field: String in section[1]:
+				for key: String in entry.get(field, PackedStringArray()):
+					texts.append(TranslationServer.translate(key))
 			if not texts.is_empty():
-				sections.append({"title": TranslationServer.translate(SECTIONS[index][1]), "changes": texts})
+				sections.append({"title": TranslationServer.translate(section[0]), "changes": texts})
 				changes.append_array(texts)
 		result.append({"heading": heading, "changes": changes, "sections": sections,
 				"build": BuildInfo.build if entry_build == 0 else entry_build})
 	return result
 
 
-## The menu shows only the newest version (user decision 2026-11-04); empty if none applies.
+## The newest version for the installed build; empty if none applies.
 static func latest() -> Dictionary:
 	var entries := history()
 	return entries[0] if not entries.is_empty() else {}
+
+
+## The RECENT_COUNT newest versions for the installed build (menu and release notes).
+static func recent() -> Array[Dictionary]:
+	return history().slice(0, RECENT_COUNT)
+
+
+## The menu text: the recent versions one after another (empty if none applies).
+static func format_recent() -> String:
+	var parts: PackedStringArray = []
+	for entry in recent():
+		parts.append(format_entry(entry))
+	return "\n\n\n".join(parts)
 
 
 ## Heading, then each non-empty section (title and bullets); entries without sections
@@ -70,19 +86,23 @@ static func format_entry(entry: Dictionary) -> String:
 	return "\n".join(lines)
 
 
+## Every bullet of the recent versions, newest first (what the release notes list).
 static func release_changes() -> PackedStringArray:
-	var entry := latest()
-	return entry.changes if not entry.is_empty() else PackedStringArray()
+	var changes: PackedStringArray = []
+	for entry in recent():
+		changes.append_array(entry.changes)
+	return changes
 
 
 static func release_notes(game_name: String, repository_url: String) -> String:
 	var lines: PackedStringArray = [TranslationServer.translate("RELEASE_VERSION").format({"version": BuildInfo.display_string()}),
 			"", "### " + TranslationServer.translate("CHANGELOG_TITLE")]
-	var entry := latest()
-	for section: Dictionary in entry.get("sections", []):
-		lines.append_array(["", "#### " + str(section.title)])
-		for change: String in section.changes:
-			lines.append("- " + change)
+	for entry in recent():
+		lines.append_array(["", "#### " + str(entry.heading)])
+		for section: Dictionary in entry.get("sections", []):
+			lines.append_array(["", "**" + str(section.title) + "**"])
+			for change: String in section.changes:
+				lines.append("- " + change)
 	lines.append_array(["", "### " + TranslationServer.translate("RELEASE_DOWNLOADS"),
 			TranslationServer.translate("RELEASE_WINDOWS").format({"file": game_name + "-windows.exe"}),
 			TranslationServer.translate("RELEASE_MACOS").format({"file": game_name + "-macos.zip"}),

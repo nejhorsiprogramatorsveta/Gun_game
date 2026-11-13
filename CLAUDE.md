@@ -14,8 +14,9 @@ Codex has its own rules in codex.md (loaded via AGENTS.md): it must NEVER push; 
 
 1. Update docs/PROGRESS.md: "Kde jsme skončili" (what part of which milestone is done / half-done, uncommitted files),
    "Další krok" (one concrete next task, specific enough to start without asking), "Poslední změny", "Stav testů", "Známé problémy".
-2. Claude Code: commit (Conventional Commits) and PUSH to origin main yourself – the user allowed this permanently
-   (2026-11-03). Only push finished, tested work; then check that the GitHub Actions run succeeded.
+2. Claude Code: commit (Conventional Commits) locally. Since 2026-11-13 the user wants to approve pushes: push to origin
+   main only after the user says so ("pushni"), then check that the GitHub Actions run succeeded (earlier rule 2026-11-03:
+   push yourself – replaced).
 3. Give the user a Czech overview: which part of the plan (milestone/step) was completed, what remains in the milestone,
    changed files, how to test, what was NOT tested, commit hash + CI result.
 4. Stop. Do not start the next step on your own.
@@ -83,7 +84,8 @@ Controls: src/core/key_bindings.gd (2 rebindable inputs per action, physical key
 defaults are WASD only since 0.2.12 - older saves drop Space/arrows; Q = manual reload, InputFrame.RELOAD) + src/ui/settings_screen.gd;
 the keys are listed (and rebound) in Settings; the menu has no "Ovládání" help since 0.2.16 (user 2026-11-13), no help text inside matches. Reload: WeaponData.magazine_size/reload_time, PlayerWeapon.use_round/tick_reload,
 snapshot carries ammo, FLAG_RELOADING and exact weapon timers (see the protocol notes below), src/player/magazine_drop.gd + PlayerVisual reload animation.
-Changelog entries use mechanics_keys / fix_keys / other_keys (sections in "Co je nového" and release notes).
+Changelog entries use balance_keys / new_keys / other_keys = sections Balanc / Nové / Ostatní (older entries: mechanics_keys
+and change_keys show as Nové, fix_keys under Ostatní). Keep each text a short one-line summary.
 src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cleans names; used by session.gd).
 Up to 6 players (LobbyValidator.MAX_PLAYERS, 0.2.16). Modes = Session.team_count: 0 free-for-all, 2 teams (max 3 v 3), 3 teams of 2:
 src/match/{teams,match_ranking}.gd, src/net/team_choice.gd, src/ui/score_table.gd (no friendly fire, one scoreboard per team;
@@ -108,7 +110,7 @@ with an adaptive delay and short extrapolation; the host draws client-controlled
 hits use real positions. Damage percent (user 2026-11-05): CombatRules.damage_multiplier 1.0-2.5 at 0-100 %, knockback
 limits apply at 0 %. Small corrections use a visual offset; projectiles, hits, knockback, damage, respawns, countdown and
 lives remain host-authoritative.
-Changelog "Co je nového" shows ONLY the newest (highest) patch version (user 2026-11-04); release notes the same.
+Changelog "Co je nového" shows the 3 newest versions (Changelog.RECENT_COUNT, user 2026-11-14); release notes the same.
 Changelog is implemented: data/changelog.tres + localization CSV are shared by src/core/changelog.gd,
 the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,

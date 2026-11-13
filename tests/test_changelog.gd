@@ -84,7 +84,7 @@ func test_older_builds_hide_future_and_current_entries() -> void:
 	_restore_build(saved)
 
 
-func test_release_changes_match_latest_menu_entry() -> void:
+func test_release_changes_match_the_recent_menu_entries() -> void:
 	var saved := _set_build("9.8.7", _current_build())
 	var builds: Array[int] = [_current_build(), 0]
 	builds.append_array(_archived_builds())
@@ -93,20 +93,27 @@ func test_release_changes_match_latest_menu_entry() -> void:
 		var history := Changelog.history()
 		check(not history.is_empty(), "installed build has a latest changelog entry")
 		if not history.is_empty():
-			check_eq(Changelog.release_changes(), history[0].changes, "release notes use exactly the latest menu changes")
+			var expected: PackedStringArray = []
+			for entry in history.slice(0, Changelog.RECENT_COUNT):
+				expected.append_array(entry.changes)
+			check_eq(Changelog.release_changes(), expected, "release notes use exactly the recent menu changes")
 			for change: String in Changelog.release_changes():
 				check(not change.strip_edges().is_empty(), "release changes contain readable text")
 	_restore_build(saved)
 
 
-func test_menu_shows_only_the_newest_version() -> void:
+func test_menu_shows_the_three_newest_versions() -> void:
 	var saved := _set_build("9.8.7", _current_build())
-	var latest := Changelog.latest()
-	check_eq(latest, Changelog.history()[0], "menu entry is the newest history entry")
-	check_eq(latest.build, _current_build(), "newest entry belongs to the installed build")
-	check_eq(Changelog.release_changes(), latest.changes, "release notes use the same single entry")
+	check_eq(Changelog.RECENT_COUNT, 3, "the last 3 updates (user 2026-11-14)")
+	var recent := Changelog.recent()
+	check_eq(recent, Changelog.history().slice(0, 3), "the menu shows the three newest history entries")
+	check_eq(recent[0].build, _current_build(), "newest entry belongs to the installed build")
+	var text := Changelog.format_recent()
+	for entry in recent:
+		check(text.contains(entry.heading), "each recent version has its heading: " + entry.heading)
+	check(not text.contains(Changelog.history()[3].heading), "the fourth newest version is not shown")
 	BuildInfo.build = 1
-	check(Changelog.latest().is_empty(), "build before any recorded history has no entry")
+	check(Changelog.latest().is_empty() and Changelog.format_recent().is_empty(), "build before any recorded history has no entry")
 	_restore_build(saved)
 
 
@@ -172,7 +179,7 @@ func test_reading_and_editing_history_does_not_mutate_source_data() -> void:
 	_restore_build(saved)
 
 
-func test_release_notes_use_current_metadata_and_only_latest_changes() -> void:
+func test_release_notes_use_current_metadata_and_only_recent_changes() -> void:
 	var saved := _set_build("9.8.7", _current_build())
 	var notes := Changelog.release_notes("gun_game", "https://example.test/repo")
 	var history := Changelog.history()
@@ -183,11 +190,13 @@ func test_release_notes_use_current_metadata_and_only_latest_changes() -> void:
 			bullets.append(line.trim_prefix("- "))
 	check_eq(bullets, Changelog.release_changes(), "release notes contain exactly the latest menu's changelog bullets")
 	if not history.is_empty():
-		var current_changes: PackedStringArray = history[0].changes
-		for index in range(1, history.size()):
+		var recent_changes := Changelog.release_changes()
+		for index in range(Changelog.RECENT_COUNT, history.size()):
 			for change: String in history[index].changes:
-				if not current_changes.has(change):
+				if not recent_changes.has(change):
 					check(not notes.contains("- " + change + "\n"), "release notes omit older changelog bullets")
+		for entry in Changelog.recent():
+			check(notes.contains("#### " + entry.heading), "each recent version has its heading in the notes")
 	for file_name in ["gun_game-windows.exe", "gun_game-macos.zip", "gun_game-linux.zip"]:
 		check(notes.contains(file_name), "release notes preserve the download filename: " + file_name)
 	check(notes.contains("https://example.test/repo#readme"), "release notes use the supplied repository guide link")
@@ -205,11 +214,14 @@ func test_sections_group_changes_in_display_order() -> void:
 		titles.append(section.title)
 		flat.append_array(section.changes)
 	check_eq(flat, latest.changes, "sections contain exactly the entry's changes in order")
-	var order := [tr("CHANGELOG_SECTION_MECHANICS"), tr("CHANGELOG_SECTION_FIXES"), tr("CHANGELOG_SECTION_OTHER")]
+	var order := [tr("CHANGELOG_SECTION_BALANCE"), tr("CHANGELOG_SECTION_NEW"), tr("CHANGELOG_SECTION_OTHER")]
 	var last := -1
 	for title in titles:
-		check(order.find(title) > last, "sections keep the order mechanics, fixes, other")
+		check(order.find(title) > last, "sections keep the order balance, new, other")
 		last = order.find(title)
+	var archived := Changelog.history()[1]
+	check_eq(archived.sections.map(func(section: Dictionary) -> String: return section.title), order,
+			"0.2.17 is split into balance, new and other (user 2026-11-14)")
 	var text := Changelog.format_entry(latest)
 	for title in titles:
 		check(text.contains("\n" + title + "\n• "), "menu text has the section title above its bullets: " + title)

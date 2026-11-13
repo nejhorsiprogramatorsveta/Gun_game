@@ -7,19 +7,23 @@ script = ExtResource("1")
 entries = Array[Dictionary]([{
 "build": 0,
 "version": "",
-"mechanics_keys": PackedStringArray("CHANGELOG_SKINS", "CHANGELOG_SHOTGUN_BUFF_0217", "CHANGELOG_SNIPER_NERF_0217"),
-"fix_keys": PackedStringArray("CHANGELOG_HIT_PREDICTION"),
-"other_keys": PackedStringArray("CHANGELOG_RESULTS_TABLE", "CHANGELOG_LOBBY_STATS", "CHANGELOG_MAP_PLAYERS_HINT")
+"other_keys": PackedStringArray("CHANGELOG_RECENT_UPDATES")
+}, {
+"build": 84,
+"version": "0.2.17",
+"balance_keys": PackedStringArray("CHANGELOG_SHOTGUN_BUFF_0217", "CHANGELOG_SNIPER_NERF_0217"),
+"new_keys": PackedStringArray("CHANGELOG_SKINS", "CHANGELOG_LOBBY_STATS", "CHANGELOG_RESULTS_TABLE"),
+"other_keys": PackedStringArray("CHANGELOG_HIT_PREDICTION", "CHANGELOG_MAP_PLAYERS_HINT")
 }, {
 "build": 76,
 "version": "0.2.16",
-"mechanics_keys": PackedStringArray("CHANGELOG_HOBBITON_MAP", "CHANGELOG_NAZGUL", "CHANGELOG_SIX_PLAYERS", "CHANGELOG_BALVAN_0216", "CHANGELOG_GAS_0216", "CHANGELOG_STIN_KNOCKBACK"),
-"fix_keys": PackedStringArray("CHANGELOG_TELEPORT_FIX", "CHANGELOG_FLOOR_AFTER_CORRECTION"),
-"other_keys": PackedStringArray("CHANGELOG_LOBBY_0216", "CHANGELOG_SMALL_SCOREBOARD")
+"balance_keys": PackedStringArray("CHANGELOG_BALVAN_0216", "CHANGELOG_GAS_0216", "CHANGELOG_STIN_KNOCKBACK"),
+"new_keys": PackedStringArray("CHANGELOG_HOBBITON_MAP", "CHANGELOG_NAZGUL", "CHANGELOG_SIX_PLAYERS"),
+"other_keys": PackedStringArray("CHANGELOG_TELEPORT_FIX", "CHANGELOG_FLOOR_AFTER_CORRECTION", "CHANGELOG_LOBBY_0216", "CHANGELOG_SMALL_SCOREBOARD")
 }, {
 "build": 67,
 "version": "0.2.15",
-"mechanics_keys": PackedStringArray("CHANGELOG_GAS_DELAY")
+"balance_keys": PackedStringArray("CHANGELOG_GAS_DELAY")
 }, {
 "build": 66,
 "version": "0.2.14",
