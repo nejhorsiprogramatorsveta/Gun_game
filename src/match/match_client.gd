@@ -76,9 +76,12 @@ func interpolation_text() -> String:
 	return "interp_ms(delay/jitter) " + " ".join(parts)
 
 
+## Inputs start with the first snapshot: only then is the host's match scene (MatchNet)
+## loaded, so no input arrives at a missing node (log noise with 6 players starting at once).
+## Nobody moves during the countdown anyway.
 func _send_local_input(delta: float) -> void:
 	var local_player: Player = _players.get(_local_peer_id)
-	if local_player == null:
+	if local_player == null or last_snapshot_tick < 0:
 		return
 	_input_seq = (_input_seq + 1) & 0xFFFF
 	var frame := InputFrame.sample_local(local_player)

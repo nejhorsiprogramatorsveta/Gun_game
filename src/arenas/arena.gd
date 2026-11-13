@@ -1,7 +1,9 @@
 class_name Arena
 extends Node2D
 ## Base script of every arena scene. An arena provides platforms (Platform nodes),
-## spawn points (Marker2D children of "SpawnPoints"), the area outside which players die
+## spawn points (Marker2D children of "SpawnPoints"; at least 6, the first six in the order
+## left, right, left, right, centre-left, centre-right - match slot = spawn, so teams start
+## together, see Teams.START_SLOTS; more may follow for respawns), the area outside which players die
 ## and a Camera2D "Camera" that frames it (its zoom sets how big everything looks;
 ## 0.6 = everything at 60 % of the original size).
 

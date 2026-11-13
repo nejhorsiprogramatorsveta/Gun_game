@@ -3,7 +3,8 @@ class_name LobbyValidator
 ## Clients only accept these messages from the host, but a buggy or modified host must still
 ## not be able to break the UI with huge or malformed data. Invalid input -> empty result.
 
-const MAX_PLAYERS := 4
+## Up to 6 players (user 2026-11-13); there are exactly 6 characters, each once per match.
+const MAX_PLAYERS := 6
 const MAX_NAME_LENGTH := 16
 const MAX_SCORE := 65535
 
@@ -17,7 +18,7 @@ static func clean_name(raw_name: String, number: int) -> String:
 
 
 ## peer_id -> {"name": String, "character": String, "team": int, "ready": bool}; must contain
-## the host (peer 1), every character must exist and be used at most once, team 0 or 1
+## the host (peer 1), every character must exist and be used at most once, team 0..2
 ## (missing = 0), "ready" = character confirmed (missing = false).
 static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 	var result: Dictionary[int, Dictionary] = {}
@@ -47,7 +48,7 @@ static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 	return result
 
 
-## peer_id -> slot; every peer must be a lobby player, slots 0..3 unique, at least 2 players.
+## peer_id -> slot; every peer must be a lobby player, slots 0..5 unique, at least 2 players.
 static func slots(raw: Dictionary, lobby_players: Dictionary) -> Dictionary[int, int]:
 	var result: Dictionary[int, int] = {}
 	if raw.size() < 2 or raw.size() > MAX_PLAYERS:
@@ -63,7 +64,7 @@ static func slots(raw: Dictionary, lobby_players: Dictionary) -> Dictionary[int,
 	return result
 
 
-## Ranking for the results screen: at most 4 rows with only the known, range-limited fields.
+## Ranking for the results screen: at most MAX_PLAYERS rows with only the known, range-limited fields.
 static func results(raw: Array) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if raw.size() > MAX_PLAYERS:
@@ -77,7 +78,7 @@ static func results(raw: Array) -> Array[Dictionary]:
 			"lives": clampi(_int(entry, "lives"), 0, MAX_SCORE),
 			"kills": clampi(_int(entry, "kills"), 0, MAX_SCORE),
 			"deaths": clampi(_int(entry, "deaths"), 0, MAX_SCORE),
-			"team": clampi(_int(entry, "team", Teams.NONE), Teams.NONE, Teams.COUNT - 1),
+			"team": clampi(_int(entry, "team", Teams.NONE), Teams.NONE, Teams.MAX_COUNT - 1),
 		})
 	return result
 

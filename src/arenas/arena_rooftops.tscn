@@ -69,3 +69,9 @@ position = Vector2(260, 360)
 
 [node name="Spawn4" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(1020, 360)
+
+[node name="Spawn5" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(560, 220)
+
+[node name="Spawn6" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(720, 220)

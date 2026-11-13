@@ -1,5 +1,6 @@
 extends TestCase
-## 2 v 2 team mode: lobby rules, validation, friendly fire and the match result.
+## Team modes (2 teams up to 3 v 3, 3 teams of 2): lobby rules, validation, start slots,
+## friendly fire and the match result.
 
 
 func _player(character_id: StringName, peer_id: int, position: Vector2, team: int) -> Player:
@@ -11,32 +12,67 @@ func _player(character_id: StringName, peer_id: int, position: Vector2, team: in
 	return player
 
 
+func _lobby(teams: Array) -> Dictionary:
+	var lobby := {}
+	for i in teams.size():
+		lobby[i + 1] = {"team": teams[i]}
+	return lobby
+
+
 func test_team_rules() -> void:
-	check(Teams.allies(0, 0) and not Teams.allies(0, 1), "same team = allies")
+	check(Teams.allies(0, 0) and not Teams.allies(0, 1) and Teams.allies(2, 2), "same team = allies")
 	check(not Teams.allies(Teams.NONE, Teams.NONE), "free-for-all has no allies")
-	var lobby := {1: {"team": 0}, 2: {"team": 0}, 3: {"team": 1}}
+	check_eq([Teams.max_per_team(2), Teams.max_per_team(3)], [3, 2], "up to 3 v 3, or 3 teams of 2 (user 2026-11-13)")
+	check(Teams.is_mode(0) and Teams.is_mode(2) and Teams.is_mode(3), "the three modes")
+	for bad: Variant in [1, 4, -1, "2", 2.0, null]:
+		check(not Teams.is_mode(bad), "not a mode: %s" % str(bad))
+	var lobby := _lobby([0, 0, 1])
 	check_eq([Teams.count(lobby, 0), Teams.count(lobby, 1), Teams.count(lobby, 0, 2)], [2, 1, 1], "team sizes")
-	check_eq(Teams.smaller_team(lobby), 1, "a new player joins the smaller team")
-	check_eq(Teams.smaller_team({1: {"team": 0}, 2: {"team": 1}}), 0, "red on a tie")
-	check(Teams.ready_to_start(lobby), "both teams have players")
-	check(not Teams.ready_to_start({1: {"team": 0}, 2: {"team": 0}}), "one empty team cannot start")
-	check(not Teams.ready_to_start({1: {"team": 0}, 2: {"team": 0}, 3: {"team": 0}, 4: {"team": 1}}),
-			"3 v 1 cannot start")
+	check_eq(Teams.smaller_team(lobby, 2), 1, "a new player joins the smaller team")
+	check_eq(Teams.smaller_team(_lobby([0, 1]), 2), 0, "red on a tie")
+	check_eq(Teams.smaller_team(_lobby([0, 1]), 3), 2, "3 teams: the empty green team")
+	check_eq(Teams.smaller_team(_lobby([0, 1]), 0), 0, "free-for-all keeps a 2-team split")
+	check(Teams.ready_to_start(lobby, 2), "both teams have players")
+	check(not Teams.ready_to_start(_lobby([0, 0]), 2), "one empty team cannot start")
+	check(Teams.ready_to_start(_lobby([0, 0, 0, 1, 1, 1]), 2), "3 v 3 starts")
+	check(Teams.ready_to_start(_lobby([0, 0, 0, 1]), 2), "3 v 1 starts (at most 3 per team)")
+	check(not Teams.ready_to_start(_lobby([0, 0, 0, 0, 1, 1]), 2), "4 v 2 cannot start")
+	check(Teams.ready_to_start(_lobby([0, 0, 1, 1, 2, 2]), 3), "2 + 2 + 2 starts")
+	check(Teams.ready_to_start(_lobby([0, 1, 2]), 3), "1 + 1 + 1 starts")
+	check(not Teams.ready_to_start(_lobby([0, 0, 0, 1, 2]), 3), "3 teams: at most 2 per team")
+	check(not Teams.ready_to_start(_lobby([0, 0, 1, 1]), 3), "3 teams: the green team must not be empty")
+	check(not Teams.ready_to_start(_lobby([0, 1, 2]), 2), "2 teams: nobody may stay in green")
+	check(Teams.ready_to_start(_lobby([0, 0, 0, 0]), 0), "free-for-all ignores teams")
+
+
+func test_teams_start_together() -> void:
+	var slots := Teams.start_slots(_lobby([1, 0, 1, 0, 0, 1]), 2)
+	check_eq([slots[2], slots[4], slots[5]], [0, 2, 4], "red on the left spawns (0, 2) and centre-left (4)")
+	check_eq([slots[1], slots[3], slots[6]], [1, 3, 5], "blue on the right spawns (1, 3) and centre-right (5)")
+	slots = Teams.start_slots(_lobby([2, 0, 1, 2, 1, 0]), 3)
+	check_eq([slots[2], slots[6], slots[3], slots[5], slots[1], slots[4]], [0, 2, 1, 3, 4, 5], "3 teams: left, right, centre")
+	check_eq(Teams.start_slots(_lobby([1, 1, 0]), 0), {1: 0, 2: 1, 3: 2}, "free-for-all: slots by peer id")
+	var lobby := {}
+	for peer_id in [1, 5, 9, 12, 20, 33]:
+		lobby[peer_id] = {"team": 0}
+	var ffa := Teams.start_slots(lobby, 0)
+	check_eq(LobbyValidator.slots(ffa, lobby).size(), 6, "6 players get 6 valid slots")
 
 
 func test_validator_checks_team_values() -> void:
 	var valid := LobbyValidator.players({1: {"name": "A", "character": "stin", "team": 1},
 			2: {"name": "B", "character": "vichr", "team": 0}})
 	check_eq([valid[1].team, valid[2].team], [1, 0], "teams kept")
+	check_eq(LobbyValidator.players({1: {"name": "A", "character": "stin", "team": 2}})[1].team, 2, "green team kept")
 	var cases := [
-		{1: {"name": "A", "character": "stin", "team": 2}},
+		{1: {"name": "A", "character": "stin", "team": 3}},
 		{1: {"name": "A", "character": "stin", "team": -1}},
 		{1: {"name": "A", "character": "stin", "team": "0"}},
 	]
 	for raw: Dictionary in cases:
 		check(LobbyValidator.players(raw).is_empty(), "rejected: %s" % str(raw).left(70))
 	var results := LobbyValidator.results([{"name": "A", "team": 7}, {"name": "B", "team": "x"}])
-	check_eq([results[0].team, results[1].team], [1, -1], "result teams clamped")
+	check_eq([results[0].team, results[1].team], [2, -1], "result teams clamped")
 
 
 func test_shockwave_and_cloud_spare_teammates() -> void:
@@ -81,3 +117,22 @@ func test_team_match_ends_when_one_team_is_left() -> void:
 	check_eq(ffa[0].team, Teams.NONE, "no team in free-for-all")
 	for node in [red_a, red_b, blue_a, blue_b]:
 		node.free()
+
+
+func test_three_team_match_places_teams_by_how_long_they_lasted() -> void:
+	var players: Array[Player] = []
+	for i in 6:
+		var player := _player(ContentDB.character_ids()[i], i + 1, Vector2.ZERO, i % 3)
+		player.display_name = "P%d" % (i + 1)
+		players.append(player)
+	# teams: 0 = P1, P4; 1 = P2, P5; 2 = P3, P6
+	check(not MatchRanking.is_decided([players[0], players[1]], true), "red and blue left: go on")
+	check(MatchRanking.is_decided([players[2], players[5]], true), "only green left: decided")
+	# Out in this order: P1 (red), P2 (blue), P4 (red - red is out), P6 (green), P5 (blue - blue is out).
+	var rows := MatchRanking.results([players[2]], [players[0], players[1], players[3], players[5], players[4]], true)
+	var places := rows.map(func(row: Dictionary) -> Array: return [row.name, row.place, row.team])
+	check_eq(places, [["P3", 1, 2], ["P6", 1, 2], ["P5", 2, 1], ["P2", 2, 1], ["P4", 3, 0], ["P1", 3, 0]],
+			"green wins, blue lasted longer than red")
+	check_eq(LobbyValidator.results(rows).size(), 6, "6 result rows pass validation")
+	for player in players:
+		player.free()

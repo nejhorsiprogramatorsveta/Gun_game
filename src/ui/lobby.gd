@@ -1,12 +1,14 @@
 extends Control
 ## Lobby: who is connected, the character choice (cards with pixel-art previews; a click
 ## selects, "Confirm" takes the character; each character once, PLAN.md T.2), the
-## game mode (host: free-for-all or 2 v 2) with the team choice and, for the host, which
+## game mode (host: free-for-all, 2 teams or 3 teams) with the team choice and, for the host, which
 ## address to send to friends.
 ## The host starts the match; every peer then switches to the match scene.
 
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
 const MATCH_PATH := "res://src/match/match.tscn"
+## Mode picker texts by Session.team_count (Teams.MODES).
+const MODE_KEYS := {0: "LOBBY_MODE_FFA", 2: "LOBBY_MODE_TWO_TEAMS", 3: "LOBBY_MODE_THREE_TEAMS"}
 const ADDRESS_KIND_KEYS := {
 	&"tailscale": "LOBBY_ADDRESS_TAILSCALE",
 	&"lan": "LOBBY_ADDRESS_LAN",
@@ -33,7 +35,7 @@ var _confirm_button := Button.new()
 ## Host: arena picker; clients: read-only arena name.
 var _arena_option := OptionButton.new()
 var _arena_label := Label.new()
-## Host: game mode picker; clients: read-only mode name. Team buttons only in 2 v 2.
+## Host: game mode picker; clients: read-only mode name. Team buttons only in team modes.
 var _mode_option := OptionButton.new()
 var _mode_label := Label.new()
 var _team_row := HBoxContainer.new()
@@ -74,7 +76,7 @@ func _refresh_players() -> void:
 		elif character:
 			text += " – " + tr(character.name_key)
 		var team := int(Session.players[id].get("team", Teams.NONE))
-		if Session.team_mode and Teams.is_valid(team):
+		if Session.team_count > 0 and Teams.is_valid(team):
 			text += " – " + tr(Teams.NAME_KEYS[team])
 		if id == 1:
 			text += " " + tr("LOBBY_HOST_TAG")
@@ -91,7 +93,7 @@ func _refresh_players() -> void:
 		elif not CharacterChoice.all_confirmed(Session.players):
 			_status_label.text = tr("LOBBY_NEED_CONFIRM")
 		elif not Session.can_start_match():
-			_status_label.text = tr("LOBBY_NEED_TEAMS")
+			_status_label.text = tr("LOBBY_NEED_TEAMS").format({"max": Teams.max_per_team(Session.team_count)})
 	else:
 		_status_label.text = tr("LOBBY_WAITING_FOR_HOST")
 
@@ -160,17 +162,17 @@ func _build_mode_choice() -> void:
 	_mode_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	row.add_child(_mode_label)
 	row.add_child(_mode_option)
-	_mode_option.add_item(tr("LOBBY_MODE_FFA"))
-	_mode_option.add_item(tr("LOBBY_MODE_TEAMS"))
+	for team_count in Teams.MODES:
+		_mode_option.add_item(tr(MODE_KEYS[team_count]))
 	_mode_option.visible = Session.is_host()
 	_mode_label.visible = not Session.is_host()
 	_mode_option.item_selected.connect(func(index: int) -> void:
-		Session.get_node("TeamChoice").set_team_mode(index == 1))
+		Session.get_node("TeamChoice").set_team_count(Teams.MODES[index]))
 	var column := _player_list.get_parent()
 	column.add_child(row)
 	column.move_child(row, _player_list.get_index())
 	_team_row.add_theme_constant_override("separation", 8)
-	for team in Teams.COUNT:
+	for team in Teams.MAX_COUNT:
 		var button := Button.new()
 		button.toggle_mode = true
 		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
@@ -187,15 +189,16 @@ func _build_mode_choice() -> void:
 
 
 func _refresh_teams() -> void:
-	_mode_option.select(1 if Session.team_mode else 0)
-	_mode_label.text = tr("LOBBY_MODE_TEAMS" if Session.team_mode else "LOBBY_MODE_FFA")
-	_team_row.visible = Session.team_mode
+	_mode_option.select(maxi(Teams.MODES.find(Session.team_count), 0))
+	_mode_label.text = tr(MODE_KEYS[Session.team_count])
+	_team_row.visible = Session.team_count > 0
 	var my_team := int(Session.players.get(multiplayer.get_unique_id(), {}).get("team", Teams.NONE))
 	for team in _team_buttons.size():
 		var members := Teams.count(Session.players, team)
 		var button := _team_buttons[team]
+		button.visible = team < Session.team_count
 		button.text = tr("LOBBY_TEAM_BUTTON").format({"team": tr(Teams.NAME_KEYS[team]),
-				"count": members, "max": Teams.MAX_PER_TEAM})
+				"count": members, "max": Teams.max_per_team(Session.team_count)})
 		button.set_pressed_no_signal(team == my_team)
 
 

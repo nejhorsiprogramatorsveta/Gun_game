@@ -1,6 +1,6 @@
 class_name TeamChoice
 extends Node
-## Lobby game mode (free-for-all or 2 v 2) and team choice.
+## Lobby game mode (free-for-all, 2 teams or 3 teams; Session.team_count) and team choice.
 ## Child of the Session autoload ("/root/Session/TeamChoice" on every peer).
 ## Only the host switches the mode; it is repeated to everyone like the arena and sent
 ## again with the match start (Session._begin_match), so all peers agree on it.
@@ -24,26 +24,36 @@ func _ready() -> void:
 	Session.players_changed.connect(_share_mode)
 
 
-## Host UI: switch between free-for-all (false) and 2 v 2 (true).
-func set_team_mode(enabled: bool) -> void:
-	if not Session.is_host() or Session.phase != Session.Phase.LOBBY or Session.team_mode == enabled:
+## Host UI: switch the mode (Teams.MODES: 0 = free-for-all, 2 or 3 teams). Players in a
+## team the new mode does not have move to the smallest remaining team.
+func set_team_count(team_count: int) -> void:
+	if not Session.is_host() or Session.phase != Session.Phase.LOBBY or not Teams.is_mode(team_count) \
+			or Session.team_count == team_count:
 		return
-	Session.team_mode = enabled
-	_share_mode()
+	Session.team_count = team_count
+	var moved := false
+	for peer_id: int in Session.players:
+		if team_count > 0 and int(Session.players[peer_id].get("team", 0)) >= team_count:
+			Session.players[peer_id].team = Teams.smaller_team(Session.players, team_count, peer_id)
+			moved = true
+	if moved:
+		Session.broadcast_players()  # also shares the mode (players_changed)
+	else:
+		_share_mode()
 	mode_changed.emit()
 
 
 func _share_mode() -> void:
 	if Session.is_host() and Session.phase == Session.Phase.LOBBY:
-		_receive_mode.rpc(Session.team_mode)
+		_receive_mode.rpc(Session.team_count)
 
 
 @rpc("authority", "call_remote", "reliable")
-func _receive_mode(enabled: bool) -> void:
-	if Session.phase != Session.Phase.LOBBY or typeof(enabled) != TYPE_BOOL:
+func _receive_mode(team_count: Variant) -> void:
+	if Session.phase != Session.Phase.LOBBY or not Teams.is_mode(team_count):
 		return
-	if Session.team_mode != enabled:
-		Session.team_mode = enabled
+	if Session.team_count != team_count:
+		Session.team_count = team_count
 		mode_changed.emit()
 
 
@@ -65,7 +75,7 @@ func _request(team: int) -> void:
 ## Host: validated team change of one player; returns whether it changed.
 func _apply(peer_id: int, team: int) -> bool:
 	if Session.phase != Session.Phase.LOBBY or not Session.players.has(peer_id) or not Teams.is_valid(team) \
-			or int(Session.players[peer_id].get("team", Teams.NONE)) == team:
+			or team >= maxi(Session.team_count, 2) or int(Session.players[peer_id].get("team", Teams.NONE)) == team:
 		return false
 	Session.players[peer_id].team = team
 	Session.broadcast_players()

@@ -1,9 +1,9 @@
 # Dojo Knockout
 
-Rychlá arkádová 2D plošinovková střílečka pro 2–4 hráče v samurajském a ninja stylu.
+Rychlá arkádová 2D plošinovková střílečka pro 2–6 hráčů v samurajském a ninja stylu.
 (Soubory ke stažení a složka s nastavením se z technických důvodů dál jmenují `gun_game`.) Zásahy soupeře neubírají životy, ale **odhazují** ho. Cílem je shodit ostatní z arény. Každý pád stojí život a vyhrává poslední, kdo v aréně zůstane.
 
-> **Stav vývoje (verze 0.2.0):** 6 postav, každá s vlastní zbraní a speciální schopností (E / pravé tlačítko myši), 3 mapy, výběr postavy a mapy v lobby, zápas pro 2–4 hráče, životy, skóre, výsledky a návrat do lobby, automatické aktualizace. Trénink s výběrem postavy a mapy. Grafika je zatím jen z barevných tvarů. Aktuální vydanou verzi najdeš na [stránce vydání](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest), stav práce v [docs/PROGRESS.md](docs/PROGRESS.md).
+> **Stav vývoje (verze 0.2.0):** 6 postav, každá s vlastní zbraní a speciální schopností (E / pravé tlačítko myši), 3 mapy, výběr postavy a mapy v lobby, zápas pro 2–6 hráčů (každý proti každému, 2 týmy až 3 v 3 nebo 3 týmy po 2), životy, skóre, výsledky a návrat do lobby, automatické aktualizace. Trénink s výběrem postavy a mapy. Grafika je zatím jen z barevných tvarů. Aktuální vydanou verzi najdeš na [stránce vydání](https://github.com/nejhorsiprogramatorsveta/Gun_game/releases/latest), stav práce v [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Stažení (hotová hra, bez instalace)
 

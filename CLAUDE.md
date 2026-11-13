@@ -27,7 +27,7 @@ Player-facing text only via tr() keys in localization/translations.csv.
 
 ## Purpose
 Game title (player-facing): "Dojo Knockout" (GAME_TITLE in CSV and CI); internal name stays gun_game (files, user dir).
-Online 2–4 player 2D knockback arena shooter (original, Gun Mayhem-like mechanics). Host-authoritative listen server.
+Online 2–6 player 2D knockback arena shooter (original, Gun Mayhem-like mechanics). Host-authoritative listen server.
 Friends (mainly Windows) download ZIP from GitHub Releases. MVP: keyboard only.
 
 ## Stack
@@ -82,11 +82,13 @@ menu "Ovládání" shows the help (no help text inside matches). Reload: WeaponD
 snapshot carries ammo, FLAG_RELOADING and exact weapon timers (see the protocol notes below), src/player/magazine_drop.gd + PlayerVisual reload animation.
 Changelog entries use mechanics_keys / fix_keys / other_keys (sections in "Co je nového" and release notes).
 src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cleans names; used by session.gd).
-2 v 2 team mode: src/match/{teams,match_ranking}.gd, src/net/team_choice.gd, src/ui/score_table.gd (no friendly fire, one scoreboard per team).
+Up to 6 players (LobbyValidator.MAX_PLAYERS, 0.2.16). Modes = Session.team_count: 0 free-for-all, 2 teams (max 3 v 3), 3 teams of 2:
+src/match/{teams,match_ranking}.gd, src/net/team_choice.gd, src/ui/score_table.gd (no friendly fire, one scoreboard per team;
+arena spawns ordered L, R, L, R, centre-L, centre-R = Teams.START_SLOTS).
 src/core/updater.gd (auto-update; test with debug export + `-- --update-test=URL`, PLAN.md I.8).
 M4 movement prediction is implemented: clients immediately simulate only their own player through the shared PlayerMotor,
 retain up to 120 unacknowledged inputs/states, restore authoritative state, and replay pending inputs.
-Snapshots (protocol 23, 60 Hz, 8-byte header incl. u16 lava level + 46 bytes/player) carry complete motor memory (floor contact, previous buttons,
+Snapshots (protocol 24, 60 Hz, 8-byte header incl. u16 lava level + 46 bytes/player) carry complete motor memory (floor contact, previous buttons,
 remaining jumps, jump/drop/jetpack timers) plus position/velocity, last_seq, kills/deaths, ammo, exact fire cooldown and
 reload time (0.1 ms grid, PlayerWeapon.count_down keeps host and client on the same grid) and damage percent. Input packets 14 bytes.
 MatchController queues the newest snapshot and reconciles ONLY in _physics_process before the next local input;

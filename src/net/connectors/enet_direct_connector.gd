@@ -6,9 +6,9 @@ extends Connector
 ## host's real public IP; only LAN and Tailscale addresses are offered for sharing.
 
 const DEFAULT_PORT := 24642
-## 3 clients + 1 spare slot, so a client over the player limit still gets the
-## "lobby full" message from Session instead of a silent connection timeout.
-const MAX_CLIENTS := 4
+## 5 clients (6 players with the host) + 1 spare slot, so a client over the player limit
+## still gets the "lobby full" message from Session instead of a silent connection timeout.
+const MAX_CLIENTS := LobbyValidator.MAX_PLAYERS
 ## ENet drops a silent peer after timeout_min..timeout_max ms (RTT-dependent).
 const TIMEOUT_LIMIT := 32
 const TIMEOUT_MIN_MS := 5000

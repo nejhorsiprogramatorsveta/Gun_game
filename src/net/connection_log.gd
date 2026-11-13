@@ -77,7 +77,7 @@ func _on_phase_changed(phase: int) -> void:
 			kinds.append(String(entry.kind))
 		text += " hosting port=%d shareable=%s" % [Session.host_port, ",".join(kinds) if not kinds.is_empty() else "none"]
 	if phase == Session.Phase.IN_MATCH:
-		text += " arena=%s mode=%s %s" % [Session.arena_id, "2v2" if Session.team_mode else "ffa", _slots_text()]
+		text += " arena=%s mode=%s %s" % [Session.arena_id, "%dteams" % Session.team_count if Session.team_count > 0 else "ffa", _slots_text()]
 	if phase == Session.Phase.RESULTS and not Session.match_results.is_empty():
 		var winner: Dictionary = Session.match_results[0]
 		text += " winner_team=%d players=%d" % [winner.get("team", -1), Session.match_results.size()]

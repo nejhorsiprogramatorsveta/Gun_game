@@ -18,7 +18,11 @@ func _run_all() -> void:
 	for file_name in DirAccess.get_files_at(TESTS_DIR):
 		if not (file_name.begins_with("test_") and file_name.ends_with(".gd")) or file_name == "test_case.gd":
 			continue
-		var suite: TestCase = load(TESTS_DIR + file_name).new()
+		var script := load(TESTS_DIR + file_name) as GDScript
+		if script == null or not script.can_instantiate():  # parse error: fail, do not hang
+			failures.append("%s: the test file does not load (parse error above)" % file_name)
+			continue
+		var suite: TestCase = script.new()
 		for method in suite.get_method_list():
 			var method_name: String = method.name
 			if not method_name.begins_with("test_"):

@@ -1,6 +1,7 @@
 class_name MatchHud
 extends Control
-## In-match overlay: scoreboard panel(s) (ScoreTable; 2 v 2 = one per team, left and right),
+## In-match overlay: scoreboard panel(s) (ScoreTable; team modes = one per team: red on the
+## left, blue on the right, green at the top centre),
 ## the start countdown and short blinking alerts (e.g. rising lava). Kill announcements
 ## float above the killer (KillPopup).
 ## Bottom left: FPS and (on clients) ping; F3 hides/shows it.
@@ -8,9 +9,9 @@ extends Control
 @onready var _score_panel: PanelContainer = %ScorePanel
 @onready var _countdown_label: Label = %CountdownLabel
 
-## One table (free-for-all) or one per team (2 v 2: red on the left, blue on the right).
+## One table (free-for-all) or one per team (index = team).
 var _tables: Array[ScoreTable] = []
-var _team_mode := false
+var _team_count := Teams.FREE_FOR_ALL
 ## Keys of the ability (bindings cannot change during a match).
 var _ability_keys := ""
 var _net_label := Label.new()
@@ -24,7 +25,7 @@ const SCORE_PANEL_MARGIN := Vector2(8, 5)
 
 
 func _ready() -> void:
-	_team_mode = Session.phase == Session.Phase.IN_MATCH and Session.team_mode
+	_team_count = Session.team_count if Session.phase == Session.Phase.IN_MATCH else Teams.FREE_FOR_ALL
 	_ability_keys = KeyBindings.action_text(&"ability")
 	var panel_style := _score_panel.get_theme_stylebox("panel").duplicate() as StyleBox
 	for side in [SIDE_LEFT, SIDE_RIGHT]:
@@ -32,19 +33,16 @@ func _ready() -> void:
 	for side in [SIDE_TOP, SIDE_BOTTOM]:
 		panel_style.set_content_margin(side, SCORE_PANEL_MARGIN.y)
 	_score_panel.add_theme_stylebox_override("panel", panel_style)
-	if _team_mode:
-		var left := _score_panel.duplicate() as PanelContainer
-		add_child(left)
-		left.anchor_left = 0.0
-		left.anchor_right = 0.0
-		left.offset_left = -_score_panel.offset_right  # same margin as the right panel
-		left.offset_right = left.offset_left
-		left.grow_horizontal = Control.GROW_DIRECTION_END
-		for team in Teams.COUNT:
+	if _team_count > 0:
+		var panels: Array[PanelContainer] = [_team_panel(0.0, -_score_panel.offset_right, Control.GROW_DIRECTION_END),
+				_score_panel, _team_panel(0.5, 0.0, Control.GROW_DIRECTION_BOTH)]
+		for team in _team_count:
 			var table := ScoreTable.new()
-			(left if team == 0 else _score_panel).add_child(table)
-			table.setup(tr(Teams.NAME_KEYS[team]), Teams.color(team), Teams.MAX_PER_TEAM)
+			panels[team].add_child(table)
+			table.setup(tr(Teams.NAME_KEYS[team]), Teams.color(team), Teams.max_per_team(_team_count))
 			_tables.append(table)
+		if _team_count < 3:
+			panels[2].queue_free()
 	else:
 		var table := ScoreTable.new()
 		_score_panel.add_child(table)
@@ -79,6 +77,19 @@ func _ready() -> void:
 	add_child(_alert_label)
 
 
+## Another team's scoreboard panel like the right one, anchored at `anchor` (0 = left edge,
+## 0.5 = centre) with the same top margin.
+func _team_panel(anchor: float, offset: float, grow: Control.GrowDirection) -> PanelContainer:
+	var panel := _score_panel.duplicate() as PanelContainer
+	add_child(panel)
+	panel.anchor_left = anchor
+	panel.anchor_right = anchor
+	panel.offset_left = offset
+	panel.offset_right = offset
+	panel.grow_horizontal = grow
+	return panel
+
+
 ## A big blinking message for a few seconds (e.g. "Lava is rising!").
 func show_alert(text: String, seconds: float = 3.0) -> void:
 	_alert_label.text = text
@@ -100,7 +111,7 @@ func show_state(players: Array, countdown: int, show_lives: bool) -> void:
 	_show_local_weapon(players)
 	var sorted := players.duplicate()
 	sorted.sort_custom(func(a: Player, b: Player) -> bool: return a.slot < b.slot)
-	if not _team_mode:
+	if _team_count <= 0:
 		_tables[0].show_players(sorted, show_lives)
 		return
 	for team in _tables.size():

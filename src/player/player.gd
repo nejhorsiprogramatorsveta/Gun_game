@@ -9,14 +9,15 @@ const GUN_LENGTH := 30.0
 ## How long the shooting animation plays after a shot.
 const FIRING_VISUAL_MS := 150
 ## Placeholder colors so players can be told apart before characters have sprites.
-const SLOT_COLORS: Array[Color] = [Color(1, 0.72, 0.2), Color(0.35, 0.75, 1), Color(0.55, 0.9, 0.4), Color(1, 0.45, 0.6)]
+const SLOT_COLORS: Array[Color] = [Color(1, 0.72, 0.2), Color(0.35, 0.75, 1), Color(0.55, 0.9, 0.4), Color(1, 0.45, 0.6),
+		Color(0.72, 0.5, 1), Color(0.95, 0.95, 0.95)]
 
 var character: CharacterData
 var motor_state := PlayerMotor.State.new()
 var peer_id := 1
 var slot := 0
 var display_name := ""
-## Teams.NONE in free-for-all; teammates do not hurt each other (2 v 2).
+## Teams.NONE in free-for-all; teammates do not hurt each other (team modes).
 var team := Teams.NONE
 ## Lives left in a network match (0 = eliminated). Set by the authority, shown in the HUD.
 var lives := 0
@@ -73,7 +74,7 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 		add_child(_visual)
 
 
-## 2 v 2: the name above the character takes the team color.
+## Team modes: the name above the character takes the team color.
 func set_team(new_team: int) -> void:
 	team = new_team
 	if _labels and Teams.is_valid(team):

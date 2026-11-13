@@ -47,7 +47,7 @@ func _ready() -> void:
 		_count_down()
 
 
-## 2 v 2: "Red team wins!" above the players (the winners have place 1).
+## Team modes: "Red team wins!" above the players (the winners have place 1).
 func _add_winning_team() -> void:
 	var results := Session.match_results
 	if results.is_empty() or not Teams.is_valid(results[0].get("team", Teams.NONE)) or results[0].get("place", 0) != 1:

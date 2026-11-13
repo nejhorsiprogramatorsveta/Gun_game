@@ -11,7 +11,11 @@ func test_every_arena_has_safe_spawn_points() -> void:
 	for id in ContentDB.arena_ids():
 		var arena: Arena = ContentDB.arena_or_default(String(id)).scene.instantiate()
 		var spawns := arena.spawn_points()
-		check(spawns.size() >= 4, "%s: a spawn point for each of 4 players" % id)
+		check(spawns.size() >= LobbyValidator.MAX_PLAYERS, "%s: a spawn point for each of 6 players" % id)
+		check(spawns[0].x < spawns[1].x and spawns[2].x < spawns[3].x and spawns[4].x < spawns[5].x,
+				"%s: spawns ordered left, right, left, right, centre-left, centre-right" % id)
+		for i in 2:
+			check(absf(spawns[4 + i].x - 640.0) < absf(spawns[i].x - 640.0), "%s: spawn %d is nearer the centre" % [id, 4 + i])
 		for spawn in spawns:
 			check(not arena.is_out_of_bounds(spawn), "%s: spawn %s inside the arena" % [id, spawn])
 			check(_ground_below(arena, spawn) < 120.0, "%s: platform right under spawn %s" % [id, spawn])

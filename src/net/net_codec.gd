@@ -20,7 +20,7 @@ const NO_LAVA := 0xFFFF
 ## the same ticks as the host), u8 damage percent, u8 ticks in a row in an opponent's gas.
 const SNAPSHOT_PLAYER_BYTES := 46
 const WEAPON_TIMER_UNITS := 10000.0
-const MAX_SNAPSHOT_PLAYERS := 4
+const MAX_SNAPSHOT_PLAYERS := LobbyValidator.MAX_PLAYERS
 const COOLDOWN_TICKS_PER_SECOND := 60.0
 
 const FLAG_FACING_RIGHT := 1

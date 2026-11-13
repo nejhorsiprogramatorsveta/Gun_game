@@ -33,7 +33,7 @@ v CSV, bez změny kódu.** Objeví se v menu u Tréninku i v lobby.
 5. Spusť kontroly. Pozor: test `test_six_characters_with_one_own_weapon_each` v `tests/test_weapons.gd`
    hlídá přesný seznam postav a jejich zbraní – při přidání postavy ho doplň.
 
-V jednom zápase může mít každou postavu jen jeden hráč a hrají max. 4 hráči, takže postav může být víc než 4.
+V jednom zápase může mít každou postavu jen jeden hráč a hraje max. 6 hráčů, takže postav musí být aspoň 6.
 
 ### Hodnoty postavy
 
@@ -128,7 +128,9 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
   neměň – podle něj si hra pamatuje vybranou mapu a posílá ji ostatním).
 - Mapa = scéna se skriptem `src/arenas/arena.gd`: plošiny (uzly s `platform.gd`: `position` = levý horní roh,
   `size`, `one_way = true` pro plošinu, kterou jde proskočit zespodu, `color` = odstín), uzel `SpawnPoints` s
-  **aspoň 4** `Marker2D` (místa oživení – kousek nad plošinou; první čtyři = začátek zápasu, sloty 0–3) a `Camera`
+  **aspoň 6** `Marker2D` (místa oživení – kousek nad plošinou; prvních šest = začátek zápasu, sloty 0–5, v pořadí
+  **vlevo, vpravo, vlevo, vpravo, střed-vlevo, střed-vpravo** – týmy pak začínají pohromadě: 2 týmy = levá/pravá strana,
+  3 týmy = vlevo/vpravo/uprostřed; další spawny jsou jen pro oživení) a `Camera`
   (zoom 0,6). `kill_rect` = hranice, za kterou se ubírá život. Scénu nejpohodlněji upravíš v editoru Godotu
   (`tools/godot --path . --editor`, dvojklik na `.tscn`), jde to ale i v textovém editoru.
 - **Láva (Peklo):** uzel `Lava` (`src/arenas/lava.gd`) – `start_y` (hladina na začátku, pod všemi plošinami),

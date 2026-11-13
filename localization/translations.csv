@@ -46,7 +46,7 @@ ERROR_INVALID_ADDRESS,"Neplatná adresa. Vlož celou adresu od hostitele, např.
 ERROR_CONNECTION_FAILED,"Nepodařilo se připojit k {address}. Zkontroluj adresu, jestli hostitel hru opravdu hostuje a jestli ji povolil ve firewallu."
 ERROR_HOST_LEFT,Hostitel ukončil hru nebo se spojení přerušilo.
 ERROR_VERSION_MISMATCH,"Máš jinou verzi hry ({mine}) než hostitel ({host}). Stáhněte si všichni nejnovější verzi."
-ERROR_LOBBY_FULL,"Hra je plná (max. 4 hráči)."
+ERROR_LOBBY_FULL,"Hra je plná (max. 6 hráčů)."
 ERROR_MATCH_IN_PROGRESS,"Zápas už běží, počkej na jeho konec."
 MENU_NAME_PLACEHOLDER,Tvoje jméno
 MENU_CONNECTING,Připojuji se…
@@ -177,11 +177,13 @@ ABILITY_JETPACK_DESCRIPTION,"Jetpack ji na chvíli vynese nahoru, za letu jde ř
 CHANGELOG_JETPACK,"Jiskra má místo úskoku jetpack (E): na 0,7 s ji vynese nahoru, za letu jde řídit do stran."
 LOBBY_MODE,"Režim:"
 LOBBY_MODE_FFA,Každý proti každému
-LOBBY_MODE_TEAMS,2 v 2 (týmy)
+LOBBY_MODE_TWO_TEAMS,"2 týmy (max. 3 v 3)"
+LOBBY_MODE_THREE_TEAMS,"3 týmy po 2"
 LOBBY_TEAM_BUTTON,"{team} ({count}/{max})"
-LOBBY_NEED_TEAMS,"V režimu 2 v 2 musí mít každý tým jednoho nebo dva hráče."
+LOBBY_NEED_TEAMS,"Každý tým musí mít 1 až {max} hráče."
 TEAM_RED,Červený tým
 TEAM_BLUE,Modrý tým
+TEAM_GREEN,Zelený tým
 RESULTS_TEAM_WINNER,"Vyhrál {team}!"
 CHANGELOG_TEAMS,"Nový režim 2 v 2: hostitel ho zapne v lobby, hráči si vyberou Červený nebo Modrý tým. Spoluhráči se navzájem nezraňují a každý tým má svůj scoreboard (vlevo a vpravo)."
 LOBBY_CONFIRM_CHARACTER,Potvrdit postavu
@@ -276,6 +278,7 @@ CHANGELOG_BALVAN_0216,"Balvan: těžký kulomet má 75 nábojů (dříve 100) a 
 CHANGELOG_GAS_0216,"Krügermann: plyn odfoukne až po 1 s v něm (dříve 0,2 s), ale vydrží na mapě 5 s (dříve 3 s) a pomaleji vyprchává."
 CHANGELOG_STIN_KNOCKBACK,"Stín: odstřelovačka má dvojnásobný odhoz (2600 místo 1300)."
 CHANGELOG_TELEPORT_FIX,"Stín: přesun (E) se vždy provede co nejdál ke kurzoru. Dřív se při míření i jen trochu do země nebo přes proskakovací plošinu či hráče nepřenesl, a když se E zmáčklo přesně v okamžiku konce cooldownu, hostitel ho občas vrátil zpět."
+CHANGELOG_SIX_PLAYERS,"Hra je až pro 6 hráčů. Režimy: každý proti každému, 2 týmy (až 3 v 3) nebo 3 týmy po 2 (červený, modrý a nový zelený tým – jeho tabulka je nahoře uprostřed). Všechny mapy mají spawny pro 6 hráčů a týmy začínají pohromadě."
 CHANGELOG_SMALL_SCOREBOARD,"Tabulka hráčů v režimu všichni proti všem je menší a nezakrývá tolik mapy."
 CHANGELOG_GAS_DELAY,"Krügermannův plyn odfoukne až po 0,2 s v něm (rychlým skokem se dá proběhnout) a o něco slaběji. Odfouknutý hráč už navíc neuvidí, jak s ním obraz poskočí."
 CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouhý most a pod ním menší plošiny. Jakmile má někdo jen 3 životy, začne odspodu stoupat láva – kdo se jí dotkne, hned přijde o život. Zastaví se těsně pod horním mostem a hráči se pak oživují jen na něm."

@@ -27,7 +27,7 @@ var players: Dictionary[int, Dictionary] = {}
 ## scene change. The menu clears it once shown.
 var last_end_message := ""
 var host_port := EnetDirectConnector.DEFAULT_PORT
-## peer_id -> slot (0..3) of the running match; identical on all peers.
+## peer_id -> slot (0..5) of the running match; identical on all peers.
 var match_slots: Dictionary[int, int] = {}
 ## Ranking of the last match: [{"name": String, "place": int, "lives": int}], best first.
 var match_results: Array = []
@@ -35,8 +35,9 @@ var match_results: Array = []
 var room_code := ""
 ## Arena of the lobby / running match (ArenaChoice in the lobby, fixed by _begin_match).
 var arena_id := ""
-## 2 v 2 instead of free-for-all (TeamChoice in the lobby, fixed by _begin_match).
-var team_mode := false
+## Game mode: 0 = free-for-all, 2 or 3 teams (Teams.MODES; TeamChoice in the lobby, fixed
+## by _begin_match).
+var team_count := Teams.FREE_FOR_ALL
 
 var _connector: Connector = EnetDirectConnector.new()
 var _join_address := ""
@@ -72,35 +73,25 @@ func is_host() -> bool:
 
 func can_start_match() -> bool:
 	return is_host() and phase == Phase.LOBBY and players.size() >= MIN_PLAYERS_TO_START \
-			and CharacterChoice.all_confirmed(players) and (not team_mode or Teams.ready_to_start(players))
+			and CharacterChoice.all_confirmed(players) and Teams.ready_to_start(players, team_count)
 
 
-## Host: starts the match for everyone in the lobby (slots by peer id, host = slot 0).
+## Host: starts the match for everyone in the lobby (free-for-all: slots by peer id, host =
+## slot 0; teams start together, see Teams.START_SLOTS).
 func start_match() -> void:
 	if not can_start_match():
 		return
-	var ids := players.keys()
-	ids.sort()
-	var slots := {}
-	# Arena spawns alternate left/right: in 2 v 2 red gets slots 0 and 2, blue 1 and 3.
-	var next_team_slot: Array[int] = [0, 1]
-	for i in ids.size():
-		if team_mode:
-			var team: int = players[ids[i]].team
-			slots[ids[i]] = next_team_slot[team]
-			next_team_slot[team] += 2
-		else:
-			slots[ids[i]] = i
-	_begin_match.rpc(slots, arena_id, team_mode)
+	_begin_match.rpc(Teams.start_slots(players, team_count), arena_id, team_count)
 
 
 @rpc("authority", "call_local", "reliable")
-func _begin_match(slots: Dictionary, arena: String, teams: bool) -> void:
+func _begin_match(slots: Dictionary, arena: String, teams: Variant) -> void:
 	var valid_slots := LobbyValidator.slots(slots, players)
-	if phase != Phase.LOBBY or valid_slots.is_empty() or arena.length() > ArenaChoice.MAX_ID_LENGTH:
+	if phase != Phase.LOBBY or valid_slots.is_empty() or arena.length() > ArenaChoice.MAX_ID_LENGTH \
+			or not Teams.is_mode(teams):
 		return
 	match_slots = valid_slots
-	team_mode = teams
+	team_count = teams
 	arena_id = String(ContentDB.arena_or_default(arena).id)
 	_set_phase(Phase.IN_MATCH)
 
@@ -155,7 +146,7 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	host_port = port
 	room_code = Handshake.generate_room_code()
 	arena_id = String(ContentDB.arena_or_default(Settings.practice_arena).id)
-	team_mode = false
+	team_count = Teams.FREE_FOR_ALL
 	players = {1: {"name": LobbyValidator.clean_name(player_name, 1),
 			"character": CharacterChoice.first_free({}, Settings.practice_character), "team": 0, "ready": false}}
 	_set_phase(Phase.LOBBY)
@@ -195,7 +186,7 @@ func _close(message: String) -> void:
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	_connector.close()
 	room_code = ""
-	team_mode = false
+	team_count = Teams.FREE_FOR_ALL
 	players.clear()
 	match_slots.clear()
 	_auth.reset()
@@ -219,7 +210,7 @@ func _on_peer_connected(id: int) -> void:
 	if multiplayer.is_server():
 		var requested_name := _auth.take_requested_name(id)
 		players[id] = {"name": LobbyValidator.clean_name(requested_name, players.size() + 1),
-				"character": CharacterChoice.first_free(players, ""), "team": Teams.smaller_team(players), "ready": false}
+				"character": CharacterChoice.first_free(players, ""), "team": Teams.smaller_team(players, team_count), "ready": false}
 		broadcast_players()
 	elif id == 1:
 		_set_phase(Phase.LOBBY)
