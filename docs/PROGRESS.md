@@ -1,7 +1,7 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Verze 0.2.17 – předpověď zásahů, silnější brokovnice, slabší odstřelovačka, nápověda map, tabulka výsledků, statistiky v lobby, skiny (Claude, 2026-11-13); pushnuto na pokyn uživatele („pushni to“).**
+**Verze 0.2.17 – předpověď zásahů, silnější brokovnice, slabší odstřelovačka, nápověda map, tabulka výsledků, statistiky v lobby, skiny (Claude, 2026-11-13); pushnuto na pokyn uživatele („pushni to“), CI úspěšné, vydáno jako 0.2.17 build 84.**
 - **Uživatel 2026-11-13:** M7 (připojení bez Tailscale) nedělat – zůstává Tailscale; M6 brát jako hotové („je to cajk“).
 - **Cuknutí postavy po zásahu (známý problém z playtestu 0.2.15) vyřešeno předpovědí zásahů:** příčina = odhoz od zásahu rozhoduje jen host, klient se o něm dozví ~RTT pozdě a jeho předběhnutá predikce skočí (v_odhozu × zpoždění). Nově host u střely posílá tick výstřelu a oběti potvrzuje zásah (tick + její poslední zpracovaný vstup), klient (`src/match/hit_prediction.gd`) zkouší cizí kulky proti svým nepotvrzeným vstupům a odhoz si aplikuje sám ve stejném ticku jako host (přehrání `ClientPrediction.replay_from`, při každém snímku `apply_after_snapshot`). Ladění: (1) potvrzení s převodem tick → vstup podle odhadu bylo o 1 vedle → posílá se přímo vstup oběti; (2) tolerance ±1 tick (host zpracovává vstupy podle příchodu); (3) adaptivní `tick_bias` z potvrzení (pozor na znaménko); (4) zásah zblízka (kulka trefí dřív, než o ní klient ví) se předpovědět nedá → pomalejší doklouzání `Player.HIT_SMOOTHING` 8/s.
 - **Balanc (uživatel: „buffni architektovi brokovnici a nerfni trochu sniperku“):** brokovnice odhoz broku 170 → 220 (rána 1760), poškození rány 12 → 15 % (1,875 × 8; limit ~15 % na ránu), dostřel 500 → 650; odstřelovačka odhoz 2600 → 2200.
@@ -119,7 +119,7 @@
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
-**Testovací hraní 0.2.17 s kamarády** (všichni aktualizovat – nový protokol 25): `last_game.log` od všech (`correction_max` při zásazích – dřív 30–80 px, v testu do ~22 px), dojem z doklouzání zásahů zblízka, brokovnice (220 × 8, 15 %, 650 px) a odstřelovačky (2200), skiny, statistiky v lobby, tabulka výsledků; dál Hobitín, Nazgûl, 6 hráčů. Vzhled Hobitína čeká na konkrétní pokyn. Před další herní změnou archivovat build 0 jako 0.2.17 s číslem buildu z `version.json` (přes API, odkaz `releases/download/dev/version.json` chvíli vrací starou verzi z cache).
+**Testovací hraní 0.2.17 s kamarády** (všichni aktualizovat – nový protokol 25): `last_game.log` od všech (`correction_max` při zásazích – dřív 30–80 px, v testu do ~22 px), dojem z doklouzání zásahů zblízka, brokovnice (220 × 8, 15 %, 650 px) a odstřelovačky (2200), skiny, statistiky v lobby, tabulka výsledků; dál Hobitín, Nazgûl, 6 hráčů. Vzhled Hobitína čeká na konkrétní pokyn. Před další herní změnou archivovat build 0 jako 0.2.17 / **build 84** (ověřeno z `version.json` přes API 2026-11-13).
 
 **Testovací hraní 0.2.15 s kamarádem** podle `docs/PLAYTEST.md` (oba aktualizovat, hostovat jednou každý), od obou `last_game.log`: ping, `interp_ms`, korekce, `sys_free` na Windows; ručně: WASD, Q, schopnost po respawnu, panák, Krügermannův plyn (zpoždění 0,2 s, síla 1250, šipky), Balvan za štítem a těžký kulomet (přesnost na zemi vs. ve skoku), mapa Peklo (rychlost lávy 14 px/s, jestli je zápas na mostě zábavný, čitelnost plošin).
 
