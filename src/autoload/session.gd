@@ -52,6 +52,7 @@ func _ready() -> void:
 	add_child(CharacterChoice.new())  # character choice RPCs, see character_choice.gd
 	add_child(ArenaChoice.new())  # arena choice RPCs, see arena_choice.gd
 	add_child(TeamChoice.new())  # game mode and team RPCs, see team_choice.gd
+	add_child(PlayerStats.new())  # lifetime kills/deaths shown in the lobby, see player_stats.gd
 	add_child(ConnectionLog.new())  # diagnostics in the game log, see connection_log.gd
 	add_child(_auth)  # join handshake, see session_auth.gd
 	api.peer_authentication_failed.connect(_on_peer_authentication_failed)
@@ -107,6 +108,9 @@ func _end_match(results: Array) -> void:
 	if phase != Phase.IN_MATCH:
 		return
 	match_results = LobbyValidator.results(results)
+	for row: Dictionary in match_results:  # the own row counts into the lifetime statistics
+		if row.slot >= 0 and row.slot == match_slots.get(multiplayer.get_unique_id(), -2):
+			Settings.add_match(row.kills, row.deaths)
 	_set_phase(Phase.RESULTS)
 
 
@@ -122,6 +126,7 @@ func _return_to_lobby() -> void:
 		return
 	match_slots.clear()
 	_set_phase(Phase.LOBBY)
+	get_node("PlayerStats").report()  # the totals now include this match
 
 
 ## Addresses the host can share with friends, each including the room code
@@ -149,6 +154,7 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	team_count = Teams.FREE_FOR_ALL
 	players = {1: {"name": LobbyValidator.clean_name(player_name, 1),
 			"character": CharacterChoice.first_free({}, Settings.practice_character), "team": 0, "ready": false}}
+	players[1].merge(PlayerStats.own())
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
 
@@ -214,6 +220,7 @@ func _on_peer_connected(id: int) -> void:
 		broadcast_players()
 	elif id == 1:
 		_set_phase(Phase.LOBBY)
+		get_node("PlayerStats").report()
 
 
 func _on_peer_disconnected(id: int) -> void:

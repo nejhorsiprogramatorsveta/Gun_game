@@ -89,14 +89,18 @@ func _refresh_players() -> void:
 			text += " " + tr("LOBBY_HOST_TAG")
 		if id == multiplayer.get_unique_id():
 			text += " " + tr("LOBBY_YOU_TAG")
-		var row := _make_label(text)
-		row.add_theme_font_size_override("font_size", PLAYER_FONT_SIZE)
-		row.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		row.clip_text = true
-		row.tooltip_text = text
-		row.mouse_filter = Control.MOUSE_FILTER_PASS
+		var label := _make_label(text)
+		label.add_theme_font_size_override("font_size", PLAYER_FONT_SIZE)
+		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		label.clip_text = true
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.tooltip_text = text
+		label.mouse_filter = Control.MOUSE_FILTER_PASS
 		if Session.team_count > 0 and Teams.is_valid(team):  # the team shows as the name's colour
-			row.add_theme_color_override("font_color", Teams.color(team))
+			label.add_theme_color_override("font_color", Teams.color(team))
+		var row := HBoxContainer.new()
+		row.add_child(label)
+		row.add_child(_stats_label(Session.players[id]))
 		_player_list.add_child(row)
 	_refresh_character_cards()
 	_refresh_teams()
@@ -281,6 +285,17 @@ func _build_address_list() -> void:
 func _copy(address: String, button: Button) -> void:
 	DisplayServer.clipboard_set(address)
 	button.text = "LOBBY_COPIED"
+
+
+## Lifetime kills / deaths of a lobby player (PlayerStats); matches in the tooltip.
+func _stats_label(entry: Dictionary) -> Label:
+	var label := _make_label(tr("LOBBY_PLAYER_STATS").format({"kills": entry.get("kills_total", 0), "deaths": entry.get("deaths_total", 0)}))
+	label.add_theme_font_size_override("font_size", PLAYER_FONT_SIZE - 2)
+	label.add_theme_color_override("font_color", Color(0.85, 0.82, 0.7))
+	label.tooltip_text = tr("LOBBY_PLAYER_STATS_TOOLTIP").format({"kills": entry.get("kills_total", 0),
+			"deaths": entry.get("deaths_total", 0), "matches": entry.get("matches_total", 0)})
+	label.mouse_filter = Control.MOUSE_FILTER_PASS
+	return label
 
 
 func _make_label(text: String) -> Label:

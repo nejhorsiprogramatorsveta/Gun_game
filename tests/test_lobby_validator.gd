@@ -12,8 +12,26 @@ func test_players_accepts_valid_lobby() -> void:
 	var players := LobbyValidator.players({1: {"name": "Host", "character": "balvan"},
 			55: {"name": "Kamarád", "character": "stin", "extra": 1}})
 	check_eq(players.size(), 2, "two players")
-	check_eq(players[55], {"name": "Kamarád", "character": "stin", "team": 0, "ready": false},
-			"unknown fields dropped, team 0 and not confirmed by default")
+	check_eq(players[55], {"name": "Kamarád", "character": "stin", "team": 0, "ready": false,
+			"kills_total": 0, "deaths_total": 0, "matches_total": 0},
+			"unknown fields dropped, team 0, not confirmed and no statistics by default")
+
+
+func test_lifetime_statistics_are_kept_and_clamped() -> void:
+	var players := LobbyValidator.players({1: {"name": "Host", "character": "balvan", "kills_total": 34, "deaths_total": 21, "matches_total": 7},
+			2: {"name": "Cheater", "character": "stin", "kills_total": 10 ** 12, "deaths_total": -5, "matches_total": "many"}})
+	check_eq([players[1].kills_total, players[1].deaths_total, players[1].matches_total], [34, 21, 7], "totals kept")
+	check_eq([players[2].kills_total, players[2].deaths_total, players[2].matches_total],
+			[LobbyValidator.MAX_TOTAL, 0, 0], "huge, negative and wrong-typed values clamped")
+	var saved := [Settings.total_kills, Settings.total_deaths, Settings.total_matches]
+	Settings.total_kills = 10
+	Settings.total_deaths = 4
+	Settings.total_matches = 2
+	var totals := PlayerStats.own()
+	check_eq([totals.kills_total, totals.deaths_total, totals.matches_total], [10, 4, 2], "own totals for the lobby")
+	Settings.total_kills = saved[0]
+	Settings.total_deaths = saved[1]
+	Settings.total_matches = saved[2]
 
 
 func test_players_rejects_malformed_lobby() -> void:

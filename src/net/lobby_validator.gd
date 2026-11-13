@@ -7,6 +7,7 @@ class_name LobbyValidator
 const MAX_PLAYERS := 6
 const MAX_NAME_LENGTH := 16
 const MAX_SCORE := 65535
+const MAX_TOTAL := 99999999
 
 
 ## Trims a requested player name; empty names become the translated default.
@@ -17,9 +18,10 @@ static func clean_name(raw_name: String, number: int) -> String:
 	return cleaned
 
 
-## peer_id -> {"name": String, "character": String, "team": int, "ready": bool}; must contain
-## the host (peer 1), every character must exist and be used at most once, team 0..2
-## (missing = 0), "ready" = character confirmed (missing = false).
+## peer_id -> {"name": String, "character": String, "team": int, "ready": bool, "kills_total",
+## "deaths_total", "matches_total": int}; must contain the host (peer 1), every character must
+## exist and be used at most once, team 0..2 (missing = 0), "ready" = character confirmed
+## (missing = false), lifetime totals (PlayerStats) clamped to 0..MAX_TOTAL (missing = 0).
 static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 	var result: Dictionary[int, Dictionary] = {}
 	if raw.size() < 1 or raw.size() > MAX_PLAYERS or not raw.has(1):
@@ -44,7 +46,10 @@ static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 		var ready: Variant = entry.get("ready", false)
 		if typeof(ready) != TYPE_BOOL:
 			return {}
-		result[peer_id] = {"name": player_name, "character": character, "team": team, "ready": ready}
+		result[peer_id] = {"name": player_name, "character": character, "team": team, "ready": ready,
+				"kills_total": clampi(_int(entry, "kills_total"), 0, MAX_TOTAL),
+				"deaths_total": clampi(_int(entry, "deaths_total"), 0, MAX_TOTAL),
+				"matches_total": clampi(_int(entry, "matches_total"), 0, MAX_TOTAL)}
 	return result
 
 
