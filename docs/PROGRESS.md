@@ -116,6 +116,14 @@
 
 **Testovací hraní 0.2.15 s kamarádem** podle `docs/PLAYTEST.md` (oba aktualizovat, hostovat jednou každý), od obou `last_game.log`: ping, `interp_ms`, korekce, `sys_free` na Windows; ručně: WASD, Q, schopnost po respawnu, panák, Krügermannův plyn (zpoždění 0,2 s, síla 1250, šipky), Balvan za štítem a těžký kulomet (přesnost na zemi vs. ve skoku), mapa Peklo (rychlost lávy 14 px/s, jestli je zápas na mostě zábavný, čitelnost plošin).
 
+### Play test 0.2.15 (2026-11-13 22:39–22:48, host Linux PC kamaráda, klient Windows uživatele přes Wi-Fi, Tailscale; 4 zápasy FFA 1 v 1: Peklo 2×, Chrámové schody, Střechy)
+- **Spojení výborné:** Tailscale napřímo, RTT 30–40 ms (na začátku 60–69), ztráta 0–1 %, throttle 32/32. Klient: 296–301 snapshotů / 5 s, **0 mezer > 100 ms**, gap_max 34–48 ms, interp_holds 0–3 (67 jen v prvních 5 s zápasu), zpoždění interpolace 40–49 ms, ping vstupu 43–55 ms. Dřívější shluky paketů z Wi-Fi se tu neprojevily.
+- **Výkon:** host Linux 60 FPS (vsync 60 Hz), min 59, 0 záseků, `tick_gap_max` 25–38 ms; klient Windows 144 FPS stabilně, 0 záseků. Provoz host ↑ ~7 kB/s.
+- **Fronta vstupů na hostu:** `waited` 10–83 / 5 s ≈ `caught_up` (vstupy z Wi-Fi chodí s rozptylem 9–34 ms; host čeká a pak dožene), stalls 0, skipped 0, queue_max 0 (2× 4).
+- **Korekce vlastní postavy (klient Balvan vs. host Architekt, Střechy):** 0–6 px bez zásahů, 31–79 px a 5–10× za 5 s v oknech, kdy klienta zasahovala dvouhlavňová brokovnice (nepredikovaný odhoz, více broků = více korekcí). Známé omezení host-autoritativních zásahů, vyhlazené vizuálním offsetem.
+- **Chyby v logu hostitele (Linux):** „Attempt to disconnect a nonexistent connection from root Window, signal focus_entered/tree_exited“ (+1× „already connected“) při práci v menu/lobby, hlavně po ztrátě fokusu okna – interní chyba Godotu u rozbalovacích nabídek (Popup sleduje rodičovské okno), náš kód tyto signály nepoužívá; neškodné. Při odchodu stejné hlášky pro uzly Session.
+- Klient třikrát odešel během výsledků a znovu se připojil (podle logu klienta „left on purpose“).
+
 ### Play test 0.2.9 (2026-11-05 17:47–17:52, host Windows Jiskra, klient Mac Stín, Střechy FFA 271 s)
 - **Host:** vstupy z Macu plynulé – po zahřátí `starved` 0–3 a `skipped` 0–1 za 5 s (0.2.8 ve stejné roli 1–7 / 1–9), `target` 3–5, `jitter` vstupů 37–68 ms; throttle stále 32/32. `sys_free=57080MB` na Windows je nesmysl (OS.get_memory_info „available“ tam zřejmě vrací virtuální paměť) – opravit nebo vypustit.
 - **Klient Mac:** `interp_delay` 85–132 ms, `jitter` 34–84 ms, ale mezery > 100 ms stále 4–10× za 5 s (117–162 ms, 3 spiky 280–348 ms) → `interp_holds` 12–48 za 5 s (0.2.8: 3–38) – **nezlepšeno**. Příčina: zpoždění se řídí 90. percentilem zpoždění (~50 ms), ale první snapshot po každé mezeře mešká ~90–130 ms a takových je ~4 % → pokrýt je potřeba ~98. percentil (zpoždění ~140–150 ms).
