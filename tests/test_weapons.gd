@@ -83,7 +83,10 @@ func test_client_shot_spread_matches_the_host() -> void:
 	shooter.free()
 
 
-func test_double_barrel_got_stronger() -> void:
+func test_double_barrel_between_0216_and_0217() -> void:
 	var shotgun := ContentDB.get_weapon(&"double_barrel")
-	check(CombatRules.knockback_per_shot(shotgun) >= 1700.0, "a full blast pushes hard (%.0f)" % CombatRules.knockback_per_shot(shotgun))
-	check(shotgun.max_range >= 650.0 and shotgun.damage * shotgun.pellets >= 15.0, "longer range and more damage (user 2026-11-13)")
+	# 0.2.16: 8 x 170, 500 px; buffed in 0.2.17 to 8 x 220, 650 px; nerfed again in 0.2.18 (user 2026-11-14).
+	check_eq([shotgun.knockback, shotgun.max_range], [195.0, 580.0], "between the 0.2.16 and 0.2.17 values")
+	check(CombatRules.knockback_per_shot(shotgun) > 1360.0 and CombatRules.knockback_per_shot(shotgun) < 1760.0,
+			"a full blast still pushes hard (%.0f)" % CombatRules.knockback_per_shot(shotgun))
+	check(shotgun.damage * shotgun.pellets >= 15.0, "damage of a full blast unchanged (15 %)")

@@ -96,7 +96,7 @@ tématu `assets/ui/theme.tres`.
 | `skin_sprite`, `skin_name_key` | skin zbraně `assets/sprites/weapons/<id>_skin.png` a název `WEAPON_SKIN_<ID>`; mají ho zbraně, které postavy používají |
 
 **Limity hlídané testem `tests/test_weapons.gd`** (pokyn: odhoz nesmí být příliš vysoký, vše arkádové):
-- odhoz jednoho výstřelu (`knockback × pellets`) max. **2600** (odstřelovačka Stína 1900, brokovnice Architekta 8 × 220 = 1760),
+- odhoz jednoho výstřelu (`knockback × pellets`) max. **2600** (odstřelovačka Stína 1900, brokovnice Architekta 8 × 195 = 1560),
 - odhoz za sekundu (`knockback × pellets × shots_per_second`) max. **7500** (měřítko: pistole 800 × 9/s),
 - zpětný ráz `recoil` min. **100** (menší na zemi úplně zmizí).
 

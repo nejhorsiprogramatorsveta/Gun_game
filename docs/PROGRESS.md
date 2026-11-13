@@ -1,7 +1,7 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**0.2.18 rozpracovaná (Claude, 2026-11-14), jen lokální commit – NEPUSHOVAT** (uživatel: „ale nepushuj to“; od 2026-11-13 pushovat jen po jeho souhlasu, CLAUDE.md upraveno). „Co je nového“ a poznámky k vydání ukazují **poslední 3 verze**, každou v sekcích **Balanc / Nové / Ostatní** (opravy chyb pod Ostatní) se zkrácenými jednořádkovými texty (uživatel: „dej do těch co je nového vždy poslední 3 updaty, nějak shrnuté … balance changes, Nové a ostatní“). `Changelog.RECENT_COUNT`, `recent()`, `format_recent()`, pole `balance_keys`/`new_keys` (starší `mechanics_keys`/`change_keys` → Nové, `fix_keys` → Ostatní), 0.2.17 archivována jako build 84, 0.2.16/0.2.15 přeroztříděny. Verze 0.2.18. **Balanc 0.2.18:** Krügermannův plyn odfoukne už po **0,7 s** (dřív 1 s; `blow_delay` 0,7 = 42 ticků; uživatel: „krugermannovi sniz cas v plynu na 0.7 sekundy“); odhoz odstřelovačky Stína **2200 → 1900** (uživatel: „sniz trochu jeste odstrel stina“).
+**0.2.18 rozpracovaná (Claude, 2026-11-14), jen lokální commit – NEPUSHOVAT** (uživatel: „ale nepushuj to“; od 2026-11-13 pushovat jen po jeho souhlasu, CLAUDE.md upraveno). „Co je nového“ a poznámky k vydání ukazují **poslední 3 verze**, každou v sekcích **Balanc / Nové / Ostatní** (opravy chyb pod Ostatní) se zkrácenými jednořádkovými texty (uživatel: „dej do těch co je nového vždy poslední 3 updaty, nějak shrnuté … balance changes, Nové a ostatní“). `Changelog.RECENT_COUNT`, `recent()`, `format_recent()`, pole `balance_keys`/`new_keys` (starší `mechanics_keys`/`change_keys` → Nové, `fix_keys` → Ostatní), 0.2.17 archivována jako build 84, 0.2.16/0.2.15 přeroztříděny. Verze 0.2.18. **Balanc 0.2.18:** Krügermannův plyn odfoukne už po **0,7 s** (dřív 1 s; `blow_delay` 0,7 = 42 ticků; uživatel: „krugermannovi sniz cas v plynu na 0.7 sekundy“); odhoz odstřelovačky Stína **2200 → 1900** (uživatel: „sniz trochu jeste odstrel stina“); brokovnice Architekta **odhoz broku 220 → 195, dostřel 650 → 580 px** (poškození beze změny; uživatel: „a nerfni architektovi brokovnici“).
 
 **Verze 0.2.17 – předpověď zásahů, silnější brokovnice, slabší odstřelovačka, nápověda map, tabulka výsledků, statistiky v lobby, skiny (Claude, 2026-11-13); pushnuto na pokyn uživatele („pushni to“), CI úspěšné, vydáno jako 0.2.17 build 84.**
 - **Uživatel 2026-11-13:** M7 (připojení bez Tailscale) nedělat – zůstává Tailscale; M6 brát jako hotové („je to cajk“).
@@ -121,7 +121,7 @@
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
-**Uživatel pošle logy z hraní 0.2.17** → vyhodnotit (`correction_max` při zásazích, doklouzání zblízka, brokovnice/odstřelovačka, skiny, statistiky, Hobitín, Nazgûl). 0.2.18 (Co je nového – poslední 3 verze; plyn 0,7 s; odstřelovačka 1900) je jen lokálně, push až po souhlasu. Vzhled Hobitína čeká na konkrétní pokyn.
+**Uživatel pošle logy z hraní 0.2.17** → vyhodnotit (`correction_max` při zásazích, doklouzání zblízka, brokovnice/odstřelovačka, skiny, statistiky, Hobitín, Nazgûl). 0.2.18 (Co je nového – poslední 3 verze; plyn 0,7 s; odstřelovačka 1900; brokovnice 195/580 px) je jen lokálně, push až po souhlasu. Vzhled Hobitína čeká na konkrétní pokyn.
 
 **Testovací hraní 0.2.15 s kamarádem** podle `docs/PLAYTEST.md` (oba aktualizovat, hostovat jednou každý), od obou `last_game.log`: ping, `interp_ms`, korekce, `sys_free` na Windows; ručně: WASD, Q, schopnost po respawnu, panák, Krügermannův plyn (zpoždění 0,2 s, síla 1250, šipky), Balvan za štítem a těžký kulomet (přesnost na zemi vs. ve skoku), mapa Peklo (rychlost lávy 14 px/s, jestli je zápas na mostě zábavný, čitelnost plošin).
 
@@ -203,6 +203,7 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-14, 0.2.18 brokovnice nerf (Claude, lokální commit, bez pushe):** `data/weapons/double_barrel.tres` (`knockback` 195, `max_range` 580), `test_weapons.gd`, CSV (`CHANGELOG_SHOTGUN_NERF_0218`), changelog (build 0 → Balanc), EDITING_GUIDE.
 - **2026-11-14, 0.2.18 odstřelovačka 1900 (Claude, lokální commit, bez pushe):** `data/weapons/sniper.tres` (`knockback` 1900), `test_weapons.gd`, `combat_rules.gd` (komentář), CSV (`CHANGELOG_SNIPER_NERF_0218`), changelog (build 0 → Balanc), EDITING_GUIDE.
 - **2026-11-14, 0.2.18 plyn 0,7 s (Claude, lokální commit, bez pushe):** `data/abilities/gas_blast.tres` + výchozí hodnoty v `gas_blast_ability.gd`/`gas_cloud.gd` (`blow_delay` 0,7), `test_abilities.gd` (42 ticků), CSV (popis schopnosti, `CHANGELOG_GAS_0218`), changelog (build 0 → Balanc), EDITING_GUIDE, CLAUDE.md.
 - **2026-11-13, 0.2.17 (Claude, lokální commit, bez pushe):** nové `src/match/hit_prediction.gd`, `tests/test_hit_prediction.gd`; úpravy `client_prediction.gd` (`history`, `replay_from`, zásahy při reconcile), `match_client.gd` (registrace cizích střel, detekce po predikci), `weapon_system.gd` (tick výstřelu, potvrzení zásahu, signál `remote_shot_spawned`), `match_net.gd` (`projectile_spawned` s tickem, `hit_confirmed`), `match_controller.gd` (`_weapons.tick`), `player.gd` (`visual_smoothing`), `build_info.gd` (protokol 25), `double_barrel.tres`, `sniper.tres`, `combat_rules.gd` (komentář), testy (`test_weapons`, `test_combat_rules`), CSV, changelog, `project.godot` 0.2.17, ARCHITECTURE, EDITING_GUIDE, CLAUDE.md.
@@ -399,6 +400,7 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-14, 0.2.18 (brokovnice 195/580 px):** **191/191 GDScript testů**, lokalizace 305 klíčů / 0 chybí; náhled `notes.md`: 0.2.18 Balanc má plyn, odstřelovačku i brokovnici. Ve skutečné hře nevyzkoušeno.
 - **2026-11-14, 0.2.18 (odstřelovačka 1900):** **191/191 GDScript testů**, lokalizace 0 chybí; náhled `notes.md`: 0.2.18 Balanc má plyn i odstřelovačku. Ve skutečné hře nevyzkoušeno.
 - **2026-11-14, 0.2.18 (plyn 0,7 s):** **191/191 GDScript testů** (test plynu: odfoukne přesně po 42 ticích), lokalizace 303 klíčů / 0 chybí; náhled `notes.md` ukazuje v 0.2.18 sekci Balanc. Ve skutečné hře nevyzkoušeno.
 - **2026-11-14, 0.2.18 (Co je nového):** **191/191 GDScript testů** (upravené testy changelogu: menu i poznámky = 3 nejnovější verze s nadpisy, čtvrtá se neukáže, pořadí sekcí Balanc → Nové → Ostatní, 0.2.17 rozdělená do všech tří), lokalizace 302 klíčů, testy vydávání 10/10; náhled textu menu i `notes.md` zkontrolován.
