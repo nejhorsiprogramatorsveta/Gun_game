@@ -50,7 +50,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.11, next 0.2.12).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.16, unpublished; 0.2.15 = build 67).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
@@ -106,9 +106,9 @@ Changelog is implemented: data/changelog.tres + localization CSV are shared by s
 the offline menu "Co je nového", and tools/write_release_notes.gd.
 Build 0 in the data resolves to this source tree's actual BuildInfo; before the next gameplay change,
 archive that entry under its published version/build and add a new current entry. Do not guess the next build number.
-M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c gas/platform world effects (src/combat/area_effects.gd) done; since 0.2.13 Krügermann's gas (gas_blast, GasCloud) BLOWS opponents away after 0.2 s inside
+M4 is complete. M5 in progress (PLAN.md G.0a): 6 characters; M5.1 weapons (since 0.1.12 ONE weapon per character, no switching), M5.2a ability system (shield, shockwave) M5.2b predicted dash/teleport and M5.2c gas/platform world effects (src/combat/area_effects.gd) done; since 0.2.13 Krügermann's gas (gas_blast, GasCloud) BLOWS opponents away after 1 s inside (0.2.16, gas lasts 5 s)
 (0.2.15: Player.gas_ticks counted in AreaEffects.blow inside Player.simulate and sent in snapshots, direction carried by the effect RPC, credited via player_blown), Balvan can shoot behind his shield
-and carries heavy_machine_gun (WeaponData.air_spread_degrees); shot spread is seeded by (slot, input seq, pellet) so predicted bullets match the host; keep everything arcade, recoil >= CombatRules.MIN_RECOIL; M5.3 lobby character choice done (src/net/character_choice.gd) (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement (they apply at 0 % damage; the damage multiplier comes on top, user 2026-11-05). Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
+and carries heavy_machine_gun (75 rounds, 2 s reload; WeaponData.air_spread_degrees + move_spread_degrees: accurate only standing still, InputFrame.is_moving); shot spread is seeded by (slot, input seq, pellet) so predicted bullets match the host; keep everything arcade, recoil >= CombatRules.MIN_RECOIL; M5.3 lobby character choice done (src/net/character_choice.gd) (own-movement ability effects go in AbilityData.start, run inside Player.simulate for prediction); knockback limits in CombatRules are a user requirement (they apply at 0 % damage; the damage multiplier comes on top, user 2026-11-05). Next: see PROGRESS.md; keep Wi-Fi fixes deferred until separately requested.
 The user replaced the previous dev/stable split (2026-11-04): keep ONE existing release `dev`,
 promoted to stable/latest, and change its visible version/title and assets. The `dev` slug is retained for
 installed clients. Do not create releases or move/push tags. Hide old `v0.1.0` as a draft only after successful

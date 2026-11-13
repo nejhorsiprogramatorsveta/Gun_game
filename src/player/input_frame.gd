@@ -60,3 +60,8 @@ static func aim_to_vector(aim_steps: int) -> Vector2:
 
 func is_held(button: int) -> bool:
 	return buttons & button != 0
+
+
+## A movement key is held (A/D, W jump, S drop): some guns then spread much more.
+func is_moving() -> bool:
+	return move_x != 0 or buttons & (JUMP | DOWN) != 0

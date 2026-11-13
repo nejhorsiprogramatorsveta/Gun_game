@@ -31,16 +31,34 @@ func test_practice_character_falls_back_to_default() -> void:
 	check_eq(ContentDB.practice_character("removed_character").id, ContentDB.DEFAULT_CHARACTER_ID, "unknown id from old settings")
 
 
-func test_heavy_machine_gun_is_accurate_only_on_the_ground() -> void:
+func test_heavy_machine_gun_is_accurate_only_standing_still() -> void:
 	var hmg := ContentDB.get_weapon(&"heavy_machine_gun")
-	check_eq(hmg.magazine_size, 100, "100 rounds")
+	check_eq(hmg.magazine_size, 75, "75 rounds (user 2026-11-13)")
+	check(hmg.reload_time >= 2.0, "long reload (%.1f s)" % hmg.reload_time)
 	check(hmg.knockback >= 700.0, "good knockback (%.0f)" % hmg.knockback)
-	check(CombatRules.spread_degrees(hmg, false) <= 1.0, "accurate standing on the ground")
-	check(CombatRules.spread_degrees(hmg, true) >= 10.0 * CombatRules.spread_degrees(hmg, false), "much wider spread in the air")
+	var still := CombatRules.spread_degrees(hmg, false, false)
+	check(still <= 1.0, "accurate standing still on the ground")
+	check(CombatRules.spread_degrees(hmg, true) >= 25.0 * still, "extreme spread in the air")
+	check(CombatRules.spread_degrees(hmg, false, true) >= 25.0 * still, "extreme spread while a movement key is held")
 	var widest := CombatRules.spread_direction(Vector2.RIGHT, hmg, 1.0, true)
 	check(is_equal_approx(rad_to_deg(widest.angle()), hmg.air_spread_degrees), "air spread used while airborne")
+	widest = CombatRules.spread_direction(Vector2.RIGHT, hmg, 1.0, false, true)
+	check(is_equal_approx(rad_to_deg(widest.angle()), hmg.move_spread_degrees), "movement spread used while walking")
 	var smg := ContentDB.get_weapon(&"smg")
-	check_eq(CombatRules.spread_degrees(smg, true), smg.spread_degrees, "other guns spread the same in the air")
+	check_eq(CombatRules.spread_degrees(smg, true, true), smg.spread_degrees, "other guns spread the same in the air and moving")
+
+
+func test_every_movement_key_counts_as_moving() -> void:
+	check(not InputFrame.create(0, InputFrame.FIRE | InputFrame.RELOAD | InputFrame.ABILITY).is_moving(), "fire, reload, ability: standing still")
+	for frame: InputFrame in [InputFrame.create(-1, 0), InputFrame.create(1, 0), InputFrame.create(0, InputFrame.JUMP),
+			InputFrame.create(0, InputFrame.DOWN)]:
+		check(frame.is_moving(), "A, D, W and S are movement (move %d, buttons %d)" % [frame.move_x, frame.buttons])
+
+
+func test_sniper_knocks_back_twice_as_hard() -> void:
+	var sniper := ContentDB.get_weapon(&"sniper")
+	check_eq(sniper.knockback, 2600.0, "2x the former 1300 (user 2026-11-13)")
+	check(CombatRules.knockback_per_shot(sniper) <= CombatRules.MAX_KNOCKBACK_PER_SHOT, "within the raised per-shot limit")
 
 
 func test_client_shot_spread_matches_the_host() -> void:
@@ -57,4 +75,9 @@ func test_client_shot_spread_matches_the_host() -> void:
 	shooter.motor_state.on_floor = true
 	var ground := absf(rad_to_deg(WeaponSystem._shot_direction(shooter, input, Vector2.RIGHT, hmg, 0).angle()))
 	check(ground <= hmg.spread_degrees + 0.001, "on the ground within %.1f° (%.2f°)" % [hmg.spread_degrees, ground])
+	var walking := 0.0
+	for seq in range(1, 41):
+		var step := InputFrame.create(1, InputFrame.FIRE, 0, seq)
+		walking = maxf(walking, absf(rad_to_deg(WeaponSystem._shot_direction(shooter, step, Vector2.RIGHT, hmg, 0).angle())))
+	check(walking > 5.0 * hmg.spread_degrees, "walking on the ground spreads much more (%.1f°)" % walking)
 	shooter.free()

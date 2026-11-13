@@ -19,6 +19,10 @@ extends Resource
 ## Deviation (± degrees) while the shooter is in the air (jumping, falling); negative = the
 ## same as spread_degrees. A big value makes a gun accurate only when standing on the ground.
 @export var air_spread_degrees: float = -1.0
+## Deviation (± degrees) while the shooter holds a movement key (A/D run, W jump, S drop);
+## negative = keys add no spread. With air_spread_degrees as big, the gun is accurate only
+## when standing still on the ground (Balvan's heavy machine gun, user 2026-11-13).
+@export var move_spread_degrees: float = -1.0
 ## Speed (px/s) a hit adds to the target, divided by the target's weight. Keep the totals
 ## within CombatRules.MAX_KNOCKBACK_PER_SHOT / _PER_SECOND (checked by tests/test_weapons.gd).
 @export var knockback: float = 550.0

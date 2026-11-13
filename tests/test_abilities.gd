@@ -87,19 +87,20 @@ func test_jetpack_lifts_up_and_can_be_steered() -> void:
 
 ## Keeps calling blow() like Player.simulate does once per tick; returns how many ticks it
 ## took until the player was blown (-1 = never within `limit`).
-func _ticks_until_blown(effects: AreaEffects, player: Player, limit: int = 60) -> int:
+func _ticks_until_blown(effects: AreaEffects, player: Player, limit: int = 120) -> int:
 	for tick in range(1, limit + 1):
 		if effects.blow(player):
 			return tick
 	return -1
 
 
-func test_gas_blows_opponents_after_a_fifth_of_a_second() -> void:
+func test_gas_blows_opponents_after_a_second() -> void:
 	var effects := AreaEffects.new()
 	var gas := ContentDB.get_ability(&"gas_blast") as GasBlastAbility
 	effects._add(gas, 7, 100, Vector2(500, 300), 1)
 	var delay := roundi(gas.blow_delay * Engine.physics_ticks_per_second)
-	check_eq(delay, 12, "0.2 s = 12 physics ticks")
+	check_eq(delay, 60, "1 s = 60 physics ticks (user 2026-11-13)")
+	check(gas.lifetime >= 5.0, "the gas stays longer (%.1f s)" % gas.lifetime)
 	var blown: Array = []
 	effects.player_blown.connect(func(owner_peer_id: int, victim: Player) -> void: blown.append([owner_peer_id, victim]))
 	var owner := _player(&"krugermann", 7, Vector2(500, 300))
@@ -108,7 +109,7 @@ func test_gas_blows_opponents_after_a_fifth_of_a_second() -> void:
 	for tick in delay - 1:
 		check(not effects.blow(victim) and victim.velocity.is_zero_approx(), "tick %d inside: not yet" % (tick + 1))
 	check(blown.is_empty(), "no credit before the blow")
-	check(effects.blow(victim), "after 0.2 s inside: blown")
+	check(effects.blow(victim), "after 1 s inside: blown")
 	var weight := victim.character.weight
 	check(is_equal_approx(victim.velocity.x, gas.blow_speed / weight), "away from Krügermann (%.0f px/s)" % victim.velocity.x)
 	check(victim.velocity.y <= -gas.blow_lift / weight + 0.01, "and upwards")
@@ -121,7 +122,7 @@ func test_gas_blows_opponents_after_a_fifth_of_a_second() -> void:
 	visitor.position = Vector2(660, 600)
 	check(not effects.blow(visitor) and visitor.gas_ticks == 0, "stepping out resets the count")
 	visitor.position = Vector2(660, 330)
-	check_eq(_ticks_until_blown(effects, visitor), delay, "back inside: the full 0.2 s again")
+	check_eq(_ticks_until_blown(effects, visitor), delay, "back inside: the full second again")
 	var edge := _player(&"jiskra", 10, Vector2(500 - gas.length / 2.0 - Player.BODY_SIZE.x / 2.0 + 2.0, 300))
 	check(_ticks_until_blown(effects, edge) == delay and edge.velocity.x > 0.0, "touching the end of the strip counts")
 	var outside := _player(&"stin", 11, Vector2(560, 300 + gas.height / 2.0 + Player.BODY_SIZE.y / 2.0 + 5.0))

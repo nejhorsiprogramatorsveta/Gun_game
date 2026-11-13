@@ -72,14 +72,14 @@ func spawn_predicted(player: Player, input: InputFrame) -> void:
 ## comes from (slot, seq, pellet): the host and the shooter's own prediction get the same
 ## direction and the predicted bullet flies where the real one does. Inputs without a seq
 ## (the host's own player, practice) use plain randomness. Airborne = not on the floor
-## after this tick's movement.
+## after this tick's movement; moving = a movement key held in this input.
 static func _shot_direction(player: Player, input: InputFrame, aim_direction: Vector2, weapon: WeaponData, pellet: int) -> Vector2:
 	var random_value := randf()
 	if input.seq != 0:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = (player.slot << 24) | (input.seq << 8) | pellet
 		random_value = rng.randf()
-	return CombatRules.spread_direction(aim_direction, weapon, random_value, not player.motor_state.on_floor)
+	return CombatRules.spread_direction(aim_direction, weapon, random_value, not player.motor_state.on_floor, input.is_moving())
 
 
 func _physics_process(_delta: float) -> void:

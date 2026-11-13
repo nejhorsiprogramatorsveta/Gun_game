@@ -13,7 +13,9 @@ func test_every_weapon_has_a_magazine_and_one_second_reload() -> void:
 	for id in ContentDB.character_ids():
 		var weapon := ContentDB.get_character(id).weapon
 		check(weapon.magazine_size >= 2, "%s: a magazine" % weapon.id)
-		check(is_equal_approx(weapon.reload_time, 1.0), "%s: one second reload" % weapon.id)
+		# Balvan's heavy machine gun reloads longer (user 2026-11-13).
+		var expected := 2.0 if weapon.id == &"heavy_machine_gun" else 1.0
+		check(is_equal_approx(weapon.reload_time, expected), "%s: %.0f s reload" % [weapon.id, expected])
 	var sniper := ContentDB.get_weapon(&"sniper")
 	var smg := ContentDB.get_weapon(&"smg")
 	check(sniper.magazine_size < smg.magazine_size, "the sniper rifle runs dry sooner than the SMG")

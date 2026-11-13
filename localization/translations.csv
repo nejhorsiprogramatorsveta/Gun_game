@@ -109,11 +109,11 @@ WEAPON_CARBINE_NAME,Karabina
 WEAPON_SNIPER_NAME,Odstřelovačka
 WEAPON_COMPACT_SMG_NAME,Kompaktní samopal
 CHARACTER_BALVAN_NAME,Balvan
-CHARACTER_BALVAN_DESCRIPTION,"Těžký samuraj: pomalý, ale těžko se odhazuje. Těžký kulomet (100 nábojů) – přesný jen na zemi, ve skoku hodně rozptyluje."
+CHARACTER_BALVAN_DESCRIPTION,"Těžký samuraj: pomalý, ale těžko se odhazuje. Těžký kulomet (75 nábojů, dlouhé přebíjení) – přesný jen vestoje, při pohybu (WASD) i ve vzduchu extrémně rozptyluje."
 CHARACTER_VICHR_NAME,Vichr
 CHARACTER_VICHR_DESCRIPTION,"Ninja s kusarigamou: vyvážený. Bojová puška."
 CHARACTER_STIN_NAME,Stín
-CHARACTER_STIN_DESCRIPTION,"Lehký ninja se šurikenem: rychlý, ale snadno odletí. Odstřelovačka."
+CHARACTER_STIN_DESCRIPTION,"Lehký ninja se šurikenem: rychlý, ale snadno odletí. Odstřelovačka s obrovským odhozem."
 CHANGELOG_WEAPONS,"Čtyři postavy a osm zbraní: každá postava má dvě vlastní zbraně (samopal, pistole, brokovnice, útočná a bojová puška, karabina, odstřelovačka, kompaktní samopal)."
 CHANGELOG_WEAPON_SWITCH,"Přepínání zbraní klávesou Q, 1 / 2 nebo kolečkem myši. Dokud nepřibude výběr v lobby, dostane každý hráč postavu podle pořadí."
 HUD_ABILITY_READY,"{ability}: připraveno ({keys})"
@@ -138,7 +138,7 @@ ABILITY_TELEPORT_NAME,Přesun
 ABILITY_TELEPORT_DESCRIPTION,"Přenese se kousek směrem ke kurzoru a zastaví se."
 CHANGELOG_DASH_TELEPORT,"Jiskra má úskok (E): rychlý přesun do strany i ve vzduchu. Stín má přesun (E): teleport směrem ke kurzoru."
 ABILITY_GAS_BLAST_NAME,Odfukovací plyn
-ABILITY_GAS_BLAST_DESCRIPTION,"Vypustí před sebe dlouhý pás zeleného plynu (3 s). Soupeře, který v něm zůstane 0,2 s, odfoukne směrem od Krügermanna – kam, ukazují šipky v plynu."
+ABILITY_GAS_BLAST_DESCRIPTION,"Vypustí před sebe dlouhý pás zeleného plynu (5 s). Soupeře, který v něm zůstane 1 s, odfoukne směrem od Krügermanna – kam, ukazují šipky v plynu."
 ABILITY_PLATFORM_NAME,Plošina
 ABILITY_PLATFORM_DESCRIPTION,"Postaví pod sebou na 3 s plošinu, i ve vzduchu."
 CHANGELOG_KRUGERMANN,"Postava Mlha se nově jmenuje Krügermann a má zpomalovací oblak (E): zelený oblak ke kurzoru zpomalí soupeře na 3 s."
@@ -272,5 +272,8 @@ CHANGELOG_GAS_BLAST,"Krügermann: zpomalovací oblak je pryč, nově má odfukov
 CHANGELOG_SHIELD_FIRE,"Balvan může za štítem střílet. Štít teď zmenší na pětinu i odfouknutí plynem."
 CHANGELOG_BALVAN_HMG,"Balvan má místo útočné pušky těžký kulomet: 100 nábojů, silný odhoz. Na zemi je přesný, ale ve skoku nebo pádu hodně rozptyluje."
 CHANGELOG_SPREAD_SYNC,"Vlastní kulky na obrazovce letí přesně stejným směrem jako ty skutečné u hostitele, i u zbraní s rozptylem."
+CHANGELOG_BALVAN_0216,"Balvan: těžký kulomet má 75 nábojů (dříve 100) a přebíjí 2 s (dříve 1 s). Přesně střílí jen vestoje – při jakémkoli pohybu (A/D, skok W, seskok S) i ve vzduchu rozptyluje až o ±30°."
+CHANGELOG_GAS_0216,"Krügermann: plyn odfoukne až po 1 s v něm (dříve 0,2 s), ale vydrží na mapě 5 s (dříve 3 s) a pomaleji vyprchává."
+CHANGELOG_STIN_KNOCKBACK,"Stín: odstřelovačka má dvojnásobný odhoz (2600 místo 1300)."
 CHANGELOG_GAS_DELAY,"Krügermannův plyn odfoukne až po 0,2 s v něm (rychlým skokem se dá proběhnout) a o něco slaběji. Odfouknutý hráč už navíc neuvidí, jak s ním obraz poskočí."
 CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouhý most a pod ním menší plošiny. Jakmile má někdo jen 3 životy, začne odspodu stoupat láva – kdo se jí dotkne, hned přijde o život. Zastaví se těsně pod horním mostem a hráči se pak oživují jen na něm."

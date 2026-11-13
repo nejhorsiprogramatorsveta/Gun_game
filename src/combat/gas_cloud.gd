@@ -15,16 +15,18 @@ const ARROW_SCALE := 3.0
 ## Distance between the arrows and how fast they drift (px, px/s on screen).
 const ARROW_SPACING := 110.0
 const ARROW_SPEED := 260.0
+## Seconds the gas takes to fade away at the end of its lifetime.
+const FADE_TIME := 1.5
 
 var owner_peer_id := 0
 ## 1 = blows to the right, -1 = to the left (away from Krügermann).
 var direction := 1
 ## Half of the strip's width and height (px).
 var half_size := Vector2(270, 45)
-var lifetime := 3.0
+var lifetime := 5.0
 ## Seconds in the gas (in a row) before it blows; blow speed (px/s) before the victim's
 ## weight: sideways and upwards.
-var blow_delay := 0.2
+var blow_delay := 1.0
 var blow_speed := 1250.0
 var blow_lift := 380.0
 var _age := 0.0
@@ -61,7 +63,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	# Pixel-art gas: two rows of churning puffs (tools/art/generate_effects.py) that spread out
 	# from the middle when the gas appears and fade away at the end.
-	var fade := clampf((lifetime - _age) / 0.5, 0.0, 1.0)
+	var fade := clampf((lifetime - _age) / FADE_TIME, 0.0, 1.0)
 	var grow := minf(_age / 0.2, 1.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * PUFF_SCALE)
 	var area := half_size * 2.0 / PUFF_SCALE

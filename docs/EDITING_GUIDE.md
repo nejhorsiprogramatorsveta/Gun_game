@@ -77,17 +77,18 @@ tématu `assets/ui/theme.tres`.
 | `projectile_speed` | rychlost střely (px/s) |
 | `max_range` | dostřel (px); pak střela zmizí – brokovnice krátce, odstřelovačka přes celou mapu |
 | `spread_degrees` | náhodný rozptyl ± stupňů |
-| `air_spread_degrees` | rozptyl ± stupňů, když střelec skáče nebo padá; záporné číslo = stejný jako `spread_degrees` (těžký kulomet: 1° na zemi, 15° ve vzduchu) |
+| `air_spread_degrees` | rozptyl ± stupňů, když střelec skáče nebo padá; záporné číslo = stejný jako `spread_degrees` (těžký kulomet: 1° vestoje, 30° ve vzduchu) |
+| `move_spread_degrees` | rozptyl ± stupňů, když hráč drží klávesu pohybu (A/D, W, S); záporné číslo = pohyb rozptyl nemění (těžký kulomet: 30°) |
 | `knockback` | odhoz jednoho zásahu (dělí se váhou zasaženého) |
 | `recoil` | zpětný ráz střelce při každém výstřelu |
 | `pellets` | počet broků na výstřel (brokovnice > 1, každý brok má vlastní rozptyl a odhoz) |
 | `magazine_size` | náboje v zásobníku (výstřel brokovnice = 1 náboj); po posledním se přebíjí, po smrti je zásobník vždy plný. Pomalé silné zbraně malý (odstřelovačka 3), rychlé velký (samopal 32) |
-| `reload_time` | délka přebíjení v sekundách (všechny zbraně 1.0) |
+| `reload_time` | délka přebíjení v sekundách (většina zbraní 1.0, těžký kulomet 2.0) |
 | `damage` | procenta poškození za zásah (u brokovnic za každý brok); čím víc procent má zasažená postava, tím víc ji další zásahy odhodí (na 100 % ×2,5). Orientačně `knockback / 120`, celá rána max. ~15 % |
 | `sprite` | pixel art zbraně `assets/sprites/weapons/<id>.png` (2 snímky 34 × 12 px: normální, záblesk; úchop v bodě 4,6) |
 
 **Limity hlídané testem `tests/test_weapons.gd`** (pokyn: odhoz nesmí být příliš vysoký, vše arkádové):
-- odhoz jednoho výstřelu (`knockback × pellets`) max. **1400**,
+- odhoz jednoho výstřelu (`knockback × pellets`) max. **2600** (odstřelovačka Stína má přesně 2600),
 - odhoz za sekundu (`knockback × pellets × shots_per_second`) max. **7500** (měřítko: pistole 800 × 9/s),
 - zpětný ráz `recoil` min. **100** (menší na zemi úplně zmizí).
 
@@ -106,7 +107,7 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px, nyní 320 – dosah, ne melee), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru), `damage` (procenta poškození za zásah, nyní 9) |
 | `dash.tres` (úskok) | Jiskra | `speed` (px/s po dobu `duration`) |
 | `teleport.tres` (přesun) | Stín | `distance` – max. vzdálenost ke kurzoru (px) |
-| `gas_blast.tres` (odfukovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `blow_delay` (kolik sekund musí soupeř v plynu vydržet, než ho odfoukne; 0,2), `blow_speed` (rychlost odfouknutí do strany, px/s, dělí se váhou soupeře; 1250), `blow_lift` (rychlost nahoru; 380) |
+| `gas_blast.tres` (odfukovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `blow_delay` (kolik sekund musí soupeř v plynu vydržet, než ho odfoukne; 1,0; `lifetime` 5), `blow_speed` (rychlost odfouknutí do strany, px/s, dělí se váhou soupeře; 1250), `blow_lift` (rychlost nahoru; 380) |
 | `platform.tres` (plošina) | Architekt | `width` (px), `lifetime` (s) |
 
 - **Varianta existujícího druhu** (např. silnější štít pro jinou postavu) = zkopírovat `.tres`, změnit `id`
