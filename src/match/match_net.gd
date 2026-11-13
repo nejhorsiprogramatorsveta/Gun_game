@@ -11,6 +11,7 @@ signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_i
 signal projectile_removed(id: int)
 signal kill_announced(killer_slot: int, streak: int)
 signal effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, position: Vector2, direction: int)
+signal nazgul_event(event: int, slot: int, direction: int)
 
 ## A legit client sends 60/s; anything far above is dropped.
 const MAX_INPUT_PACKETS_PER_SECOND := 150
@@ -71,6 +72,13 @@ func send_effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, a
 	_send(func() -> void:
 		for peer_id in _loaded_peers:
 			_receive_effect_spawned.rpc_id(peer_id, ability_id, owner_peer_id, seq, at, direction), true)
+
+
+## Host, Hobitín: the Nazgûl is coming / appears next to the player in `slot` (Nazgul).
+func send_nazgul(event: int, slot: int, direction: int) -> void:
+	_send(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_nazgul.rpc_id(peer_id, event, slot, direction), true)
 
 
 ## Sends only while the match runs: once it has ended the other side may already have
@@ -141,6 +149,14 @@ func _receive_effect_spawned(ability_id: StringName, owner_peer_id: int, seq: in
 			or (direction != 1 and direction != -1):
 		return
 	lag.run(effect_spawned.emit.bind(ability_id, owner_peer_id, seq, at, direction), true)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_nazgul(event: int, slot: int, direction: int) -> void:
+	if Session.phase != Session.Phase.IN_MATCH or not Nazgul.Event.values().has(event) or slot < 0 \
+			or slot >= Session.MAX_PLAYERS or direction < -1 or direction > 1:
+		return
+	lag.run(nazgul_event.emit.bind(event, slot, direction), true)
 
 
 func _rate_exceeded(peer_id: int) -> bool:

@@ -48,8 +48,9 @@ var _inputs: Dictionary[int, InputBuffer] = {}
 var _client: MatchClient
 ## Practice only: walks the target around without letting it fall off on its own.
 var _dummy: PracticeDummy
-## Rising lava of the arena (Peklo), or null.
+## Rising lava of the arena (Peklo) and the Nazgûl (Hobitín), or null.
 var _lava: Lava
+var _nazgul: Nazgul
 var _net_log := NetLog.new()
 
 @onready var _net: Node = $MatchNet
@@ -71,6 +72,10 @@ func _ready() -> void:
 	_effects.player_blown.connect(_on_player_hit)  # a fall after Krügermann's gas counts for him
 	_is_authority = not _networked or multiplayer.is_server()
 	_effects.setup(_net if _networked else null, _is_authority)
+	_nazgul = _arena.nazgul()
+	if _nazgul:
+		_nazgul.setup(_net if _networked else null, _is_authority, _players)
+		_nazgul.alert.connect(_hud.show_alert)
 	if _networked and not _is_authority:  # own shots are predicted on clients
 		_weapons.local_slot = Session.match_slots.get(multiplayer.get_unique_id(), -1)
 		_client = MatchClient.new(_players, multiplayer.get_unique_id(), _net, _weapons, _net_log)
@@ -176,6 +181,8 @@ func _simulate_tick(delta: float) -> void:
 	_arena.place_platforms(_tick)  # also for bullets and players without input this tick
 	if _lava and not frozen:
 		_lava.tick(_players.values(), _rules.lives, _networked, delta)
+	if _nazgul and not frozen and not _match_over:
+		_nazgul.tick(_tick)
 	for peer_id in _players:
 		var player := _players[peer_id]
 		# Read the inputs even while dead, so the queue does not fill up and delay the respawn.
@@ -253,12 +260,7 @@ func _on_player_hit(attacker_peer_id: int, victim: Player) -> void:
 func _on_kill_announced(killer_slot: int, streak: int) -> void:
 	if _networked:
 		DiagLog.event("match", "kill by slot%d streak=%d" % [killer_slot, streak])
-	for player in _players.values():
-		if player.slot == killer_slot:
-			var popup := KillPopup.new()
-			popup.setup(streak)
-			player.add_child(popup)
-			return
+	KillPopup.show_above(_players.values(), killer_slot, streak)
 
 
 func _respawn_later(player: Player) -> void:

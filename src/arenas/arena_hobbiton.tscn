@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://src/arenas/arena_background.gd" id="3"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/hobbiton.png" id="4"]
 [ext_resource type="Script" path="res://src/arenas/moving_platform.gd" id="5"]
+[ext_resource type="Script" path="res://src/arenas/nazgul.gd" id="6"]
 
 [node name="ArenaHobbiton" type="Node2D"]
 script = ExtResource("1")
@@ -116,6 +117,10 @@ one_way = true
 color = Color(1.15, 1.05, 0.85, 1)
 travel = Vector2(360, 0)
 period = 10.0
+
+[node name="Nazgul" type="Node2D" parent="."]
+script = ExtResource("6")
+center_x = 1200.0
 
 [node name="SpawnPoints" type="Node2D" parent="."]
 

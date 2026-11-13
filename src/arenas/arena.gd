@@ -75,6 +75,11 @@ func lava() -> Lava:
 	return get_node_or_null("Lava") as Lava
 
 
+## The wraith hunting players with many kills (Hobitín), or null.
+func nazgul() -> Nazgul:
+	return get_node_or_null("Nazgul") as Nazgul
+
+
 ## The spawn point farthest from everyone in `occupied`, so nobody respawns onto a player.
 ## Only points whose feet are above `max_feet_y` count (rising lava, Lava.safe_feet_y); if
 ## none is, the highest point.

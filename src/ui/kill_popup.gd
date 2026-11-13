@@ -18,6 +18,16 @@ static func text_for(streak: int) -> String:
 	return TranslationServer.translate(["POPUP_KILL", "POPUP_DOUBLE_KILL", "POPUP_TRIPLE_KILL"][clampi(streak, 1, 3) - 1])
 
 
+## Floats the popup above the player in `slot` (killer), if he is still in the match.
+static func show_above(players: Array, slot: int, streak: int) -> void:
+	for player: Player in players:
+		if player.slot == slot:
+			var popup := KillPopup.new()
+			popup.setup(streak)
+			player.add_child(popup)
+			return
+
+
 func setup(streak: int) -> void:
 	_label.text = text_for(streak)
 	_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED

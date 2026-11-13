@@ -140,6 +140,10 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
   `period` (sekundy na cestu tam a zpět; nejrychlejší je uprostřed dráhy: π × délka / period – test hlídá max. 120 px/s)
   a `phase` (0–1, kde v cyklu začíná; 0,5 = na vzdáleném konci, aby se sousední plošiny míjely). Kdo na ní stojí,
   jede s ní. Spawny dávej na pevné plošiny. Poloha se počítá z času zápasu u hostitele, takže je u všech stejná.
+- **Nazgûl (Hobitín):** uzel `Nazgul` (`src/arenas/nazgul.gd`) v mapě – `min_kills` (od kolika zabití hráče loví; 4),
+  `first_delay` (s od dosažení do prvního příchodu; 3), `interval_min` / `interval_max` (s mezi příchody; 12–18),
+  `strength` / `lift` (rychlost odhozu do strany / nahoru, dělí se váhou; 1200 / 400), `damage` (procenta za sek; 12),
+  `center_x` (střed mapy: kdo je vlevo, letí doleva). Jde přidat do kterékoli mapy jako uzel s tímto skriptem.
 - **Láva (Peklo):** uzel `Lava` (`src/arenas/lava.gd`) – `start_y` (hladina na začátku, pod všemi plošinami),
   `top_y` (kde se zastaví – těsně pod horní plošinou), `rise_speed` (px/s), `start_at_lives` (při kolika životech
   kteréhokoli hráče začne stoupat; v tréninku se počítají smrti). Kdo se lávy dotkne, hned přijde o život; když

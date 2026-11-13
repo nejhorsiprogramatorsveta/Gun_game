@@ -10,7 +10,7 @@ Každý cizí asset musí mít v tomto souboru uvedený zdroj a licenci. Vlastn�
 
 | Pixel art postav a zbraní | `assets/sprites/characters/*.png`, `assets/sprites/weapons/*.png` | vlastní pixelová kresba projektu, generuje `tools/art/generate_sprites.py`; Krügermanna ve svetru a Architekta v obleku kreslí `tools/art/reference_characters.py` podle stylizovaných předloh dodaných uživatelem | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 
-| Pixel art efektů schopností (plyn, štít, tlaková vlna, úskok, kouř) | `assets/sprites/effects/*.png` | vlastní tvorba projektu, generuje `tools/art/generate_effects.py` | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
+| Pixel art efektů schopností (plyn, štít, tlaková vlna, úskok, kouř) a přízraku Nazgûla (Hobitín, vlastní kresba postavy v kápi s mečem) | `assets/sprites/effects/*.png` | vlastní tvorba projektu, generuje `tools/art/generate_effects.py` | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 | Pixel art map, pozadí a UI (dlaždice vč. trávy na hlíně, pozadí map vč. Hobitína s kopci a kulatými dveřmi, mraky, logo, rámečky tlačítek a panelů) | `assets/sprites/tiles/*.png`, `assets/backgrounds/*.png`, `assets/ui/*.png`, `assets/ui/theme.tres` | vlastní tvorba projektu, generuje `tools/art/generate_world.py` (procedurálně, pevná semínka, bez cizích obrázků) | PolyForm Noncommercial 1.0.0 (jako zbytek projektu) |
 
 Postavy nevycházejí z fotografií skutečných lidí. Krügermann a Architekt jsou samostatné pixelové kresby

@@ -165,6 +165,66 @@ def teleport_smoke():
     return strip(frames)
 
 
+def line(img, x0, y0, x1, y1, color):
+    steps = max(abs(x1 - x0), abs(y1 - y0), 1)
+    for i in range(steps + 1):
+        px(img, round(x0 + (x1 - x0) * i / steps), round(y0 + (y1 - y0) * i / steps), color)
+
+
+def nazgul():
+    """4 frames 48x56 (drawn at 2x, taller than the players; the body's centre is at x 17):
+    an original hooded wraith in a tattered black cloak with a long pale sword, facing right
+    (Hobitín). 0-1 hovering (the ragged hem flutters), 2 sword raised behind the head,
+    3 slash with a white arc."""
+    cloak, fold, light = rgb("#17131f"), rgb("#09070d"), rgb("#2e2740")
+    blade, edge, hilt = rgb("#dfe4ec"), rgb("#9ba4b4"), rgb("#6a5238")
+    frames = []
+    for f in range(4):
+        img = Image.new("RGBA", (48, 56), (0, 0, 0, 0))
+        rnd = random.Random(210 + (f % 2))
+        cx = 17
+        for y in range(3, 50):  # hood, then a robe widening towards the hem
+            half = math.sqrt(max(0.0, 42.0 - (y - 10) ** 2)) if y < 15 else 6.0 + (y - 15) * 0.32
+            for x in range(int(cx - half), int(cx + half) + 1):
+                px(img, x, y, cloak)
+            px(img, int(cx - half), y, light)  # rim light on the back
+        hem = 50
+        x = int(cx - 17)
+        while x <= cx + 17:  # tattered hem, different every hovering frame
+            length = rnd.randrange(2, 7)
+            for y in range(hem, hem + length):
+                px(img, x, y, cloak)
+            px(img, x + 1, hem, cloak)
+            x += 2
+        for fx, top in ((cx - 4, 22), (cx + 3, 26), (cx - 9, 34)):  # folds
+            line(img, fx, top, fx - 1, hem, fold)
+        for y in range(7, 14):  # the hood's black opening, facing right, two faint eyes
+            for x in range(cx + 1, cx + 6):
+                if (x - cx - 3) ** 2 / 6.0 + (y - 10) ** 2 / 10.0 <= 1.0:
+                    px(img, x, y, rgb("#000000"))
+        px(img, cx + 3, 10, rgb("#b8c8ff", 210)); px(img, cx + 5, 10, rgb("#b8c8ff", 210))
+        if f < 2:  # sword held low in front
+            line(img, cx + 3, 19, cx + 9, 29, cloak); line(img, cx + 4, 19, cx + 10, 29, cloak)  # sleeve
+            line(img, cx + 9, 30, cx + 12, 28, hilt)
+            line(img, cx + 11, 31, cx + 19, 50, blade); line(img, cx + 12, 31, cx + 20, 50, edge)
+        elif f == 2:  # raised behind the head
+            line(img, cx + 2, 19, cx - 2, 6, cloak); line(img, cx + 3, 19, cx - 1, 6, cloak)
+            line(img, cx - 4, 5, cx, 5, hilt)
+            line(img, cx - 3, 4, cx - 12, 0, blade); line(img, cx - 3, 5, cx - 13, 1, edge)
+        else:  # slash: arm and blade forward, a white arc in front
+            line(img, cx + 3, 19, cx + 11, 24, cloak); line(img, cx + 3, 20, cx + 11, 25, cloak)
+            line(img, cx + 11, 22, cx + 11, 27, hilt)
+            line(img, cx + 12, 24, cx + 22, 24, blade); line(img, cx + 12, 25, cx + 22, 25, edge)
+            for i in range(28):
+                angle = -1.25 + i * 0.09
+                ax, ay = cx + 6 + math.cos(angle) * 16, 26 + math.sin(angle) * 22
+                px(img, int(ax), int(ay), rgb("#ffffff", 230))
+                px(img, int(ax) - 1, int(ay), rgb("#c8d4ff", 150))
+        outline(img)
+        frames.append(img)
+    return strip(frames)
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     gas_puffs().save(OUT / "gas_puffs.png")
@@ -173,6 +233,7 @@ def main() -> None:
     shockwave_ring().save(OUT / "shockwave_ring.png")
     jet_flame().save(OUT / "jet_flame.png")
     teleport_smoke().save(OUT / "teleport_smoke.png")
+    nazgul().save(OUT / "nazgul.png")
     print(f"Wrote ability effects to {OUT}")
 
 
