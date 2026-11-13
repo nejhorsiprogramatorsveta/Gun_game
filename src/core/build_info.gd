@@ -4,7 +4,7 @@ class_name BuildInfo
 ## CI writes res://build_info.json before export; editor runs fall back to "dev".
 
 ## Bump whenever network messages change in an incompatible way.
-const PROTOCOL_VERSION: int = 24
+const PROTOCOL_VERSION: int = 25
 const FILE_PATH := "res://build_info.json"
 
 static var version: String = ProjectSettings.get_setting("application/config/version", "0.0.0")

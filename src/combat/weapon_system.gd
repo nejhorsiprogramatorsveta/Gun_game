@@ -8,6 +8,8 @@ extends Node2D
 ## has no network delay on screen.
 
 signal player_hit(attacker_peer_id: int, target: Player)
+## Client: another player's bullet with the host tick it was fired on (HitPrediction).
+signal remote_shot_spawned(id: int, origin: Vector2, direction: Vector2, weapon: WeaponData, tick: int, shooter_slot: int)
 
 ## A predicted shot whose host event did not come within this time is no longer paired.
 const PREDICTION_TIMEOUT_MS := 1000
@@ -16,6 +18,9 @@ const PREDICTION_TIMEOUT_MS := 1000
 var _net: Node
 ## Client: slot of the own player, whose shots are predicted.
 var local_slot := -1
+## Authority: the current host tick (set by MatchController every tick; sent with shots
+## and hits so clients can predict the hits on themselves).
+var tick := 0
 var _projectiles: Dictionary[int, Projectile] = {}
 ## Client: own shots shown before the host confirmed them, oldest first (one per pellet).
 var _predicted: Array[Projectile] = []
@@ -49,7 +54,7 @@ func spawn_shot(player: Player, input: InputFrame, catch_up_ticks: int = 0) -> v
 			projectile.advance(get_physics_process_delta_time())
 		# A bullet that already hit something while catching up is never shown on clients.
 		if _net and not projectile.is_queued_for_deletion():
-			_net.send_projectile_spawned(id, projectile.position, direction, weapon.id, player.slot)
+			_net.send_projectile_spawned(id, projectile.position, direction, weapon.id, player.slot, tick)
 
 
 ## Client: the own player fired in the prediction. Shown at once; the host's spawn events
@@ -106,6 +111,8 @@ func _on_hit(projectile: Projectile, target: Player) -> void:
 		return
 	target.take_hit(CombatRules.knockback(projectile.direction, projectile.weapon, target.character.weight), projectile.weapon.damage)
 	player_hit.emit(projectile.shooter_peer_id, target)
+	if _net and target.peer_id != multiplayer.get_unique_id():
+		_net.send_hit_confirmed(target.peer_id, projectile.id, tick, target.last_input_seq)  # the victim predicted it
 
 
 func _on_finished(projectile: Projectile) -> void:
@@ -114,11 +121,13 @@ func _on_finished(projectile: Projectile) -> void:
 		_net.send_projectile_removed(projectile.id)
 
 
-func _on_remote_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int) -> void:
+func _on_remote_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int, shot_tick: int) -> void:
 	var weapon := ContentDB.get_weapon(weapon_id)
 	if weapon == null or _projectiles.has(id) or not origin.is_finite() or not direction.is_finite() \
 			or direction.is_zero_approx():
 		return
+	if shooter_slot != local_slot:
+		remote_shot_spawned.emit(id, origin, direction, weapon, shot_tick, shooter_slot)
 	if shooter_slot == local_slot and not _predicted.is_empty():
 		# Our own shot, already shown: pair it (strictly in order, one per pellet). If the
 		# predicted bullet has already hit a wall, the shot has been shown in full.

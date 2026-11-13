@@ -8,6 +8,11 @@ const BODY_SIZE := Vector2(36, 56)
 const GUN_LENGTH := 30.0
 ## How long the shooting animation plays after a shot.
 const FIRING_VISUAL_MS := 150
+## How fast a prediction correction of the shown position fades (1/s); a correction caused
+## by a hit the client could not predict (shot from close range) glides in more slowly, so
+## it reads as being thrown rather than as a jerk.
+const VISUAL_SMOOTHING := 20.0
+const HIT_SMOOTHING := 8.0
 ## Placeholder colors so players can be told apart before characters have sprites.
 const SLOT_COLORS: Array[Color] = [Color(1, 0.72, 0.2), Color(0.35, 0.75, 1), Color(0.55, 0.9, 0.4), Color(1, 0.45, 0.6),
 		Color(0.72, 0.5, 1), Color(0.95, 0.95, 0.95)]
@@ -55,6 +60,7 @@ var invulnerable_time := 0.0
 var out_of_bounds_time := 0.0
 ## Render correction only; collisions always use the corrected simulation position.
 var visual_offset := Vector2.ZERO
+var visual_smoothing := VISUAL_SMOOTHING
 ## Players controlled on another computer: smooth playback (set by MatchController for
 ## remote players on clients and client-controlled players on the host); null otherwise.
 var remote_view: RemoteView
@@ -200,9 +206,10 @@ func _process(delta: float) -> void:
 		remote_view.update(delta)
 		_apply_state(remote_view.sample_state(now))
 	if not visual_offset.is_zero_approx():
-		visual_offset *= exp(-20.0 * delta)
+		visual_offset *= exp(-visual_smoothing * delta)
 		if visual_offset.length_squared() < 0.01:
 			visual_offset = Vector2.ZERO
+			visual_smoothing = VISUAL_SMOOTHING
 	if remote_view and remote_view.has_display():
 		visual_offset = remote_view.display_offset(now, position) if visible else Vector2.ZERO
 		queue_redraw()

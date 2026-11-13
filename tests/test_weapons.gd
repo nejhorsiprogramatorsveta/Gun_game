@@ -55,9 +55,9 @@ func test_every_movement_key_counts_as_moving() -> void:
 		check(frame.is_moving(), "A, D, W and S are movement (move %d, buttons %d)" % [frame.move_x, frame.buttons])
 
 
-func test_sniper_knocks_back_twice_as_hard() -> void:
+func test_sniper_knocks_back_hard_but_less_than_0216() -> void:
 	var sniper := ContentDB.get_weapon(&"sniper")
-	check_eq(sniper.knockback, 2600.0, "2x the former 1300 (user 2026-11-13)")
+	check_eq(sniper.knockback, 2200.0, "2600 in 0.2.16 was a bit too much (user 2026-11-13); 1300 before")
 	check(CombatRules.knockback_per_shot(sniper) <= CombatRules.MAX_KNOCKBACK_PER_SHOT, "within the raised per-shot limit")
 
 
@@ -81,3 +81,9 @@ func test_client_shot_spread_matches_the_host() -> void:
 		walking = maxf(walking, absf(rad_to_deg(WeaponSystem._shot_direction(shooter, step, Vector2.RIGHT, hmg, 0).angle())))
 	check(walking > 5.0 * hmg.spread_degrees, "walking on the ground spreads much more (%.1f°)" % walking)
 	shooter.free()
+
+
+func test_double_barrel_got_stronger() -> void:
+	var shotgun := ContentDB.get_weapon(&"double_barrel")
+	check(CombatRules.knockback_per_shot(shotgun) >= 1700.0, "a full blast pushes hard (%.0f)" % CombatRules.knockback_per_shot(shotgun))
+	check(shotgun.max_range >= 650.0 and shotgun.damage * shotgun.pellets >= 15.0, "longer range and more damage (user 2026-11-13)")

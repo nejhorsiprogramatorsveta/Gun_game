@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="gun_game"
-config/version="0.2.16"
+config/version="0.2.17"
 run/main_scene="res://src/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 

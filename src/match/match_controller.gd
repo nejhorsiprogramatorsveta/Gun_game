@@ -175,6 +175,7 @@ func _on_session_phase_changed(phase: Session.Phase) -> void:
 
 func _simulate_tick(delta: float) -> void:
 	_tick += 1
+	_weapons.tick = _tick
 	_countdown = maxf(_countdown - delta, 0.0)
 	_countdown_display = ceili(_countdown)
 	var frozen := _countdown > 0.0

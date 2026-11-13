@@ -2,8 +2,9 @@ class_name MatchClient
 extends RefCounted
 ## Client side of a network match (M4): every physics tick it reconciles the own player
 ## with the newest host snapshot, then predicts the own input at once (ClientPrediction)
-## and sends it with the recent history (redundancy against packet loss). Remote players
-## get EVERY snapshot for smooth playback (RemoteView). Used by MatchController.
+## and sends it with the recent history (redundancy against packet loss), and predicts the
+## hits of other players' bullets on the own player (HitPrediction). Remote players get
+## EVERY snapshot for smooth playback (RemoteView). Used by MatchController.
 
 ## Whole seconds of the countdown, from the newest snapshot.
 var countdown_display := 0
@@ -25,6 +26,7 @@ var _input_seq := 0
 ## Own input history, newest first.
 var _input_history: Array[InputFrame] = []
 var _prediction := ClientPrediction.new()
+var _hits := HitPrediction.new()
 ## From this time (msec) the own movement is predicted, see _apply_snapshot.
 var _movement_starts_ms := 0
 ## Host tick of the newest snapshot and the own input it had processed last (tick_for).
@@ -39,6 +41,11 @@ func _init(players: Dictionary[int, Player], local_peer_id: int, net: Node, weap
 	_net = net
 	_weapons = weapons
 	_net_log = net_log
+	if _weapons:
+		_weapons.remote_shot_spawned.connect(_on_remote_shot)
+	if _net:
+		_net.projectile_removed.connect(_hits.on_removed)
+		_net.hit_confirmed.connect(_hits.on_confirmed)
 
 
 ## move_and_slide() uses the engine physics delta, so the replay must run on a physics tick.
@@ -92,8 +99,10 @@ func _send_local_input(delta: float) -> void:
 	var frame := InputFrame.sample_local(local_player)
 	frame.seq = _input_seq
 	frame.tick = tick_for(_input_seq)
-	if _prediction.predict(local_player, frame, delta, Time.get_ticks_msec() < _movement_starts_ms) and local_player.fired_this_tick:
-		_weapons.spawn_predicted(local_player, frame)  # the shot appears now, the host confirms it later
+	if _prediction.predict(local_player, frame, delta, Time.get_ticks_msec() < _movement_starts_ms):
+		if local_player.fired_this_tick:
+			_weapons.spawn_predicted(local_player, frame)  # the shot appears now, the host confirms it later
+		_predict_hits(local_player)
 	_input_history.push_front(frame)
 	if _input_history.size() > NetCodec.INPUT_HISTORY:
 		_input_history.pop_back()
@@ -111,6 +120,35 @@ func tick_for(seq: int) -> int:
 	return _base_tick + (((seq - _base_seq + 0x8000) & 0xFFFF) - 0x8000)
 
 
+
+## Bullets of other players' hitting the own pending inputs: the knockback starts now (or the
+## inputs are replayed from an earlier hit). A replay can move us into another bullet, so
+## repeat while new hits turn up.
+func _predict_hits(player: Player) -> void:
+	for attempt in 4:
+		var index := _hits.detect(player, _prediction.history())
+		if index < 0:
+			return
+		_prediction.replay_from(player, index, _hits)
+
+
+## Another player's bullet (host spawn event with the host tick): remember its path up to
+## the first wall for hit prediction.
+func _on_remote_shot(id: int, origin: Vector2, direction: Vector2, weapon: WeaponData, tick: int, shooter_slot: int) -> void:
+	var me: Player = _players.get(_local_peer_id)
+	if me == null or not me.is_inside_tree():
+		return
+	var team := Teams.NONE
+	for player: Player in _players.values():
+		if player.slot == shooter_slot:
+			team = player.team
+	var end := origin + direction.normalized() * weapon.max_range
+	var query := PhysicsRayQueryParameters2D.create(origin, end, Projectile.WORLD_MASK)
+	var wall := me.get_world_2d().direct_space_state.intersect_ray(query)
+	var length := origin.distance_to(wall.position) if not wall.is_empty() else weapon.max_range
+	_hits.add_shot(id, origin, direction, weapon, tick, team, length)
+
+
 func _apply_snapshot(snapshot: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
 	countdown_display = ceili(snapshot.countdown / 10.0)
@@ -123,4 +161,4 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 			if player.slot == state.slot and player.peer_id == _local_peer_id:
 				_base_tick = snapshot.tick
 				_base_seq = state.last_seq
-				_net_log.record_correction(_prediction.reconcile(player, state, tick_for))
+				_net_log.record_correction(_prediction.reconcile(player, state, tick_for, _hits, snapshot.tick))

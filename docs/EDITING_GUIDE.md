@@ -88,7 +88,7 @@ tématu `assets/ui/theme.tres`.
 | `sprite` | pixel art zbraně `assets/sprites/weapons/<id>.png` (2 snímky 34 × 12 px: normální, záblesk; úchop v bodě 4,6) |
 
 **Limity hlídané testem `tests/test_weapons.gd`** (pokyn: odhoz nesmí být příliš vysoký, vše arkádové):
-- odhoz jednoho výstřelu (`knockback × pellets`) max. **2600** (odstřelovačka Stína má přesně 2600),
+- odhoz jednoho výstřelu (`knockback × pellets`) max. **2600** (odstřelovačka Stína 2200, brokovnice Architekta 8 × 220 = 1760),
 - odhoz za sekundu (`knockback × pellets × shots_per_second`) max. **7500** (měřítko: pistole 800 × 9/s),
 - zpětný ráz `recoil` min. **100** (menší na zemi úplně zmizí).
 

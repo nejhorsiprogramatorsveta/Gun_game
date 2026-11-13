@@ -7,7 +7,9 @@ extends Node
 
 signal input_received(peer_id: int, frames: Array[InputFrame])
 signal snapshot_received(snapshot: Dictionary)
-signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int)
+signal projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int, tick: int)
+## Client: the host hit us with bullet `id` at host tick `tick`, after our input `seq` (HitPrediction).
+signal hit_confirmed(id: int, tick: int, seq: int)
 signal projectile_removed(id: int)
 signal kill_announced(killer_slot: int, streak: int)
 signal effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, position: Vector2, direction: int)
@@ -48,10 +50,20 @@ func broadcast_snapshot(data: PackedByteArray) -> void:
 
 
 ## Host: shot/removal events are reliable – a missing bullet would be confusing.
-func send_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int) -> void:
+## `tick` = host tick of the spawn; the bullet moves from the next tick on (clients predict
+## its hits on themselves).
+func send_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int, tick: int) -> void:
 	_send(func() -> void:
 		for peer_id in _loaded_peers:
-			_receive_projectile_spawned.rpc_id(peer_id, id, origin, direction, weapon_id, shooter_slot), true)
+			_receive_projectile_spawned.rpc_id(peer_id, id, origin, direction, weapon_id, shooter_slot, tick), true)
+
+
+## Host: tells the victim the real tick of a hit it predicted (or not) and the victim's last
+## input simulated before it.
+func send_hit_confirmed(peer_id: int, id: int, tick: int, seq: int) -> void:
+	_send(func() -> void:
+		if _loaded_peers.has(peer_id):
+			_receive_hit_confirmed.rpc_id(peer_id, id, tick, seq), true)
 
 
 func send_projectile_removed(id: int) -> void:
@@ -123,10 +135,17 @@ func _receive_snapshot(data: PackedByteArray) -> void:
 
 
 @rpc("authority", "call_remote", "reliable")
-func _receive_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int) -> void:
-	if shooter_slot < 0 or shooter_slot >= Session.MAX_PLAYERS:
+func _receive_projectile_spawned(id: int, origin: Vector2, direction: Vector2, weapon_id: StringName, shooter_slot: int, tick: int) -> void:
+	if shooter_slot < 0 or shooter_slot >= Session.MAX_PLAYERS or tick < 0:
 		return
-	lag.run(projectile_spawned.emit.bind(id, origin, direction, weapon_id, shooter_slot), true)
+	lag.run(projectile_spawned.emit.bind(id, origin, direction, weapon_id, shooter_slot, tick), true)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_hit_confirmed(id: int, tick: int, seq: int) -> void:
+	if Session.phase != Session.Phase.IN_MATCH or tick < 0 or seq < 0 or seq > 0xFFFF:
+		return
+	lag.run(hit_confirmed.emit.bind(id, tick, seq), true)
 
 
 @rpc("authority", "call_remote", "reliable")

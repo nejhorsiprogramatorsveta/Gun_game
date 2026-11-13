@@ -3,7 +3,8 @@ class_name CombatRules
 
 ## Balance limits (user 2026-11-04: knockback must not get too high). Reference: the pistol,
 ## 800 per hit x 9 shots/s. Checked for every weapon by tests/test_weapons.gd. Per shot
-## raised from 1400 for Stín's sniper (user 2026-11-13: "twice the knockback", 2600).
+## raised from 1400 for Stín's sniper (user 2026-11-13: "twice the knockback", 2600; since
+## 0.2.17 the sniper has 2200).
 const MAX_KNOCKBACK_PER_SHOT := 2600.0
 const MAX_KNOCKBACK_PER_SECOND := 7500.0
 ## Damage percent (user 2026-11-05): every hit adds the weapon's `damage` to the target
