@@ -1,7 +1,7 @@
 # Stav projektu
 
 ## Kde jsme skončili
-**Verze 0.2.16 rozpracovaná – balanc, 6 hráčů, lobby, mapa Hobitín, Nazgûl (Claude, 2026-11-13), NIC NEPUSHOVAT bez souhlasu uživatele.** Uživatel zadal 6 kroků; po každém se ptát, jestli pokračovat. Commity jen lokálně.
+**Verze 0.2.16 – balanc, 6 hráčů, lobby, mapa Hobitín, Nazgûl (Claude, 2026-11-13), pushnuto na pokyn uživatele („pushni to na github a dej updaty do co je nového“).** Kroky 1–7 hotové, krok 8 (vzhled Hobitína) vrácen. „Co je nového“ (build 0) obsahuje všechny změny kroků 1–7 + opravu přichycení k zemi po korekci (`CHANGELOG_FLOOR_AFTER_CORRECTION`).
 - **Uživatel 2026-11-13: ve finálním „Co je nového“ 0.2.16 musí být VŠECHNY změny ze všech kroků** (průběžně se skládají do záznamu build 0 v `data/changelog.tres`, nic nevynechat).
 - Kroky (uživatel přidal po kroku 1 menší tabulky, teď 7): **1/7 balanc ✅** · **2/7 menší tabulky hráčů v FFA ✅** · **3/7 oprava teleportu Stína ✅** · **4/7 až 6 hráčů + týmy (2 týmy max 3v3 / 3 týmy po 2) ✅** · **5/7 lobby ✅** (menší karty postav, rámeček „Hráči v lobby (x/6)“, mapa vlevo + režim vpravo, bez tlačítka Ovládání v menu) · **6/7 velká mapa Hobitín s pohyblivými plošinami ✅** · **7/7 Nazgûl ✅** · 8/8 (přidáno uživatelem) vzhled Hobitína – „hrozně hnusný, oprav“ – **pokus vrácen** (viz níže) · dříve 7/7 Nazgûl (nápis + postava s mečem, odhodí hráče se 4+ zabitími na jeho stranu, animace).
 - **Rozhodnutí uživatele 2026-11-13:** na Hobitíně většina plošin pohyblivá, ale ne všechny; Nazgûl od **4 zabití včetně**, **jen na Hobitíně**.
@@ -112,7 +112,7 @@
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
-**Čeká se na rozhodnutí uživatele o vzhledu Hobitína** (pokus z kroku 8 vrácen; zeptat se, co konkrétně se mu nelíbí / jaký styl chce, nebo nechat stav po kroku 6). Potom: zkontrolovat, že „Co je nového“ 0.2.16 (build 0 v `data/changelog.tres`) obsahuje VŠECHNY změny kroků 1–7, a **push až po výslovném souhlasu uživatele** (pak ověřit GitHub Actions a publikaci 0.2.16).
+**Testovací hraní 0.2.16 s kamarády** (ideálně 5–6 hráčů, aspoň jednou každý režim: každý proti každému, 2 týmy, 3 týmy) podle `docs/PLAYTEST.md`, od všech `last_game.log`: výkon hostitele a provoz při 6 hráčích (ping, `interp_ms`, korekce), Hobitín (rychlost plošin, korekce na plošinách, čitelnost při zoomu 0,5, Nazgûl – síla 1200 a interval 12–18 s), Balvan (rozptyl při pohybu), plyn (1 s), Stín (teleport, odhoz 2600). Vzhled Hobitína čeká na konkrétní pokyn uživatele (pokus z kroku 8 vrácen). Před další herní změnou archivovat build 0 jako 0.2.16 s číslem buildu z `version.json`.
 
 **Testovací hraní 0.2.15 s kamarádem** podle `docs/PLAYTEST.md` (oba aktualizovat, hostovat jednou každý), od obou `last_game.log`: ping, `interp_ms`, korekce, `sys_free` na Windows; ručně: WASD, Q, schopnost po respawnu, panák, Krügermannův plyn (zpoždění 0,2 s, síla 1250, šipky), Balvan za štítem a těžký kulomet (přesnost na zemi vs. ve skoku), mapa Peklo (rychlost lávy 14 px/s, jestli je zápas na mostě zábavný, čitelnost plošin).
 

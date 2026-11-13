@@ -50,7 +50,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.16, unpublished; 0.2.15 = build 67).
+- Public version comes ONLY from `application/config/version` in project.godot (currently 0.2.16, published 2026-11-13; next 0.2.17; 0.2.15 = build 67).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
