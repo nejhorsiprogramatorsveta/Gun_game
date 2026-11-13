@@ -11,7 +11,7 @@ extends AbilityData
 @export var gap: float = 30.0
 @export var lifetime: float = 5.0
 ## Seconds an opponent must stay in the gas (in a row) before it blows him away.
-@export var blow_delay: float = 1.0
+@export var blow_delay: float = 0.7
 ## Speed (px/s) the gas then gives the opponent, divided by his weight: sideways (away from
 ## Krügermann) and upwards. Set, not added, every tick he stays inside.
 @export var blow_speed: float = 1250.0

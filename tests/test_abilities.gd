@@ -94,12 +94,12 @@ func _ticks_until_blown(effects: AreaEffects, player: Player, limit: int = 120) 
 	return -1
 
 
-func test_gas_blows_opponents_after_a_second() -> void:
+func test_gas_blows_opponents_after_0_7_seconds() -> void:
 	var effects := AreaEffects.new()
 	var gas := ContentDB.get_ability(&"gas_blast") as GasBlastAbility
 	effects._add(gas, 7, 100, Vector2(500, 300), 1)
 	var delay := roundi(gas.blow_delay * Engine.physics_ticks_per_second)
-	check_eq(delay, 60, "1 s = 60 physics ticks (user 2026-11-13)")
+	check_eq(delay, 42, "0.7 s = 42 physics ticks (user 2026-11-14)")
 	check(gas.lifetime >= 5.0, "the gas stays longer (%.1f s)" % gas.lifetime)
 	var blown: Array = []
 	effects.player_blown.connect(func(owner_peer_id: int, victim: Player) -> void: blown.append([owner_peer_id, victim]))
@@ -109,7 +109,7 @@ func test_gas_blows_opponents_after_a_second() -> void:
 	for tick in delay - 1:
 		check(not effects.blow(victim) and victim.velocity.is_zero_approx(), "tick %d inside: not yet" % (tick + 1))
 	check(blown.is_empty(), "no credit before the blow")
-	check(effects.blow(victim), "after 1 s inside: blown")
+	check(effects.blow(victim), "after 0.7 s inside: blown")
 	var weight := victim.character.weight
 	check(is_equal_approx(victim.velocity.x, gas.blow_speed / weight), "away from Krügermann (%.0f px/s)" % victim.velocity.x)
 	check(victim.velocity.y <= -gas.blow_lift / weight + 0.01, "and upwards")

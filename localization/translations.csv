@@ -140,7 +140,7 @@ ABILITY_TELEPORT_NAME,Přesun
 ABILITY_TELEPORT_DESCRIPTION,"Přenese se až 250 px směrem ke kurzoru – vždy co nejdál: proskakovací plošiny a hráče přeskočí, po zemi sklouzne, zastaví ho jen pevná zeď."
 CHANGELOG_DASH_TELEPORT,"Jiskra má úskok (E): rychlý přesun do strany i ve vzduchu. Stín má přesun (E): teleport směrem ke kurzoru."
 ABILITY_GAS_BLAST_NAME,Odfukovací plyn
-ABILITY_GAS_BLAST_DESCRIPTION,"Vypustí před sebe dlouhý pás zeleného plynu (5 s). Soupeře, který v něm zůstane 1 s, odfoukne směrem od Krügermanna – kam, ukazují šipky v plynu."
+ABILITY_GAS_BLAST_DESCRIPTION,"Vypustí před sebe dlouhý pás zeleného plynu (5 s). Soupeře, který v něm zůstane 0,7 s, odfoukne směrem od Krügermanna – kam, ukazují šipky v plynu."
 ABILITY_PLATFORM_NAME,Plošina
 ABILITY_PLATFORM_DESCRIPTION,"Postaví pod sebou na 3 s plošinu, i ve vzduchu."
 CHANGELOG_KRUGERMANN,"Postava Mlha se nově jmenuje Krügermann a má zpomalovací oblak (E): zelený oblak ke kurzoru zpomalí soupeře na 3 s."
@@ -301,3 +301,4 @@ CHANGELOG_SMALL_SCOREBOARD,"Menší tabulka hráčů v zápase."
 CHANGELOG_LOBBY_0216,"Nové rozvržení lobby (vejde se 6 hráčů), z menu zmizelo tlačítko Ovládání."
 CHANGELOG_GAS_DELAY,"Krügermann: plyn odfoukne až po 0,2 s v něm a o něco slaběji."
 CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouhý most a pod ním menší plošiny. Jakmile má někdo jen 3 životy, začne odspodu stoupat láva – kdo se jí dotkne, hned přijde o život. Zastaví se těsně pod horním mostem a hráči se pak oživují jen na něm."
+CHANGELOG_GAS_0218,"Krügermann: plyn odfoukne už po 0,7 s (dřív 1 s)."

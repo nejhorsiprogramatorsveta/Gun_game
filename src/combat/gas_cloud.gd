@@ -26,7 +26,7 @@ var half_size := Vector2(270, 45)
 var lifetime := 5.0
 ## Seconds in the gas (in a row) before it blows; blow speed (px/s) before the victim's
 ## weight: sideways and upwards.
-var blow_delay := 1.0
+var blow_delay := 0.7
 var blow_speed := 1250.0
 var blow_lift := 380.0
 var _age := 0.0
