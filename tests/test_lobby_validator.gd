@@ -49,8 +49,11 @@ func test_results_are_limited_and_cleaned() -> void:
 		{"name": "x".repeat(40), "place": 9, "lives": -2, "kills": 70000, "deaths": "3", "evil": [1, 2]},
 	])
 	check_eq(results.size(), 1, "one row")
-	check_eq(results[0], {"name": "x".repeat(16), "place": 6, "lives": 0, "kills": 65535, "deaths": 0, "team": -1},
-			"only known fields, clamped")
+	check_eq(results[0], {"name": "x".repeat(16), "place": 6, "lives": 0, "kills": 65535, "deaths": 0, "team": -1,
+			"character": "", "slot": -1}, "only known fields, clamped")
+	var with_portrait := LobbyValidator.results([{"name": "A", "character": "stin", "slot": 3}, {"name": "B", "character": "nobody", "slot": 99}])
+	check_eq([with_portrait[0].character, with_portrait[0].slot, with_portrait[1].character, with_portrait[1].slot],
+			["stin", 3, "", 5], "known character kept, unknown dropped, slot clamped")
 	check(LobbyValidator.results([{}, {}, {}, {}, {}, {}, {}]).is_empty(), "more rows than players")
 	check(LobbyValidator.results([{"name": "A"}, "row"]).is_empty(), "row of wrong type")
 

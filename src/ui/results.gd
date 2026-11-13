@@ -20,26 +20,10 @@ func _ready() -> void:
 	_leave_button.pressed.connect(Session.leave)
 	_back_button.visible = Session.is_host()
 	_back_button.pressed.connect(Session.return_to_lobby)
-	_add_winning_team()
-	for entry: Dictionary in Session.match_results:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 24)
-		var label := Label.new()
-		label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		var key := "RESULTS_WINNER" if entry.get("place", 0) == 1 else "RESULTS_PLACE"
-		label.text = tr(key).format({"place": entry.get("place", 0), "name": str(entry.get("name", "?"))})
-		label.add_theme_font_size_override("font_size", 34 if entry.get("place", 0) == 1 else 24)
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if Teams.is_valid(entry.get("team", Teams.NONE)):
-			label.add_theme_color_override("font_color", Teams.color(entry.team))
-		row.add_child(label)
-		var score := Label.new()
-		score.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		score.text = tr("RESULTS_SCORE").format({"kills": entry.get("kills", 0), "deaths": entry.get("deaths", 0)})
-		score.add_theme_font_size_override("font_size", 22)
-		score.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		row.add_child(score)
-		_ranking.add_child(row)
+	_add_winner()
+	var table := ResultsTable.new()
+	_ranking.add_child(table)
+	table.show_rows(Session.match_results, Session.match_slots.get(multiplayer.get_unique_id(), -1))
 	_update_status()
 	if Session.phase == Session.Phase.LOBBY:  # the host ended the results while we were loading
 		get_tree().change_scene_to_file.call_deferred(LOBBY_PATH)
@@ -47,17 +31,22 @@ func _ready() -> void:
 		_count_down()
 
 
-## Team modes: "Red team wins!" above the players (the winners have place 1).
-func _add_winning_team() -> void:
+## "Red team wins!" (team modes) or "Bob wins!" above the table (the winners have place 1).
+func _add_winner() -> void:
 	var results := Session.match_results
-	if results.is_empty() or not Teams.is_valid(results[0].get("team", Teams.NONE)) or results[0].get("place", 0) != 1:
+	if results.is_empty() or results[0].get("place", 0) != 1:
 		return
 	var label := Label.new()
 	label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	label.text = tr("RESULTS_TEAM_WINNER").format({"team": tr(Teams.NAME_KEYS[results[0].team])})
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 40)
-	label.add_theme_color_override("font_color", Teams.color(results[0].team))
+	var team: int = results[0].get("team", Teams.NONE)
+	if Teams.is_valid(team):
+		label.text = tr("RESULTS_TEAM_WINNER").format({"team": tr(Teams.NAME_KEYS[team])})
+		label.add_theme_color_override("font_color", Teams.color(team))
+	else:
+		label.text = tr("RESULTS_PLAYER_WINNER").format({"name": str(results[0].get("name", "?"))})
+		label.add_theme_color_override("font_color", ResultsTable.PLACE_COLORS[0])
 	_ranking.add_child(label)
 
 

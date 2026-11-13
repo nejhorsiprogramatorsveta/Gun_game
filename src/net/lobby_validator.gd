@@ -79,8 +79,17 @@ static func results(raw: Array) -> Array[Dictionary]:
 			"kills": clampi(_int(entry, "kills"), 0, MAX_SCORE),
 			"deaths": clampi(_int(entry, "deaths"), 0, MAX_SCORE),
 			"team": clampi(_int(entry, "team", Teams.NONE), Teams.NONE, Teams.MAX_COUNT - 1),
+			"character": _character(entry.get("character")),
+			"slot": clampi(_int(entry, "slot", -1), -1, MAX_PLAYERS - 1),
 		})
 	return result
+
+
+## A known character id, or "" (no portrait).
+static func _character(value: Variant) -> String:
+	if typeof(value) != TYPE_STRING or value.length() > 32 or ContentDB.get_character(StringName(value)) == null:
+		return ""
+	return value
 
 
 static func _int(entry: Dictionary, key: String, default: int = 0) -> int:

@@ -136,3 +136,20 @@ func test_three_team_match_places_teams_by_how_long_they_lasted() -> void:
 	check_eq(LobbyValidator.results(rows).size(), 6, "6 result rows pass validation")
 	for player in players:
 		player.free()
+
+
+func test_results_table_sorts_by_kills() -> void:
+	var rows := [{"name": "Winner", "place": 1, "kills": 2, "deaths": 1}, {"name": "Killer", "place": 3, "kills": 5, "deaths": 4},
+			{"name": "Careful", "place": 2, "kills": 2, "deaths": 0}, {"name": "Tied", "place": 4, "kills": 2, "deaths": 0}]
+	var names := ResultsTable.sorted_by_kills(rows).map(func(row: Dictionary) -> String: return row.name)
+	check_eq(names, ["Killer", "Careful", "Tied", "Winner"], "kills, then fewer deaths, then who lasted longer")
+	var players: Array[Player] = []
+	for i in 3:
+		var player := _player(ContentDB.character_ids()[i], i + 1, Vector2.ZERO, Teams.NONE)
+		player.slot = i
+		player.display_name = "P%d" % i
+		players.append(player)
+	var result_rows := MatchRanking.results([players[0]], [players[1], players[2]], false)
+	check_eq([result_rows[0].character, result_rows[0].slot], [String(ContentDB.character_ids()[0]), 0], "rows carry portrait and slot")
+	for player in players:
+		player.free()

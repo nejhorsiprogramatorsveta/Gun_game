@@ -9,7 +9,7 @@ entries = Array[Dictionary]([{
 "version": "",
 "mechanics_keys": PackedStringArray("CHANGELOG_SHOTGUN_BUFF_0217", "CHANGELOG_SNIPER_NERF_0217"),
 "fix_keys": PackedStringArray("CHANGELOG_HIT_PREDICTION"),
-"other_keys": PackedStringArray("CHANGELOG_MAP_PLAYERS_HINT")
+"other_keys": PackedStringArray("CHANGELOG_RESULTS_TABLE", "CHANGELOG_MAP_PLAYERS_HINT")
 }, {
 "build": 76,
 "version": "0.2.16",

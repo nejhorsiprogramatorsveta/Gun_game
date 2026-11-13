@@ -17,8 +17,8 @@ static func is_decided(alive: Array, team_mode: bool) -> bool:
 
 
 ## alive first, then eliminated players from the last one out to the first one out.
-## Rows: {"name", "place", "lives", "kills", "deaths", "team"} (see LobbyValidator.results),
-## best place first.
+## Rows: {"name", "place", "lives", "kills", "deaths", "team", "character", "slot"} (see
+## LobbyValidator.results), best place first; the results screen sorts them by kills.
 static func results(alive: Array, eliminated_first_to_last: Array, team_mode: bool) -> Array:
 	var ranking: Array = alive.duplicate()
 	for i in range(eliminated_first_to_last.size() - 1, -1, -1):
@@ -33,7 +33,8 @@ static func results(alive: Array, eliminated_first_to_last: Array, team_mode: bo
 		var player: Variant = ranking[i]
 		var place: int = team_places[player.team] if team_mode else i + 1
 		rows.append({"name": player.display_name, "place": place, "lives": player.lives,
-				"kills": player.kills, "deaths": player.deaths, "team": player.team if team_mode else Teams.NONE})
+				"kills": player.kills, "deaths": player.deaths, "team": player.team if team_mode else Teams.NONE,
+				"character": String(player.character.id) if player.character else "", "slot": player.slot})
 	# Whole teams together, best first (also a teammate who ran out of lives earlier).
 	var sorted: Array = []
 	for place in range(1, ranking.size() + 1):

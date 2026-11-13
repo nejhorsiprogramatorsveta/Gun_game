@@ -85,9 +85,9 @@ HUD_KILLS,Zabití
 HUD_DEATHS,Smrti
 HUD_ELIMINATED,vypadl/a
 RESULTS_TITLE,Výsledky
-RESULTS_WINNER,{place}. {name} – vítěz
-RESULTS_PLACE,{place}. {name}
-RESULTS_SCORE,{kills} zabití · {deaths} úmrtí
+RESULTS_PLAYER_WINNER,"Vyhrál {name}!"
+RESULTS_WINNER_TAG,vítěz
+RESULTS_COLUMN_PLACE,Pořadí
 RESULTS_BACK,Zpět do lobby
 RESULTS_AUTO_RETURN,Návrat do lobby za {seconds} s
 RESULTS_WAITING,"Hostitel vás za chvíli vrátí do lobby…"
@@ -274,6 +274,7 @@ CHANGELOG_HOBBITON_MAP,"Nová velká mapa Hobitín pro až 6 hráčů: zelené k
 CHANGELOG_NAZGUL,"Hobitín: kdo má 4 a víc zabití, po toho si přijde Nazgûl. Objeví se nápis „Nazgûl přichází!“ a pak se u hráče zhruba každých 12–18 s zjeví postava v černé kápi s mečem a odhodí ho do strany – kdo je víc vlevo, letí doleva, kdo víc vpravo, doprava."
 CHANGELOG_FLOOR_AFTER_CORRECTION,"Plynulejší vlastní postava u připojených hráčů: po opravě polohy od hostitele už postava na okamžik neztratí kontakt se zemí – méně drobných poskočení, hlavně na pohyblivých plošinách."
 CHANGELOG_MAP_PLAYERS_HINT,"Výběr mapy ukáže po najetí myší, pro kolik hráčů se mapa hodí: Peklo a Hobitín pro 4 a více, ostatní pro 2–3."
+CHANGELOG_RESULTS_TABLE,"Nová tabulka výsledků po zápase: seřazená podle zabití (při shodě méně smrtí) s pořadím 1., 2., 3. …, portréty postav, barvami hráčů a štítkem vítěze; tvůj řádek je zvýrazněný."
 CHANGELOG_HIT_PREDICTION,"Méně cukání vlastní postavy po zásahu: hra teď zásahy kulkami ostatních hráčů do tebe předpovídá, takže odhoz začne hned a bez skoku. Zásah úplně zblízka (kulka trefí dřív, než se o výstřelu tvůj počítač dozví) se do nové polohy plynule doklouže."
 CHANGELOG_SHOTGUN_BUFF_0217,"Architekt: silnější dvouhlavňová brokovnice – odhoz broku 170 → 220, poškození celé rány 12 → 15 %, dostřel 500 → 650 px."
 CHANGELOG_SNIPER_NERF_0217,"Stín: odhoz odstřelovačky mírně snížen (2600 → 2200)."
