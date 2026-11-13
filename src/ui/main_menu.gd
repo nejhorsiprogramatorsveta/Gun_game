@@ -139,10 +139,20 @@ func _fill_character_option() -> void:
 func _fill_arena_option() -> void:
 	var chosen := ContentDB.arena_or_default(Settings.practice_arena).id
 	for id in ContentDB.arena_ids():
-		_arena_option.add_item(tr(ContentDB.arena_or_default(String(id)).name_key))
+		var arena := ContentDB.arena_or_default(String(id))
+		_arena_option.add_item(tr(arena.name_key))
 		_arena_option.set_item_metadata(_arena_option.item_count - 1, String(id))
+		_arena_option.set_item_tooltip(_arena_option.item_count - 1, arena.players_hint())
 		if id == chosen:
 			_arena_option.select(_arena_option.item_count - 1)
+	_arena_option.item_selected.connect(_show_arena_hint)
+	_show_arena_hint(_arena_option.selected)
+
+
+## The closed map picker's tooltip: what it is for and how many players the map suits.
+func _show_arena_hint(index: int) -> void:
+	var hint := str(_arena_option.get_item_tooltip(index)) if index >= 0 else ""
+	_arena_option.tooltip_text = tr("MENU_PRACTICE_ARENA") + ("\n" + hint if not hint.is_empty() else "")
 
 
 func _on_practice_pressed() -> void:

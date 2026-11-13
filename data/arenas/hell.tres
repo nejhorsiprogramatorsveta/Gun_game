@@ -8,3 +8,5 @@ script = ExtResource("1")
 id = &"hell"
 name_key = "ARENA_HELL_NAME"
 scene = ExtResource("2")
+recommended_min_players = 4
+recommended_max_players = 0

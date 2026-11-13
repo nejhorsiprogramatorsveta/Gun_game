@@ -125,6 +125,8 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | Peklo | `data/arenas/hell.tres` | `src/arenas/arena_hell.tscn` | `ARENA_HELL_NAME` |
 | Hobitín | `data/arenas/hobbiton.tres` | `src/arenas/arena_hobbiton.tscn` | `ARENA_HOBBITON_NAME` |
 
+- **Pro kolik hráčů se mapa hodí** (nápověda po najetí myší na výběr mapy): v `.tres` mapy `recommended_min_players`
+  a `recommended_max_players` (0 = „a více“). Peklo a Hobitín 4 a více, ostatní 2–3.
 - **Přejmenovat mapu:** změň jen text u jejího `ARENA_..._NAME` v `localization/translations.csv` (`id` v `.tres`
   neměň – podle něj si hra pamatuje vybranou mapu a posílá ji ostatním).
 - Mapa = scéna se skriptem `src/arenas/arena.gd`: plošiny (uzly s `platform.gd`: `position` = levý horní roh,

@@ -7,3 +7,13 @@ extends Resource
 @export var id: StringName
 @export var name_key: String
 @export var scene: PackedScene
+## Player count the map suits (tooltip in the map pickers); max 0 = "and more".
+@export var recommended_min_players := 2
+@export var recommended_max_players := 3
+
+
+## Tooltip: "Good for 2-3 players" / "Good for 4 and more players".
+func players_hint() -> String:
+	if recommended_max_players <= 0:
+		return TranslationServer.translate("ARENA_PLAYERS_MANY").format({"min": recommended_min_players})
+	return TranslationServer.translate("ARENA_PLAYERS_RANGE").format({"min": recommended_min_players, "max": recommended_max_players})

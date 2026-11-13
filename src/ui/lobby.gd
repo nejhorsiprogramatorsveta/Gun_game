@@ -146,8 +146,10 @@ func _build_arena_choice() -> void:
 	_arena_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_arena_row.add_child(_arena_option)
 	for id in ContentDB.arena_ids():
-		_arena_option.add_item(tr(ContentDB.arena_or_default(String(id)).name_key))
+		var arena := ContentDB.arena_or_default(String(id))
+		_arena_option.add_item(tr(arena.name_key))
 		_arena_option.set_item_metadata(_arena_option.item_count - 1, String(id))
+		_arena_option.set_item_tooltip(_arena_option.item_count - 1, arena.players_hint())
 	_arena_option.visible = Session.is_host()
 	_arena_label.visible = not Session.is_host()
 	_arena_option.item_selected.connect(func(index: int) -> void:
@@ -206,6 +208,9 @@ func _refresh_arena() -> void:
 	if _arena_preview:
 		_arena_preview.show_arena(Session.arena_id)
 	_arena_label.text = tr(arena.name_key)
+	_arena_label.tooltip_text = arena.players_hint()
+	_arena_label.mouse_filter = Control.MOUSE_FILTER_PASS  # labels ignore the mouse (no tooltip) by default
+	_arena_option.tooltip_text = arena.players_hint()  # the closed picker shows the chosen map's hint
 	for index in _arena_option.item_count:
 		if _arena_option.get_item_metadata(index) == String(arena.id):
 			_arena_option.select(index)

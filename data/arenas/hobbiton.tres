@@ -8,3 +8,5 @@ script = ExtResource("1")
 id = &"hobbiton"
 name_key = "ARENA_HOBBITON_NAME"
 scene = ExtResource("2")
+recommended_min_players = 4
+recommended_max_players = 0

@@ -53,3 +53,14 @@ func _ground_below(arena: Arena, point: Vector2) -> float:
 		if point.x >= left and point.x <= left + platform.size.x and platform.position.y >= point.y:
 			best = minf(best, platform.position.y - point.y)
 	return best
+
+
+func test_big_maps_are_recommended_for_four_and_more_players() -> void:
+	for id in ContentDB.arena_ids():
+		var arena := ContentDB.arena_or_default(String(id))
+		if id in [&"hell", &"hobbiton"]:
+			check(arena.recommended_min_players == 4 and arena.recommended_max_players == 0, "%s: 4 and more" % id)
+			check_eq(arena.players_hint(), "Vhodná pro 4 a více hráčů", "%s tooltip" % id)
+		else:
+			check(arena.recommended_min_players == 2 and arena.recommended_max_players == 3, "%s: 2-3 players" % id)
+			check_eq(arena.players_hint(), "Vhodná pro 2–3 hráče", "%s tooltip" % id)
