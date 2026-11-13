@@ -38,9 +38,9 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Column" type="VBoxContainer" parent="Scroll/Center"]
-custom_minimum_size = Vector2(760, 0)
+custom_minimum_size = Vector2(1080, 0)
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Scroll/Center/Column"]
 layout_mode = 2
@@ -48,20 +48,79 @@ theme_override_font_sizes/font_size = 30
 text = "LOBBY_TITLE"
 horizontal_alignment = 1
 
-[node name="PlayersTitle" type="Label" parent="Scroll/Center/Column"]
+[node name="SettingsRow" type="HBoxContainer" parent="Scroll/Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="ArenaRow" type="HBoxContainer" parent="Scroll/Center/Column/SettingsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ModeRow" type="HBoxContainer" parent="Scroll/Center/Column/SettingsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TeamRow" type="HBoxContainer" parent="Scroll/Center/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Middle" type="HBoxContainer" parent="Scroll/Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PlayersPanel" type="PanelContainer" parent="Scroll/Center/Column/Middle"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+
+[node name="PlayersBox" type="VBoxContainer" parent="Scroll/Center/Column/Middle/PlayersPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PlayersTitle" type="Label" parent="Scroll/Center/Column/Middle/PlayersPanel/PlayersBox"]
 unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
 
-[node name="PlayerList" type="VBoxContainer" parent="Scroll/Center/Column"]
+[node name="PlayerList" type="VBoxContainer" parent="Scroll/Center/Column/Middle/PlayersPanel/PlayersBox"]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="CharacterColumn" type="VBoxContainer" parent="Scroll/Center/Column/Middle"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="CharacterTitle" type="Label" parent="Scroll/Center/Column/Middle/CharacterColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "LOBBY_CHOOSE_CHARACTER"
+
+[node name="CharacterGrid" type="GridContainer" parent="Scroll/Center/Column/Middle/CharacterColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 3
+
+[node name="ConfirmButton" type="Button" parent="Scroll/Center/Column/Middle/CharacterColumn"]
+unique_name_in_owner = true
+auto_translate_mode = 2
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 
 [node name="ShareSection" type="VBoxContainer" parent="Scroll/Center/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
 [node name="ShareTitle" type="Label" parent="Scroll/Center/Column/ShareSection"]
 layout_mode = 2
@@ -83,14 +142,14 @@ columns = 3
 [node name="InternetHint" type="Label" parent="Scroll/Center/Column/ShareSection"]
 unique_name_in_owner = true
 auto_translate_mode = 2
-custom_minimum_size = Vector2(760, 0)
+custom_minimum_size = Vector2(1080, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
 theme_override_font_sizes/font_size = 14
 autowrap_mode = 3
 
 [node name="SafetyHint" type="Label" parent="Scroll/Center/Column/ShareSection"]
-custom_minimum_size = Vector2(760, 0)
+custom_minimum_size = Vector2(1080, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
 theme_override_font_sizes/font_size = 14
@@ -104,14 +163,20 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
 horizontal_alignment = 1
 
-[node name="StartButton" type="Button" parent="Scroll/Center/Column"]
+[node name="ButtonRow" type="HBoxContainer" parent="Scroll/Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="StartButton" type="Button" parent="Scroll/Center/Column/ButtonRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "LOBBY_START"
 
-[node name="LeaveButton" type="Button" parent="Scroll/Center/Column"]
+[node name="LeaveButton" type="Button" parent="Scroll/Center/Column/ButtonRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "LOBBY_LEAVE"

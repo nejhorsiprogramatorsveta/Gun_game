@@ -78,7 +78,7 @@ of a match `[net]`: ENet RTT/loss, traffic, snapshots, interpolation holds, inpu
 Settings screen button "Složka s logem". Read the logs after real play tests.
 Controls: src/core/key_bindings.gd (2 rebindable inputs per action, physical keys, saved in settings.cfg with [meta] controls_version;
 defaults are WASD only since 0.2.12 - older saves drop Space/arrows; Q = manual reload, InputFrame.RELOAD) + src/ui/settings_screen.gd;
-menu "Ovládání" shows the help (no help text inside matches). Reload: WeaponData.magazine_size/reload_time, PlayerWeapon.use_round/tick_reload,
+the keys are listed (and rebound) in Settings; the menu has no "Ovládání" help since 0.2.16 (user 2026-11-13), no help text inside matches. Reload: WeaponData.magazine_size/reload_time, PlayerWeapon.use_round/tick_reload,
 snapshot carries ammo, FLAG_RELOADING and exact weapon timers (see the protocol notes below), src/player/magazine_drop.gd + PlayerVisual reload animation.
 Changelog entries use mechanics_keys / fix_keys / other_keys (sections in "Co je nového" and release notes).
 src/net/lobby_validator.gd (validates host->client lobby/match-flow data and cleans names; used by session.gd).

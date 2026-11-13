@@ -13,7 +13,7 @@ po hraní nám ho každý pošle.
 3. Hostitel klikne na **Hostovat**, v lobby zkopíruje adresu tlačítkem **Kopírovat** a pošle ji ostatním
    (třeba přes Discord). Adresa obsahuje kód hry za `#`, bez něj se nikdo nepřipojí.
 4. Ostatní adresu vloží do pole „Adresa od hostitele“ a kliknou **Připojit**.
-5. Ovládání ukáže tlačítko **Ovládání** v menu; klávesy jde změnit v **Nastavení**.
+5. Klávesy ukáže a jde je změnit v **Nastavení** (výchozí: WASD, myš, E schopnost, Q přebití).
 
 ## Během hraní
 - Každý si v lobby vybere postavu a klikne **Potvrdit postavu**; hostitel spustí zápas, až mají všichni potvrzeno.

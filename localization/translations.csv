@@ -51,7 +51,7 @@ ERROR_MATCH_IN_PROGRESS,"Zápas už běží, počkej na jeho konec."
 MENU_NAME_PLACEHOLDER,Tvoje jméno
 MENU_CONNECTING,Připojuji se…
 LOBBY_TITLE,Lobby
-LOBBY_PLAYERS,Hráči ({count}/{max})
+LOBBY_PLAYERS,Hráči v lobby ({count}/{max})
 LOBBY_HOST_TAG,(hostitel)
 LOBBY_YOU_TAG,(ty)
 LOBBY_SHARE_TITLE,Pošli kamarádům jednu z adres:
@@ -240,25 +240,12 @@ SETTINGS_RESET,Výchozí ovládání
 SETTINGS_OPEN_LOGS,Složka s logem
 SETTINGS_LOGS_HINT,"Log (last_game.log) obsahuje jen poslední online hru, starší se mažou samy. Po hraní ho pošli – pomůže najít příčinu lagů a problémů s připojením."
 SETTINGS_BACK,Zpět
-MENU_CONTROLS,Ovládání
 MENU_SETTINGS,Nastavení
-CONTROLS_TITLE,Ovládání
-CONTROLS_MOVE,Pohyb doleva | doprava: {keys}
-CONTROLS_JUMP,Skok (ve vzduchu ještě jednou = dvojskok): {keys}
-CONTROLS_DOWN,Seskok z dřevěné plošiny: {keys}
-CONTROLS_FIRE,Střelba (podržet): {keys}
-CONTROLS_ABILITY,Schopnost postavy (po smrti je hned znovu připravená): {keys}
-CONTROLS_AIM,Míření: myš (postava se dívá ke kurzoru)
-CONTROLS_RELOAD,"Přebití (1 s): samo po vystřílení zásobníku, dřív klávesou {keys}"
-CONTROLS_ESC,"Esc: odejít ze zápasu (hostitel ukončí zápas všem)"
-CONTROLS_F3,F3: zobrazí nebo skryje FPS a ping
-CONTROLS_REBIND_HINT,Klávesy změníš v Nastavení.
 CHANGELOG_SMOOTH_REMOTE,"Plynulejší pohyb ostatních hráčů: hra je přehrává podle času hostitele a sama si nastaví vyrovnávací zpoždění podle kvality spojení (na dobré síti kratší než dřív, na kolísavé Wi-Fi delší), takže při zpožděných paketech už postavy nezamrzají."
 CHANGELOG_NO_THROTTLE,"Opraveno: při výkyvu odezvy síťová knihovna sama zahazovala až polovinu aktualizací pro připojené hráče, takže se jim hra na několik sekund sekala."
 CHANGELOG_RECOIL_PREDICTION,"Vlastní postava při střelbě už neposkakuje: zpětný ráz, náboje i přebíjení se u připojeného hráče počítají hned, ne až po odpovědi hostitele."
 CHANGELOG_INPUT_BUFFER,"Hostitel si pro každého hráče nastaví zásobu vstupů podle kolísání jeho spojení, takže na Wi-Fi postava méně cuká."
 CHANGELOG_DIAG_029,"Diagnostika: přesné časy v logu, volná paměť počítače, vyrovnávací zpoždění a kolísání spojení pro každého hráče."
-CONTROLS_DAMAGE,"Procenta nad postavou: každý zásah je zvýší a čím víc procent, tím dál postava po zásahu odletí (100 % = největší odhoz). Po smrti začíná zase na 0 %."
 CHANGELOG_DAMAGE_PERCENT,"Procenta poškození: každý zásah přidá postavě procenta (podle zbraně, např. odstřelovačka 11 %, samopal 4 %) a čím víc jich má, tím víc ji další zásahy odhodí – na 100 % odletí dvaapůlkrát dál. Procenta jsou nad postavou (bílá → žlutá → červená) a po smrti se vynulují."
 CHANGELOG_LOWER_PING,"Výrazně nižší ping: hostitel zpracuje vstupy připojených hráčů hned, jak dorazí (dřív si držel zásobu), pakety se odesílají okamžitě, aktualizace chodí 60× za sekundu místo 30× a ping se měří už při příchodu odpovědi. Na zkušební síti klesl ping o ~60 ms."
 CHANGELOG_INSTANT_SHOTS,"Vlastní střely se ukážou hned po stisku, ne až po odpovědi hostitele, a když hostitel zpracuje více vstupů najednou, střely nelétají v hloučku."
@@ -280,5 +267,6 @@ CHANGELOG_STIN_KNOCKBACK,"Stín: odstřelovačka má dvojnásobný odhoz (2600 m
 CHANGELOG_TELEPORT_FIX,"Stín: přesun (E) se vždy provede co nejdál ke kurzoru. Dřív se při míření i jen trochu do země nebo přes proskakovací plošinu či hráče nepřenesl, a když se E zmáčklo přesně v okamžiku konce cooldownu, hostitel ho občas vrátil zpět."
 CHANGELOG_SIX_PLAYERS,"Hra je až pro 6 hráčů. Režimy: každý proti každému, 2 týmy (až 3 v 3) nebo 3 týmy po 2 (červený, modrý a nový zelený tým – jeho tabulka je nahoře uprostřed). Všechny mapy mají spawny pro 6 hráčů a týmy začínají pohromadě."
 CHANGELOG_SMALL_SCOREBOARD,"Tabulka hráčů v režimu všichni proti všem je menší a nezakrývá tolik mapy."
+CHANGELOG_LOBBY_0216,"Nové rozvržení lobby: mapa a režim vedle sebe, hráči v rámečku „Hráči v lobby (x/6)“ v barvách týmů a menší karty postav – i se 6 hráči se vše vejde na obrazovku. Z hlavního menu zmizelo tlačítko Ovládání (klávesy najdeš v Nastavení)."
 CHANGELOG_GAS_DELAY,"Krügermannův plyn odfoukne až po 0,2 s v něm (rychlým skokem se dá proběhnout) a o něco slaběji. Odfouknutý hráč už navíc neuvidí, jak s ním obraz poskočí."
 CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouhý most a pod ním menší plošiny. Jakmile má někdo jen 3 životy, začne odspodu stoupat láva – kdo se jí dotkne, hned přijde o život. Zastaví se těsně pod horním mostem a hráči se pak oživují jen na něm."

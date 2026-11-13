@@ -1,14 +1,20 @@
 extends Control
-## Lobby: who is connected, the character choice (cards with pixel-art previews; a click
-## selects, "Confirm" takes the character; each character once, PLAN.md T.2), the
-## game mode (host: free-for-all, 2 teams or 3 teams) with the team choice and, for the host, which
-## address to send to friends.
+## Lobby (fits 1280 x 720 with 6 players, user 2026-11-13): map (left) and game mode (right;
+## host: free-for-all, 2 teams or 3 teams) with the team buttons below, then the box
+## "Players in the lobby (x/6)" next to the character choice (small cards with pixel-art
+## previews; a click selects, "Confirm" takes the character; each character once, PLAN.md
+## T.2) and, for the host, which address to send to friends.
 ## The host starts the match; every peer then switches to the match scene.
 
 const MAIN_MENU_PATH := "res://src/ui/main_menu.tscn"
 const MATCH_PATH := "res://src/match/match.tscn"
 ## Mode picker texts by Session.team_count (Teams.MODES).
 const MODE_KEYS := {0: "LOBBY_MODE_FFA", 2: "LOBBY_MODE_TWO_TEAMS", 3: "LOBBY_MODE_THREE_TEAMS"}
+## Character cards: size and the upper body of the first idle frame shown at 2x.
+const CARD_SIZE := Vector2(0, 72)
+const CARD_FONT_SIZE := 14
+const CARD_PREVIEW_REGION := Rect2(0, 0, 32, 30)
+const PLAYER_FONT_SIZE := 16
 const ADDRESS_KIND_KEYS := {
 	&"tailscale": "LOBBY_ADDRESS_TAILSCALE",
 	&"lan": "LOBBY_ADDRESS_LAN",
@@ -24,6 +30,11 @@ const ADDRESS_KIND_KEYS := {
 @onready var _start_button: Button = %StartButton
 @onready var _status_label: Label = %StatusLabel
 @onready var _arena_preview: ArenaPreview = %ArenaPreview
+@onready var _character_grid: GridContainer = %CharacterGrid
+@onready var _confirm_button: Button = %ConfirmButton
+@onready var _arena_row: HBoxContainer = %ArenaRow
+@onready var _mode_row: HBoxContainer = %ModeRow
+@onready var _team_row: HBoxContainer = %TeamRow
 
 ## character id -> its card button
 var _character_buttons: Dictionary[String, Button] = {}
@@ -31,14 +42,12 @@ var _character_buttons: Dictionary[String, Button] = {}
 var _selected_character := ""
 ## Last character the host stored as confirmed for us (the selection follows it once).
 var _confirmed_character := ""
-var _confirm_button := Button.new()
 ## Host: arena picker; clients: read-only arena name.
 var _arena_option := OptionButton.new()
 var _arena_label := Label.new()
 ## Host: game mode picker; clients: read-only mode name. Team buttons only in team modes.
 var _mode_option := OptionButton.new()
 var _mode_label := Label.new()
-var _team_row := HBoxContainer.new()
 var _team_buttons: Array[Button] = []
 
 
@@ -76,13 +85,19 @@ func _refresh_players() -> void:
 		elif character:
 			text += " – " + tr(character.name_key)
 		var team := int(Session.players[id].get("team", Teams.NONE))
-		if Session.team_count > 0 and Teams.is_valid(team):
-			text += " – " + tr(Teams.NAME_KEYS[team])
 		if id == 1:
 			text += " " + tr("LOBBY_HOST_TAG")
 		if id == multiplayer.get_unique_id():
 			text += " " + tr("LOBBY_YOU_TAG")
-		_player_list.add_child(_make_label(text))
+		var row := _make_label(text)
+		row.add_theme_font_size_override("font_size", PLAYER_FONT_SIZE)
+		row.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		row.clip_text = true
+		row.tooltip_text = text
+		row.mouse_filter = Control.MOUSE_FILTER_PASS
+		if Session.team_count > 0 and Teams.is_valid(team):  # the team shows as the name's colour
+			row.add_theme_color_override("font_color", Teams.color(team))
+		_player_list.add_child(row)
 	_refresh_character_cards()
 	_refresh_teams()
 	_start_button.disabled = not Session.can_start_match()
@@ -99,52 +114,37 @@ func _refresh_players() -> void:
 
 
 func _build_character_cards() -> void:
-	var title := _make_label(tr("LOBBY_CHOOSE_CHARACTER"))
-	var grid := GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 6)
-	var column := _player_list.get_parent()
-	column.add_child(title)
-	column.add_child(grid)
-	column.move_child(title, _player_list.get_index() + 1)
-	column.move_child(grid, title.get_index() + 1)
-	grid.name = "CharacterGrid"
 	for id in ContentDB.character_ids():
 		var character := ContentDB.get_character(id)
 		var button := Button.new()
 		button.toggle_mode = true
 		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		button.custom_minimum_size = Vector2(248, 96)
-		button.add_theme_font_size_override("font_size", 18)
+		button.custom_minimum_size = CARD_SIZE
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", CARD_FONT_SIZE)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if character.sprite_sheet:  # first idle frame, scaled up without blurring
+		button.clip_text = true
+		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		if character.sprite_sheet:  # upper body of the first idle frame, 2x without blurring
 			var preview := AtlasTexture.new()
 			preview.atlas = character.sprite_sheet
-			preview.region = Rect2(Vector2.ZERO, PlayerVisual.FRAME_SIZE)
+			preview.region = CARD_PREVIEW_REGION
 			button.icon = preview
 			button.expand_icon = true
-			button.add_theme_constant_override("icon_max_width", PlayerVisual.FRAME_SIZE.x * 2)
+			button.add_theme_constant_override("icon_max_width", int(CARD_PREVIEW_REGION.size.x * 2))
 			button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		button.pressed.connect(_on_character_pressed.bind(String(id)))
-		grid.add_child(button)
+		_character_grid.add_child(button)
 		_character_buttons[String(id)] = button
-	_confirm_button.text = "LOBBY_CONFIRM_CHARACTER"
-	_confirm_button.custom_minimum_size = Vector2(0, 40)
 	_confirm_button.pressed.connect(func() -> void: Session.get_node("CharacterChoice").choose(_selected_character))
-	column.add_child(_confirm_button)
-	column.move_child(_confirm_button, grid.get_index() + 1)
 
 
 func _build_arena_choice() -> void:
-	var row := HBoxContainer.new()
-	row.add_child(_make_label(tr("LOBBY_ARENA")))
+	_arena_row.add_child(_make_label(tr("LOBBY_ARENA")))
 	_arena_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	row.add_child(_arena_label)
-	row.add_child(_arena_option)
-	var column := _player_list.get_parent()
-	column.add_child(row)
-	column.move_child(row, _confirm_button.get_index() + 1)
+	_arena_row.add_child(_arena_label)
+	_arena_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_arena_row.add_child(_arena_option)
 	for id in ContentDB.arena_ids():
 		_arena_option.add_item(tr(ContentDB.arena_or_default(String(id)).name_key))
 		_arena_option.set_item_metadata(_arena_option.item_count - 1, String(id))
@@ -157,34 +157,28 @@ func _build_arena_choice() -> void:
 
 
 func _build_mode_choice() -> void:
-	var row := HBoxContainer.new()
-	row.add_child(_make_label(tr("LOBBY_MODE")))
+	_mode_row.add_child(_make_label(tr("LOBBY_MODE")))
 	_mode_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	row.add_child(_mode_label)
-	row.add_child(_mode_option)
+	_mode_row.add_child(_mode_label)
+	_mode_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mode_row.add_child(_mode_option)
 	for team_count in Teams.MODES:
 		_mode_option.add_item(tr(MODE_KEYS[team_count]))
 	_mode_option.visible = Session.is_host()
 	_mode_label.visible = not Session.is_host()
 	_mode_option.item_selected.connect(func(index: int) -> void:
 		Session.get_node("TeamChoice").set_team_count(Teams.MODES[index]))
-	var column := _player_list.get_parent()
-	column.add_child(row)
-	column.move_child(row, _player_list.get_index())
-	_team_row.add_theme_constant_override("separation", 8)
 	for team in Teams.MAX_COUNT:
 		var button := Button.new()
 		button.toggle_mode = true
 		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		button.custom_minimum_size = Vector2(0, 40)
+		button.custom_minimum_size = Vector2(0, 36)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.add_theme_color_override("font_color", Teams.color(team))
 		button.add_theme_color_override("font_pressed_color", Teams.color(team).lightened(0.4))
 		button.pressed.connect(_on_team_pressed.bind(team))
 		_team_row.add_child(button)
 		_team_buttons.append(button)
-	column.add_child(_team_row)
-	column.move_child(_team_row, row.get_index() + 1)
 	Session.get_node("TeamChoice").mode_changed.connect(_refresh_players)
 
 
