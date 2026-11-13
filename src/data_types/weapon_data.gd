@@ -7,6 +7,10 @@ extends Resource
 @export var name_key: String
 ## Pixel-art sheet (2 frames of 34x12: normal, muzzle flash), see tools/art/generate_sprites.py.
 @export var sprite: Texture2D
+## The weapon's one skin (user 2026-11-13): the same sheet with other colours and a pattern
+## (generate_sprites.py WEAPON_SKINS) and its name. null = no skin.
+@export var skin_sprite: Texture2D
+@export var skin_name_key := ""
 
 ## Shots per second while the fire button is held.
 @export var shots_per_second: float = 3.0
@@ -38,3 +42,8 @@ extends Resource
 ## magazine. Slow, strong weapons get small magazines, fast ones big ones.
 @export_range(1, 200) var magazine_size: int = 12
 @export var reload_time: float = 1.0
+
+
+## The sheet to draw with the player's skin choice (CharacterData.SKIN_WEAPON).
+func sprite_for(skins: int) -> Texture2D:
+	return skin_sprite if skins & CharacterData.SKIN_WEAPON and skin_sprite else sprite

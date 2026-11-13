@@ -21,7 +21,8 @@ static func clean_name(raw_name: String, number: int) -> String:
 ## peer_id -> {"name": String, "character": String, "team": int, "ready": bool, "kills_total",
 ## "deaths_total", "matches_total": int}; must contain the host (peer 1), every character must
 ## exist and be used at most once, team 0..2 (missing = 0), "ready" = character confirmed
-## (missing = false), lifetime totals (PlayerStats) clamped to 0..MAX_TOTAL (missing = 0).
+## (missing = false), lifetime totals (PlayerStats) clamped to 0..MAX_TOTAL (missing = 0),
+## "skins" = CharacterData.SKIN_* bits (missing = 0).
 static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 	var result: Dictionary[int, Dictionary] = {}
 	if raw.size() < 1 or raw.size() > MAX_PLAYERS or not raw.has(1):
@@ -49,7 +50,8 @@ static func players(raw: Dictionary) -> Dictionary[int, Dictionary]:
 		result[peer_id] = {"name": player_name, "character": character, "team": team, "ready": ready,
 				"kills_total": clampi(_int(entry, "kills_total"), 0, MAX_TOTAL),
 				"deaths_total": clampi(_int(entry, "deaths_total"), 0, MAX_TOTAL),
-				"matches_total": clampi(_int(entry, "matches_total"), 0, MAX_TOTAL)}
+				"matches_total": clampi(_int(entry, "matches_total"), 0, MAX_TOTAL),
+				"skins": clampi(_int(entry, "skins"), 0, CharacterData.SKIN_ALL)}
 	return result
 
 
@@ -86,6 +88,7 @@ static func results(raw: Array) -> Array[Dictionary]:
 			"team": clampi(_int(entry, "team", Teams.NONE), Teams.NONE, Teams.MAX_COUNT - 1),
 			"character": _character(entry.get("character")),
 			"slot": clampi(_int(entry, "slot", -1), -1, MAX_PLAYERS - 1),
+			"skins": clampi(_int(entry, "skins"), 0, CharacterData.SKIN_ALL),
 		})
 	return result
 

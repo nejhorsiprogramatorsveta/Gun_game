@@ -80,7 +80,7 @@ func show_players(players: Array, show_lives: bool) -> void:
 		var player: Player = players[row]
 		if _icons[row].texture == null and player.character and player.character.sprite_sheet:
 			var head := AtlasTexture.new()
-			head.atlas = player.character.sprite_sheet
+			head.atlas = player.character.sheet_for(player.skins)
 			head.region = HEAD_REGION
 			_icons[row].texture = head
 		_icons[row].modulate.a = 1.0 if player.lives > 0 or not show_lives else 0.35

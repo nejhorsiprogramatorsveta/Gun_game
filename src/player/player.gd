@@ -22,6 +22,8 @@ var motor_state := PlayerMotor.State.new()
 var peer_id := 1
 var slot := 0
 var display_name := ""
+## Skin choice (CharacterData.SKIN_* bits), only for drawing.
+var skins := 0
 ## Teams.NONE in free-for-all; teammates do not hurt each other (team modes).
 var team := Teams.NONE
 ## Lives left in a network match (0 = eliminated). Set by the authority, shown in the HUD.
@@ -70,8 +72,9 @@ var _labels: PlayerLabels
 var _visual: PlayerVisual
 
 
-func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_name: String) -> void:
+func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_name: String, player_skins: int = 0) -> void:
 	character = data
+	skins = player_skins
 	slot = player_slot
 	peer_id = player_peer_id
 	display_name = player_name
@@ -81,7 +84,7 @@ func setup(data: CharacterData, player_slot: int, player_peer_id: int, player_na
 	gun.refill()
 	if character and character.sprite_sheet:
 		_visual = PlayerVisual.new()
-		_visual.setup(character)
+		_visual.setup(character, skins)
 		add_child(_visual)
 
 

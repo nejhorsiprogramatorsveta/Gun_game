@@ -109,10 +109,10 @@ func _ready() -> void:
 
 func _spawn(peer_id: int, slot: int, display_name: String) -> void:
 	var player: Player = PLAYER_SCENE.instantiate()
-	var chosen: String = Session.players.get(peer_id, {}).get("character", "") if _networked \
-			else (Settings.practice_character if peer_id != PRACTICE_DUMMY_ID else "")
-	var character := ContentDB.practice_character(chosen)
-	player.setup(character, slot, peer_id, display_name)
+	# Lobby choice online; the menu's choice in practice (the dummy: default look).
+	var look: Dictionary = Session.players.get(peer_id, {}) if _networked else ({} if peer_id == PRACTICE_DUMMY_ID \
+			else {"character": Settings.practice_character, "skins": Settings.skins})
+	player.setup(ContentDB.practice_character(look.get("character", "")), slot, peer_id, display_name, look.get("skins", 0))
 	if _networked and Session.team_count > 0:
 		player.set_team(int(Session.players.get(peer_id, {}).get("team", Teams.NONE)))
 		_effects.teams[peer_id] = player.team

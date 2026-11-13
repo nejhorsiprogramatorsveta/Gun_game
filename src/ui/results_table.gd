@@ -38,7 +38,8 @@ func show_rows(rows: Array, own_slot: int) -> void:
 		var cells: Array[String] = ["%d." % (i + 1), "", str(entry.get("name", "?")), str(entry.get("kills", 0)),
 				str(entry.get("deaths", 0)), tr("RESULTS_WINNER_TAG") if entry.get("place", 0) == 1 else ""]
 		var background := OWN_ROW_COLOR if own_slot >= 0 and entry.get("slot", -1) == own_slot else ROW_COLORS[i % 2]
-		var row := _row(cells, ContentDB.get_character(StringName(str(entry.get("character", "")))), background, false)
+		var row := _row(cells, ContentDB.get_character(StringName(str(entry.get("character", "")))), background, false,
+				int(entry.get("skins", 0)))
 		var labels := row.get_child(0).get_children()
 		(labels[0] as Label).add_theme_color_override("font_color", PLACE_COLORS[i] if i < PLACE_COLORS.size() else Color.WHITE)
 		(labels[2] as Label).add_theme_color_override("font_color", _name_color(entry))
@@ -46,7 +47,7 @@ func show_rows(rows: Array, own_slot: int) -> void:
 		add_child(row)
 
 
-func _row(cells: Array, character: CharacterData, background: Color, header: bool) -> PanelContainer:
+func _row(cells: Array, character: CharacterData, background: Color, header: bool, skins: int = 0) -> PanelContainer:
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = background
@@ -67,7 +68,7 @@ func _row(cells: Array, character: CharacterData, background: Color, header: boo
 			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			if character and character.sprite_sheet:
 				var head := AtlasTexture.new()
-				head.atlas = character.sprite_sheet
+				head.atlas = character.sheet_for(skins)
 				head.region = HEAD_REGION
 				icon.texture = head
 			line.add_child(icon)

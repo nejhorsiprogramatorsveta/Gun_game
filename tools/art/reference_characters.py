@@ -118,8 +118,11 @@ def suit(c, colors: dict, bob: int, lean: int) -> None:
     c.rect(x, y + 12, x + 11, y + 12, colors["v"], shaded=False)
 
 
-def draw_reference_character(c, name: str, p: dict) -> None:
-    colors = SWEATER if name == "krugermann" else SUIT
+def draw_reference_character(c, name: str, p: dict, overrides: dict | None = None) -> None:
+    """overrides: palette letters -> "rrggbb" (a skin, generate_sprites.CHARACTER_SKINS)."""
+    colors = dict(SWEATER if name == "krugermann" else SUIT)
+    if overrides:
+        colors.update(palette(**overrides))
     bob, lean = p["bob"], p["lean"]
     legs(c, colors, p)
     c.rect(14 + lean, 16 + bob, 19 + lean, 19 + bob, colors["t"], shaded=False)

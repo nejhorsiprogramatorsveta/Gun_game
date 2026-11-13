@@ -52,6 +52,7 @@ V jednom zápase může mít každou postavu jen jeden hráč a hraje max. 6 hr�
 | `ability` | speciální schopnost (E / pravé tlačítko myši) |
 | `color` | zatím nepoužito (barvu určuje pořadí hráče) |
 | `sprite_sheet` | pixel art postavy `assets/sprites/characters/<id>.png` (10 snímků 32 × 40 px: klid 2, chůze 4, skok, pád, střelba 2) |
+| `skin_sheet`, `skin_name_key` | skin postavy: stejný sheet v jiných barvách `assets/sprites/characters/<id>_skin.png` a jeho název v CSV (`SKIN_<ID>`); prázdné = postava skin nemá |
 
 ## Grafika (pixel art)
 
@@ -59,6 +60,12 @@ Postavy a zbraně kreslí skript `tools/art/generate_sprites.py` (potřebuje Pyt
 postav jsou v něm (`CHARACTERS`, `WEAPONS`). Po úpravě spusť `python3 tools/art/generate_sprites.py`, pak
 import Godotu a PNG soubory commitni. Novou postavu do skriptu přidej se stejným id jako v `data/characters/`.
 Hotový obrázek z jiného programu (např. Aseprite) jde použít taky – stačí dodržet rozměry snímků.
+
+**Skiny:** v `generate_sprites.py` jsou palety skinů postav v `CHARACTER_SKINS` (u Krügermanna a Architekta písmena
+jejich palet, např. `b`/`B`/`c`/`v` = svetr/sako, `p`/`P` = kalhoty, `T`/`U` = kravata) a skiny zbraní ve `WEAPON_SKINS`
+(barvy `metal`, `wood`, `box` + vzor `pattern`: `dragon`, `sakura`, `camo`, `lightning`, `engraving`, `gold`). Skript
+zapíše `<id>_skin.png`; v `.tres` postavy je `skin_sheet` + `skin_name_key`, v `.tres` zbraně `skin_sprite` + `skin_name_key`.
+Hráč skin zapne přepínači v menu (trénink) nebo v lobby; volba platí pro jakoukoli postavu a ostatní ji vidí.
 
 Krügermanna ve svetru a Architekta s knírem v obleku kreslí samostatně `tools/art/reference_characters.py`.
 Skript `generate_sprites.py` tento modul používá při tvorbě sprite sheetů. Jejich návrhy vycházejí ze stylizovaných předloh od uživatele; samotné
@@ -86,6 +93,7 @@ tématu `assets/ui/theme.tres`.
 | `reload_time` | délka přebíjení v sekundách (většina zbraní 1.0, těžký kulomet 2.0) |
 | `damage` | procenta poškození za zásah (u brokovnic za každý brok); čím víc procent má zasažená postava, tím víc ji další zásahy odhodí (na 100 % ×2,5). Orientačně `knockback / 120`, celá rána max. ~15 % |
 | `sprite` | pixel art zbraně `assets/sprites/weapons/<id>.png` (2 snímky 34 × 12 px: normální, záblesk; úchop v bodě 4,6) |
+| `skin_sprite`, `skin_name_key` | skin zbraně `assets/sprites/weapons/<id>_skin.png` a název `WEAPON_SKIN_<ID>`; mají ho zbraně, které postavy používají |
 
 **Limity hlídané testem `tests/test_weapons.gd`** (pokyn: odhoz nesmí být příliš vysoký, vše arkádové):
 - odhoz jednoho výstřelu (`knockback × pellets`) max. **2600** (odstřelovačka Stína 2200, brokovnice Architekta 8 × 220 = 1760),

@@ -49,6 +49,8 @@ var _arena_label := Label.new()
 var _mode_option := OptionButton.new()
 var _mode_label := Label.new()
 var _team_buttons: Array[Button] = []
+## Skin switches for the selected character (sent to the host, CharacterChoice.set_skins).
+var _skins := SkinToggles.new()
 
 
 func _ready() -> void:
@@ -141,6 +143,11 @@ func _build_character_cards() -> void:
 		_character_grid.add_child(button)
 		_character_buttons[String(id)] = button
 	_confirm_button.pressed.connect(func() -> void: Session.get_node("CharacterChoice").choose(_selected_character))
+	_confirm_button.get_parent().add_child(_skins)
+	_confirm_button.get_parent().move_child(_skins, _confirm_button.get_index())
+	_skins.changed.connect(func(skins: int) -> void:
+		Session.get_node("CharacterChoice").set_skins(skins)
+		_refresh_character_cards())
 
 
 func _build_arena_choice() -> void:
@@ -237,6 +244,8 @@ func _refresh_character_cards() -> void:
 		var character := ContentDB.get_character(StringName(id))
 		var owner_id := CharacterChoice.confirmed_by(Session.players, id, my_id)
 		var button := _character_buttons[id]
+		if button.icon is AtlasTexture:  # the selected card previews the own skin choice
+			(button.icon as AtlasTexture).atlas = character.sheet_for(Settings.skins if id == _selected_character else 0)
 		button.set_pressed_no_signal(id == _selected_character)
 		button.disabled = owner_id != 0
 		var lines: PackedStringArray = [tr(character.name_key), tr(character.weapon.name_key) if character.weapon else ""]
@@ -247,6 +256,7 @@ func _refresh_character_cards() -> void:
 			lines[2] = tr("LOBBY_CHARACTER_CONFIRMED")
 		button.text = "\n".join(lines)
 		button.tooltip_text = tr(character.description_key) + ("\n" + tr(character.ability.description_key) if character.ability else "")
+	_skins.show_character(_selected_character)
 	var already := confirmed and str(me.get("character", "")) == _selected_character
 	_confirm_button.disabled = already or not _character_buttons.has(_selected_character)
 	_confirm_button.text = tr("LOBBY_CHARACTER_CONFIRMED" if already else "LOBBY_CONFIRM_CHARACTER")

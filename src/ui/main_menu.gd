@@ -29,6 +29,8 @@ const INFO_COLOR := Color(0.75, 0.78, 0.85)
 @onready var _update_later_button: Button = %UpdateLaterButton
 
 var _updater := Updater.new()
+## Skin switches for the chosen character (also used online, the lobby sends them).
+var _skins := SkinToggles.new()
 ## After a failed update the button opens the download page instead.
 var _manual_download := false
 
@@ -44,6 +46,11 @@ func _ready() -> void:
 	_address_edit.focus_exited.connect(func() -> void: _address_edit.placeholder_text = tr("MENU_ADDRESS_PLACEHOLDER"))
 	_fill_character_option()
 	_fill_arena_option()
+	var practice_row := _character_option.get_parent()
+	practice_row.get_parent().add_child(_skins)
+	practice_row.get_parent().move_child(_skins, practice_row.get_index() + 1)
+	_skins.show_character(_selected_character_id())
+	_character_option.item_selected.connect(func(_index: int) -> void: _skins.show_character(_selected_character_id()))
 	_practice_button.pressed.connect(_on_practice_pressed)
 	_host_button.pressed.connect(_on_host_pressed)
 	_join_button.pressed.connect(_on_join_pressed)
@@ -168,6 +175,10 @@ func _on_host_pressed() -> void:
 func _on_join_pressed() -> void:
 	_remember_inputs()
 	Session.join_game(_address_edit.text, _name_edit.text)
+
+
+func _selected_character_id() -> String:
+	return str(_character_option.get_item_metadata(_character_option.selected)) if _character_option.selected >= 0 else ""
 
 
 func _remember_inputs() -> void:

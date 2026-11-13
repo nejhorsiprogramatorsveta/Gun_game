@@ -159,6 +159,20 @@ ARENA_TEMPLE_STEPS_NAME,Chrámové schody
 ARENA_HANGING_BRIDGES_NAME,Visuté mosty
 ARENA_HELL_NAME,Peklo
 ARENA_HOBBITON_NAME,Hobitín
+SKIN_CHARACTER_TOGGLE,Skin postavy: {skin}
+SKIN_WEAPON_TOGGLE,Skin zbraně: {skin}
+SKIN_JISKRA,Sakura
+SKIN_BALVAN,Zlatý šógun
+SKIN_VICHR,Bouře
+SKIN_STIN,Rudý stín
+SKIN_KRUGERMANN,Sváteční svetr
+SKIN_ARCHITEKT,Bílý oblek
+WEAPON_SKIN_SMG,Sakura
+WEAPON_SKIN_HEAVY_MACHINE_GUN,Zlatý šógun
+WEAPON_SKIN_LIGHT_MACHINE_GUN,Zimní maskování
+WEAPON_SKIN_SNIPER,Dračí svitek
+WEAPON_SKIN_BATTLE_RIFLE,Bouře
+WEAPON_SKIN_DOUBLE_BARREL,Mahagon a zlato
 ARENA_PLAYERS_RANGE,Vhodná pro {min}–{max} hráče
 ARENA_PLAYERS_MANY,Vhodná pro {min} a více hráčů
 NAZGUL_COMING,Nazgûl přichází!
@@ -278,6 +292,7 @@ CHANGELOG_FLOOR_AFTER_CORRECTION,"Plynulejší vlastní postava u připojených 
 CHANGELOG_MAP_PLAYERS_HINT,"Výběr mapy ukáže po najetí myší, pro kolik hráčů se mapa hodí: Peklo a Hobitín pro 4 a více, ostatní pro 2–3."
 CHANGELOG_RESULTS_TABLE,"Nová tabulka výsledků po zápase: seřazená podle zabití (při shodě méně smrtí) s pořadím 1., 2., 3. …, portréty postav, barvami hráčů a štítkem vítěze; tvůj řádek je zvýrazněný."
 CHANGELOG_LOBBY_STATS,"V lobby je u každého hráče vidět, kolik má celkem za všechny online zápasy zabití a smrtí (po najetí myší i počet zápasů). Počítá se od této verze."
+CHANGELOG_SKINS,"Skiny: každá postava a každá zbraň má jeden skin – zapneš ho přepínači „Skin postavy“ a „Skin zbraně“ v menu u tréninku nebo v lobby pod kartami postav a ostatní ho uvidí ve hře. Postavy: Sakura (Jiskra), Zlatý šógun (Balvan), Bouře (Vichr), Rudý stín (Stín), Sváteční svetr (Krügermann), Bílý oblek (Architekt). Zbraně: Sakura, Zlatý šógun, Zimní maskování, Mahagon a zlato, Bouře a pro Stínovu odstřelovačku Dračí svitek – zlatý drak na černém laku."
 CHANGELOG_HIT_PREDICTION,"Méně cukání vlastní postavy po zásahu: hra teď zásahy kulkami ostatních hráčů do tebe předpovídá, takže odhoz začne hned a bez skoku. Zásah úplně zblízka (kulka trefí dřív, než se o výstřelu tvůj počítač dozví) se do nové polohy plynule doklouže."
 CHANGELOG_SHOTGUN_BUFF_0217,"Architekt: silnější dvouhlavňová brokovnice – odhoz broku 170 → 220, poškození celé rány 12 → 15 %, dostřel 500 → 650 px."
 CHANGELOG_SNIPER_NERF_0217,"Stín: odhoz odstřelovačky mírně snížen (2600 → 2200)."

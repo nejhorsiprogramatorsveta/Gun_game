@@ -13,7 +13,7 @@ func test_players_accepts_valid_lobby() -> void:
 			55: {"name": "Kamarád", "character": "stin", "extra": 1}})
 	check_eq(players.size(), 2, "two players")
 	check_eq(players[55], {"name": "Kamarád", "character": "stin", "team": 0, "ready": false,
-			"kills_total": 0, "deaths_total": 0, "matches_total": 0},
+			"kills_total": 0, "deaths_total": 0, "matches_total": 0, "skins": 0},
 			"unknown fields dropped, team 0, not confirmed and no statistics by default")
 
 
@@ -68,7 +68,7 @@ func test_results_are_limited_and_cleaned() -> void:
 	])
 	check_eq(results.size(), 1, "one row")
 	check_eq(results[0], {"name": "x".repeat(16), "place": 6, "lives": 0, "kills": 65535, "deaths": 0, "team": -1,
-			"character": "", "slot": -1}, "only known fields, clamped")
+			"character": "", "slot": -1, "skins": 0}, "only known fields, clamped")
 	var with_portrait := LobbyValidator.results([{"name": "A", "character": "stin", "slot": 3}, {"name": "B", "character": "nobody", "slot": 99}])
 	check_eq([with_portrait[0].character, with_portrait[0].slot, with_portrait[1].character, with_portrait[1].slot],
 			["stin", 3, "", 5], "known character kept, unknown dropped, slot clamped")

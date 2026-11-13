@@ -34,7 +34,8 @@ static func results(alive: Array, eliminated_first_to_last: Array, team_mode: bo
 		var place: int = team_places[player.team] if team_mode else i + 1
 		rows.append({"name": player.display_name, "place": place, "lives": player.lives,
 				"kills": player.kills, "deaths": player.deaths, "team": player.team if team_mode else Teams.NONE,
-				"character": String(player.character.id) if player.character else "", "slot": player.slot})
+				"character": String(player.character.id) if player.character else "", "slot": player.slot,
+				"skins": player.skins})
 	# Whole teams together, best first (also a teammate who ran out of lives earlier).
 	var sorted: Array = []
 	for place in range(1, ranking.size() + 1):

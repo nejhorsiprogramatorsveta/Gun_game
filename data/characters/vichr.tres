@@ -5,6 +5,8 @@
 [ext_resource type="Resource" path="res://data/abilities/shockwave.tres" id="5"]
 [ext_resource type="Resource" path="res://data/weapons/battle_rifle.tres" id="3"]
 
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/vichr_skin.png" id="9"]
+
 [resource]
 script = ExtResource("1")
 id = &"vichr"
@@ -27,3 +29,5 @@ weight = 1.0
 weapon = ExtResource("3")
 ability = ExtResource("5")
 sprite_sheet = ExtResource("6")
+skin_sheet = ExtResource("9")
+skin_name_key = "SKIN_VICHR"

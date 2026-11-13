@@ -230,6 +230,35 @@ CHARACTERS = {
 }
 
 
+# Skins (user 2026-11-13: one per character and one per weapon in use): original palettes
+# of the same drawings, saved as <name>_skin.png next to the normal sheets.
+#   jiskra "Sakura", balvan "Zlatý šógun", vichr "Bouře", stin "Rudý stín",
+#   krugermann "Sváteční svetr" (palette letters), architekt "Bílý oblek" (palette letters)
+CHARACTER_SKINS = {
+    "jiskra": {"body": "#e58fb0", "accent": "#b8326a", "belt": "#f4d36b", "jetpack": "#d9dde6",
+               "trim": "#fff4fa", "hair": "#4a2238", "nozzle": "#8a5a6e"},
+    "balvan": {"body": "#1d1c22", "legs": "#2b2a31", "feet": "#121116", "armor": "#c9a23a",
+               "armor_dark": "#7a5a18", "gold": "#fff0a8", "menpo": "#a01f2a", "belt": "#a01f2a", "hand": "#2b2a31"},
+    "vichr": {"body": "#dfe3ea", "legs": "#8f99ab", "feet": "#4c5466", "belt": "#8f99ab", "hand": "#8f99ab",
+              "scarf": "#3fa9f5", "chain": "#f2d16b"},
+    "stin": {"body": "#6e1a24", "legs": "#3a0d14", "feet": "#1e070b", "belt": "#a8323e", "hand": "#3a0d14",
+             "accent": "#f2c94c", "steel": "#f2e2b0"},
+    "krugermann": {"b": "8c1d2a", "B": "b02a36", "c": "d64a52", "v": "5a1019", "r": "f2d16b", "R": "b8902e",
+                   "z": "2f6b34", "Z": "5aa05e"},
+    "architekt": {"b": "dcd6ca", "B": "f0ebe0", "c": "c8c0b2", "v": "8e8679", "p": "cfc8bb", "P": "e8e2d6",
+                  "T": "a3232c", "U": "d04048", "F": "8a6a4a", "f": "3a2a20"},
+}
+
+
+def skin_spec(name: str) -> dict:
+    """The character spec with the skin's palette (generated characters)."""
+    spec = dict(CHARACTERS[name])
+    spec["palette"] = dict(spec["palette"])
+    for key, value in CHARACTER_SKINS[name].items():
+        spec["palette"][key] = rgb(value)
+    return spec
+
+
 # --- Weapons -----------------------------------------------------------------------
 
 def draw_weapon(c: Canvas, spec: dict, flash: bool) -> None:
@@ -258,6 +287,8 @@ def draw_weapon(c: Canvas, spec: dict, flash: bool) -> None:
         for x in range(6 + spec["body"], length, 2):
             c.px(x, 5, shade(metal, 0.55))
             c.px(x, 6, shade(metal, 0.55))
+    if spec.get("pattern"):
+        PATTERNS[spec["pattern"]](c, spec)
     c.rect(3, 6, 5, 8, hand, shaded=False)                       # front hand on the grip
     if flash:
         mx = 5 + length
@@ -266,6 +297,63 @@ def draw_weapon(c: Canvas, spec: dict, flash: bool) -> None:
         c.px(mx + 1, 5, rgb("#ffffff"))
     c.outline()
 
+
+def pattern_dragon(c, spec):
+    """Dračí svitek: a gold Japanese dragon winding along black lacquer, red eye and pearl."""
+    gold, light, red = rgb("#e5b63c"), rgb("#fff0a8"), rgb("#c0392b")
+    for x in range(1, 4 + spec["length"] - 2):
+        y = 5 + (1 if (x // 3) % 2 else 0)  # the dragon's body waves along the gun
+        c.px(x, y, gold)
+        if x % 3 == 0:
+            c.px(x, y - 1 if y == 6 else y + 1, light)  # scales
+    head = 4 + spec["body"] - 1
+    c.px(head, 4, gold); c.px(head + 1, 4, gold); c.px(head + 1, 3, light)  # horn
+    c.px(head, 5, red)  # eye
+    c.px(1, 5, red); c.px(2, 6, red)  # the flaming pearl at the stock
+    c.rect(7, 2, 12, 2, gold, shaded=False)  # gold scope rings
+    c.px(7, 3, gold); c.px(12, 3, gold)
+
+
+def pattern_sakura(c, spec):
+    for x, y in ((6, 5), (9, 6), (11, 4), (14, 5)):
+        c.px(x, y, rgb("#fff4fa")); c.px(x + 1, y, rgb("#f7b8d0"))
+
+
+def pattern_camo(c, spec):
+    for x, y in ((5, 4), (8, 6), (11, 5), (14, 4), (17, 6), (20, 5), (1, 6)):
+        c.px(x, y, rgb("#8a94a6")); c.px(x + 1, y, rgb("#b7bfcc"))
+
+
+def pattern_lightning(c, spec):
+    blue, white = rgb("#3fa9f5"), rgb("#d6f0ff")
+    for i, (x, y) in enumerate(((5, 4), (6, 5), (7, 6), (8, 5), (9, 4), (10, 5), (11, 6), (12, 5), (13, 4), (14, 5))):
+        c.px(x, y, white if i % 3 == 0 else blue)
+
+
+def pattern_engraving(c, spec):
+    for x in range(5, 4 + spec["body"]):
+        if x % 2:
+            c.px(x, 5, rgb("#fff0a8"))
+    c.px(1, 6, rgb("#e5b63c")); c.px(2, 5, rgb("#e5b63c"))
+
+
+def pattern_gold(c, spec):
+    for x in range(5, 4 + spec["body"], 3):
+        c.px(x, 5, rgb("#fff0a8"))
+
+
+PATTERNS = {"dragon": pattern_dragon, "sakura": pattern_sakura, "camo": pattern_camo,
+            "lightning": pattern_lightning, "engraving": pattern_engraving, "gold": pattern_gold}
+
+# Weapon skins of the six weapons in use: overrides of the WEAPONS spec (+ a pattern).
+WEAPON_SKINS = {
+    "heavy_machine_gun": {"metal": "#b8902e", "box": "#8a1f2a", "wood": "#2a2026", "pattern": "gold"},  # Zlatý šógun
+    "smg": {"metal": "#d97aa0", "pattern": "sakura"},                                                  # Sakura
+    "light_machine_gun": {"metal": "#d9dee6", "wood": "#9aa3b2", "pattern": "camo"},                   # Zimní maskování
+    "sniper": {"metal": "#1a1418", "wood": "#24161a", "pattern": "dragon"},                           # Dračí svitek
+    "battle_rifle": {"metal": "#22304a", "wood": "#1a2236", "pattern": "lightning"},                   # Bouře
+    "double_barrel": {"metal": "#c9a23a", "wood": "#7a2e1c", "pattern": "engraving"},                  # Mahagon a zlato
+}
 
 WEAPONS = {
     "pistol": {"body": 5, "length": 9},
@@ -289,23 +377,27 @@ def main() -> None:
     (OUT / "characters").mkdir(parents=True, exist_ok=True)
     (OUT / "weapons").mkdir(parents=True, exist_ok=True)
     for name, spec in CHARACTERS.items():
-        sheet = Image.new("RGBA", (FW * len(FRAMES), FH), (0, 0, 0, 0))
-        for i, frame in enumerate(FRAMES):
-            canvas = Canvas(FW, FH)
-            if spec.get("reference"):
-                draw_reference_character(canvas, name, pose(frame))
-            else:
-                draw_character(canvas, spec, frame)
-            sheet.paste(canvas.img, (i * FW, 0))
-        sheet.save(OUT / "characters" / f"{name}.png")
+        for skin in (False, True):
+            sheet = Image.new("RGBA", (FW * len(FRAMES), FH), (0, 0, 0, 0))
+            for i, frame in enumerate(FRAMES):
+                canvas = Canvas(FW, FH)
+                if spec.get("reference"):
+                    draw_reference_character(canvas, name, pose(frame), CHARACTER_SKINS[name] if skin else None)
+                else:
+                    draw_character(canvas, skin_spec(name) if skin else spec, frame)
+                sheet.paste(canvas.img, (i * FW, 0))
+            sheet.save(OUT / "characters" / f"{name}{'_skin' if skin else ''}.png")
     for name, spec in WEAPONS.items():
-        sheet = Image.new("RGBA", (WW * 2, WH), (0, 0, 0, 0))
-        for i, flash in enumerate((False, True)):
-            canvas = Canvas(WW, WH)
-            draw_weapon(canvas, spec, flash)
-            sheet.paste(canvas.img, (i * WW, 0))
-        sheet.save(OUT / "weapons" / f"{name}.png")
-    print(f"Wrote {len(CHARACTERS)} character and {len(WEAPONS)} weapon sheets to {OUT}")
+        for skin in (False, True):
+            if skin and name not in WEAPON_SKINS:
+                continue
+            sheet = Image.new("RGBA", (WW * 2, WH), (0, 0, 0, 0))
+            for i, flash in enumerate((False, True)):
+                canvas = Canvas(WW, WH)
+                draw_weapon(canvas, dict(spec, **WEAPON_SKINS[name]) if skin else spec, flash)
+                sheet.paste(canvas.img, (i * WW, 0))
+            sheet.save(OUT / "weapons" / f"{name}{'_skin' if skin else ''}.png")
+    print(f"Wrote {len(CHARACTERS)} character and {len(WEAPONS)} weapon sheets (+ skins) to {OUT}")
 
 
 if __name__ == "__main__":

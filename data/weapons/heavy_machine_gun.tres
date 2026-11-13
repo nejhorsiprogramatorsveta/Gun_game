@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://src/data_types/weapon_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/weapons/heavy_machine_gun.png" id="2"]
 
+[ext_resource type="Texture2D" path="res://assets/sprites/weapons/heavy_machine_gun_skin.png" id="9"]
+
 [resource]
 script = ExtResource("1")
 id = &"heavy_machine_gun"
@@ -20,3 +22,5 @@ sprite = ExtResource("2")
 magazine_size = 75
 reload_time = 2.0
 damage = 6.0
+skin_sprite = ExtResource("9")
+skin_name_key = "WEAPON_SKIN_HEAVY_MACHINE_GUN"

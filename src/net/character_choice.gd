@@ -56,6 +56,31 @@ static func all_confirmed(players: Dictionary) -> bool:
 	return true
 
 
+## UI: the local player's skins (CharacterData.SKIN_* bits; host stores them, others ask).
+func set_skins(skins: int) -> void:
+	if Session.is_host():
+		_apply_skins(multiplayer.get_unique_id(), skins)
+	elif Session.phase == Session.Phase.LOBBY:
+		_request_skins.rpc_id(1, skins)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _request_skins(skins: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if multiplayer.is_server() and not _rate_exceeded(sender):
+		_apply_skins(sender, skins)
+
+
+## Host: validated skin choice of one player; returns whether it changed.
+func _apply_skins(peer_id: int, skins: int) -> bool:
+	if Session.phase != Session.Phase.LOBBY or not Session.players.has(peer_id) or skins < 0 \
+			or skins > CharacterData.SKIN_ALL or int(Session.players[peer_id].get("skins", 0)) == skins:
+		return false
+	Session.players[peer_id].skins = skins
+	Session.broadcast_players()
+	return true
+
+
 ## UI: the local player confirms `character_id`.
 func choose(character_id: String) -> void:
 	if Session.is_host():

@@ -38,3 +38,19 @@ extends Resource
 @export var weapon: WeaponData
 ## Special ability (E / right mouse button), PLAN.md G.1. null = none yet.
 @export var ability: AbilityData
+
+@export_group("Skin")
+## The character's one skin (user 2026-11-13): the same 10-frame sheet in other colours
+## (tools/art/generate_sprites.py CHARACTER_SKINS) and its name. null = no skin.
+@export var skin_sheet: Texture2D
+@export var skin_name_key := ""
+
+## Bits of a player's skin choice (Session.players[peer].skins, Settings.skins).
+const SKIN_CHARACTER := 1
+const SKIN_WEAPON := 2
+const SKIN_ALL := SKIN_CHARACTER | SKIN_WEAPON
+
+
+## The sheet to draw with the player's skin choice.
+func sheet_for(skins: int) -> Texture2D:
+	return skin_sheet if skins & SKIN_CHARACTER and skin_sheet else sprite_sheet

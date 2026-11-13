@@ -33,8 +33,9 @@ var _was_ability_active := false
 var _reload_progress := -1.0
 
 
-func setup(character: CharacterData) -> void:
-	_body.sprite_frames = _build_frames(character.sprite_sheet)
+## skins: CharacterData.SKIN_* bits of the player's choice.
+func setup(character: CharacterData, skins: int = 0) -> void:
+	_body.sprite_frames = _build_frames(character.sheet_for(skins))
 	_body.centered = false
 	_body.scale = Vector2.ONE * PIXEL_SCALE
 	_body.position = Vector2(-FRAME_SIZE.x * PIXEL_SCALE / 2.0, Player.BODY_SIZE.y / 2.0 - FRAME_SIZE.y * PIXEL_SCALE)
@@ -50,7 +51,7 @@ func setup(character: CharacterData) -> void:
 	if weapon and weapon.sprite:
 		for i in 2:
 			var frame := AtlasTexture.new()
-			frame.atlas = weapon.sprite
+			frame.atlas = weapon.sprite_for(skins)
 			frame.region = Rect2(Vector2(i * WEAPON_FRAME_SIZE.x, 0), WEAPON_FRAME_SIZE)
 			_weapon_frames.append(frame)
 		_weapon.texture = _weapon_frames[0]

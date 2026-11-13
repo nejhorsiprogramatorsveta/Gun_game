@@ -59,3 +59,28 @@ func test_every_ability_has_a_pixel_art_effect() -> void:
 	ring.free()
 	check(GasCloud.PUFFS != null and GasCloud.ARROW != null and ContentDB.get_ability(&"platform") != null,
 			"gas (with direction arrows) and platform draw themselves")
+
+
+func test_every_character_and_weapon_in_use_has_a_skin() -> void:
+	for id in ContentDB.character_ids():
+		var character := ContentDB.get_character(id)
+		check(character.skin_sheet != null and not character.skin_name_key.is_empty(), "%s: a character skin" % id)
+		check(character.skin_sheet != null and character.skin_sheet.get_size() == character.sprite_sheet.get_size(), "%s: same sheet layout" % id)
+		check(character.sheet_for(0) == character.sprite_sheet and character.sheet_for(CharacterData.SKIN_CHARACTER) == character.skin_sheet,
+				"%s: the skin only with its bit" % id)
+		var weapon := character.weapon
+		check(weapon.skin_sprite != null and weapon.skin_sprite.get_size() == weapon.sprite.get_size(), "%s: a weapon skin" % weapon.id)
+		check(weapon.sprite_for(CharacterData.SKIN_CHARACTER) == weapon.sprite and weapon.sprite_for(CharacterData.SKIN_ALL) == weapon.skin_sprite,
+				"%s: weapon skin only with its bit" % weapon.id)
+	check_eq(ContentDB.get_weapon(&"sniper").skin_name_key, "WEAPON_SKIN_SNIPER", "Stín's sniper: the dragon skin")
+
+
+func test_player_draws_its_skins() -> void:
+	var player := Player.new()
+	player.setup(ContentDB.get_character(&"stin"), 0, 1, "A", CharacterData.SKIN_ALL)
+	check_eq(player.skins, CharacterData.SKIN_ALL, "skins stored")
+	var visual: PlayerVisual = player._visual
+	var frame: AtlasTexture = visual._body.sprite_frames.get_frame_texture("idle", 0)
+	check(frame.atlas == ContentDB.get_character(&"stin").skin_sheet, "the body uses the skin sheet")
+	check((visual._weapon_frames[0] as AtlasTexture).atlas == ContentDB.get_weapon(&"sniper").skin_sprite, "the gun uses the dragon skin")
+	player.free()

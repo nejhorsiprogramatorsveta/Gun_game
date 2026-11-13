@@ -155,6 +155,7 @@ func host_game(player_name: String, port: int = EnetDirectConnector.DEFAULT_PORT
 	players = {1: {"name": LobbyValidator.clean_name(player_name, 1),
 			"character": CharacterChoice.first_free({}, Settings.practice_character), "team": 0, "ready": false}}
 	players[1].merge(PlayerStats.own())
+	players[1].skins = Settings.skins
 	_set_phase(Phase.LOBBY)
 	players_changed.emit()
 
@@ -221,6 +222,7 @@ func _on_peer_connected(id: int) -> void:
 	elif id == 1:
 		_set_phase(Phase.LOBBY)
 		get_node("PlayerStats").report()
+		get_node("CharacterChoice").set_skins(Settings.skins)
 
 
 func _on_peer_disconnected(id: int) -> void:
