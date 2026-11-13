@@ -201,3 +201,76 @@ func test_respawn_makes_the_ability_ready() -> void:
 	balvan.reset_to(Vector2(100, 0))
 	check_eq([balvan.ability_cooldown, balvan.ability_active()], [0.0, false], "after a death the ability is ready again")
 	balvan.free()
+
+
+## A teleport world: solid floor (top y = 400), a solid wall at x 700-740, a jump-through
+## platform above Stín and another player right next to him.
+func _teleport_world() -> Node2D:
+	var world := Node2D.new()
+	(Engine.get_main_loop() as SceneTree).root.add_child(world)
+	for block: Array in [[Vector2(0, 400), Vector2(1400, 60), false], [Vector2(700, 100), Vector2(40, 300), false],
+			[Vector2(250, 250), Vector2(300, 16), true]]:
+		var platform := Platform.new()
+		platform.position = block[0]
+		platform.size = block[1]
+		platform.one_way = block[2]
+		world.add_child(platform)
+	var other: Player = load("res://src/player/player.tscn").instantiate()
+	other.position = Vector2(450, 372)
+	world.add_child(other)
+	return world
+
+
+func _teleported(world: Node2D, from: Vector2, aim_degrees: float) -> Vector2:
+	var stin: Player = load("res://src/player/player.tscn").instantiate()
+	stin.character = ContentDB.get_character(&"stin")
+	stin.position = from
+	world.add_child(stin)
+	var aim := InputFrame.aim_from_vector(Vector2.from_angle(deg_to_rad(aim_degrees)))
+	stin.velocity = Vector2(300, -200)
+	stin.character.ability.start(stin, InputFrame.create(0, InputFrame.ABILITY, aim))
+	var at := stin.position
+	check(stin.velocity.is_zero_approx(), "the teleport stops all momentum")
+	stin.free()
+	return at
+
+
+func test_teleport_always_goes_as_far_as_the_world_allows() -> void:
+	var world := _teleport_world()
+	await physics_step()
+	var distance := (ContentDB.get_character(&"stin").ability as TeleportAbility).distance
+	var standing := Vector2(300, 372)  # feet on the floor (body 56 px high)
+	var level := _teleported(world, standing, 0.0)
+	check(level.distance_to(standing + Vector2(distance, 0)) < 1.0, "level aim: the full %.0f px (%s)" % [distance, level])
+	for degrees in [3.0, 10.0, 30.0]:
+		var into_floor := _teleported(world, standing, degrees)
+		check(into_floor.x - standing.x > distance * cos(deg_to_rad(degrees)) - 2.0 and absf(into_floor.y - standing.y) < 1.0,
+				"aiming %.0f° into the floor slides along it (%s)" % [degrees, into_floor])
+	var up := _teleported(world, standing, -90.0)
+	check(up.distance_to(standing + Vector2(0, -distance)) < 1.0, "up through the jump-through platform (%s)" % up)
+	var wall := _teleported(world, Vector2(600, 372), 0.0)
+	check(wall.x > 675.0 and wall.x <= 700.0 - Player.BODY_SIZE.x / 2.0 + 0.01, "a solid wall stops it right in front (%s)" % wall)
+	var diagonal := _teleported(world, Vector2(600, 372), -30.0)
+	check(diagonal.x <= 682.01 and diagonal.y < 372.0 - 100.0, "into the wall diagonally: slides up along it (%s)" % diagonal)
+	var down := _teleported(world, standing, 90.0)
+	check(down.distance_to(standing) < 1.0, "straight into the floor: nowhere to go")
+	world.free()
+
+
+func test_ability_cooldown_ends_on_the_same_tick_after_a_snapshot() -> void:
+	var delta := 1.0 / 60.0
+	var host := _player(&"balvan", 2, Vector2.ZERO)
+	host.tick_ability(_press(true), delta)
+	host.motor_state.prev_buttons = InputFrame.ABILITY
+	var client := _player(&"balvan", 2, Vector2.ZERO)
+	client.ability_cooldown = host.ability_cooldown
+	for tick in 500:
+		if tick % 7 == 3:  # a snapshot now and then: the client restarts from the host's value
+			var states: Array[Dictionary] = [host.snapshot_state()]
+			client.ability_cooldown = NetCodec.decode_snapshot(NetCodec.encode_snapshot(0, 0, states)).states[0].ability_cooldown
+		host.tick_ability(_press(false), delta)
+		client.tick_ability(_press(false), delta)
+		check_eq(client.ability_cooldown <= 0.0, host.ability_cooldown <= 0.0, "tick %d: both ready or both waiting" % tick)
+	check(host.ability_cooldown <= 0.0, "ready after the cooldown")
+	host.free()
+	client.free()

@@ -106,7 +106,7 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | `shield.tres` (štít) | Balvan | `knockback_multiplier` – násobek odhozu během štítu (0,2; platí i pro Krügermannův plyn); za štítem se dá střílet |
 | `shockwave.tres` (tlaková vlna) | Vichr | `radius` (px, nyní 320 – dosah, ne melee), `strength` (síla odhozu, drž pod 1400), `lift` (náklon nahoru), `damage` (procenta poškození za zásah, nyní 9) |
 | `dash.tres` (úskok) | Jiskra | `speed` (px/s po dobu `duration`) |
-| `teleport.tres` (přesun) | Stín | `distance` – max. vzdálenost ke kurzoru (px) |
+| `teleport.tres` (přesun) | Stín | `distance` – vzdálenost ke kurzoru (px, 250); přesun jde vždy co nejdál: proskakovací plošiny a hráče přeskočí, po pevné zemi/zdi sklouzne, zastaví ho jen pevný blok |
 | `gas_blast.tres` (odfukovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `blow_delay` (kolik sekund musí soupeř v plynu vydržet, než ho odfoukne; 1,0; `lifetime` 5), `blow_speed` (rychlost odfouknutí do strany, px/s, dělí se váhou soupeře; 1250), `blow_lift` (rychlost nahoru; 380) |
 | `platform.tres` (plošina) | Architekt | `width` (px), `lifetime` (s) |
 

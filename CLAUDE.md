@@ -39,7 +39,7 @@ All verified in M1 on macOS arm64:
   archives `.tools/*.zip` / `*.tpz` are only a download cache and may be deleted (~1.4 GB; deleted 2026-11-09); `build/` too.
 - Import (after clean clone or new assets; 1st run logs harmless translation errors): `tools/godot --headless --path . --import`
 - Run game: `tools/godot --path .`   Editor: `tools/godot --path . --editor`
-- Tests: `tools/godot --headless --path . -s tests/run_tests.gd` (exit 1 on failure)
+- Tests: `tools/godot --headless --path . -s tests/run_tests.gd` (exit 1 on failure; a test may `await physics_step()` after adding bodies)
 - Loc check: `tools/godot --headless --path . -s tools/check_localization.gd` (exit 1 on missing key)
 - Release notes (local preview): `tools/godot --headless --path . -s tools/write_release_notes.gd -- --output=res://.tools/notes.md`
 - Export: `tools/godot --headless --path . --export-release "<Windows Desktop|macOS|Linux>" build/<os>/<file>`

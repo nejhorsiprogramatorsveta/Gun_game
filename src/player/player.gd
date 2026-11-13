@@ -107,8 +107,11 @@ func tick_weapon(input: InputFrame, delta: float) -> bool:
 
 
 ## Cooldowns and activation on press (not while held); shared by host and prediction.
+## The cooldown counts whole physics ticks (snapshots carry it in ticks), so the host and
+## the client's replay agree on the exact tick it is ready: a press predicted on that tick
+## is never refused by the host (the teleport used to snap back now and then).
 func tick_ability(input: InputFrame, delta: float) -> void:
-	ability_cooldown = maxf(ability_cooldown - delta, 0.0)
+	ability_cooldown = maxf(roundf(ability_cooldown / delta) - 1.0, 0.0) * delta if delta > 0.0 else ability_cooldown
 	ability_time_left = maxf(ability_time_left - delta, 0.0)
 	var ability := character.ability if character else null
 	var pressed := input.is_held(InputFrame.ABILITY) and not motor_state.prev_buttons & InputFrame.ABILITY
