@@ -55,9 +55,9 @@ func test_every_movement_key_counts_as_moving() -> void:
 		check(frame.is_moving(), "A, D, W and S are movement (move %d, buttons %d)" % [frame.move_x, frame.buttons])
 
 
-func test_sniper_knocks_back_hard_but_less_than_0216() -> void:
+func test_sniper_knocks_back_hard_but_less_than_0217() -> void:
 	var sniper := ContentDB.get_weapon(&"sniper")
-	check_eq(sniper.knockback, 2200.0, "2600 in 0.2.16 was a bit too much (user 2026-11-13); 1300 before")
+	check_eq(sniper.knockback, 1900.0, "2600 (0.2.16) and 2200 (0.2.17) were too much (user 2026-11-13/14); 1300 before 0.2.16")
 	check(CombatRules.knockback_per_shot(sniper) <= CombatRules.MAX_KNOCKBACK_PER_SHOT, "within the raised per-shot limit")
 
 
