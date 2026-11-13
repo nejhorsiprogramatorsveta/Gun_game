@@ -275,5 +275,6 @@ CHANGELOG_SPREAD_SYNC,"Vlastní kulky na obrazovce letí přesně stejným směr
 CHANGELOG_BALVAN_0216,"Balvan: těžký kulomet má 75 nábojů (dříve 100) a přebíjí 2 s (dříve 1 s). Přesně střílí jen vestoje – při jakémkoli pohybu (A/D, skok W, seskok S) i ve vzduchu rozptyluje až o ±30°."
 CHANGELOG_GAS_0216,"Krügermann: plyn odfoukne až po 1 s v něm (dříve 0,2 s), ale vydrží na mapě 5 s (dříve 3 s) a pomaleji vyprchává."
 CHANGELOG_STIN_KNOCKBACK,"Stín: odstřelovačka má dvojnásobný odhoz (2600 místo 1300)."
+CHANGELOG_SMALL_SCOREBOARD,"Tabulka hráčů v režimu všichni proti všem je menší a nezakrývá tolik mapy."
 CHANGELOG_GAS_DELAY,"Krügermannův plyn odfoukne až po 0,2 s v něm (rychlým skokem se dá proběhnout) a o něco slaběji. Odfouknutý hráč už navíc neuvidí, jak s ním obraz poskočí."
 CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouhý most a pod ním menší plošiny. Jakmile má někdo jen 3 životy, začne odspodu stoupat láva – kdo se jí dotkne, hned přijde o život. Zastaví se těsně pod horním mostem a hráči se pak oživují jen na něm."

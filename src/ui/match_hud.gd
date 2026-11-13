@@ -19,9 +19,19 @@ var _alert_label := Label.new()
 var _alert_until_ms := 0
 
 
+## Inner padding of the scoreboard panels (the theme's panel has 16 x 12).
+const SCORE_PANEL_MARGIN := Vector2(8, 5)
+
+
 func _ready() -> void:
 	_team_mode = Session.phase == Session.Phase.IN_MATCH and Session.team_mode
 	_ability_keys = KeyBindings.action_text(&"ability")
+	var panel_style := _score_panel.get_theme_stylebox("panel").duplicate() as StyleBox
+	for side in [SIDE_LEFT, SIDE_RIGHT]:
+		panel_style.set_content_margin(side, SCORE_PANEL_MARGIN.x)
+	for side in [SIDE_TOP, SIDE_BOTTOM]:
+		panel_style.set_content_margin(side, SCORE_PANEL_MARGIN.y)
+	_score_panel.add_theme_stylebox_override("panel", panel_style)
 	if _team_mode:
 		var left := _score_panel.duplicate() as PanelContainer
 		add_child(left)
@@ -33,7 +43,7 @@ func _ready() -> void:
 		for team in Teams.COUNT:
 			var table := ScoreTable.new()
 			(left if team == 0 else _score_panel).add_child(table)
-			table.setup(tr(Teams.NAME_KEYS[team]), Teams.color(team), Teams.MAX_PER_TEAM, true)
+			table.setup(tr(Teams.NAME_KEYS[team]), Teams.color(team), Teams.MAX_PER_TEAM)
 			_tables.append(table)
 	else:
 		var table := ScoreTable.new()
