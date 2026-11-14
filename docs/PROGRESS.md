@@ -121,9 +121,17 @@
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
-**Uživatel pošle logy z hraní 0.2.17** → vyhodnotit (`correction_max` při zásazích, doklouzání zblízka, brokovnice/odstřelovačka, skiny, statistiky, Hobitín, Nazgûl). 0.2.18 (Co je nového – poslední 3 verze; plyn 0,7 s; odstřelovačka 1900; brokovnice 195/580 px) je jen lokálně, push až po souhlasu. Vzhled Hobitína čeká na konkrétní pokyn.
+**Čeká na rozhodnutí uživatele:** (1) push 0.2.18 (Co je nového – poslední 3 verze; plyn 0,7 s; odstřelovačka 1900; brokovnice 195/580 px) – jen po „pushni“; (2) podle playtestu 0.2.17 případně buff Jiskry (nejméně zabití u obou klientů) a řádek `[match] nazgul …` do logu (výskyt Nazgûla teď v logu není vidět). Vzhled Hobitína čeká na konkrétní pokyn.
 
 **Testovací hraní 0.2.15 s kamarádem** podle `docs/PLAYTEST.md` (oba aktualizovat, hostovat jednou každý), od obou `last_game.log`: ping, `interp_ms`, korekce, `sys_free` na Windows; ručně: WASD, Q, schopnost po respawnu, panák, Krügermannův plyn (zpoždění 0,2 s, síla 1250, šipky), Balvan za štítem a těžký kulomet (přesnost na zemi vs. ve skoku), mapa Peklo (rychlost lávy 14 px/s, jestli je zápas na mostě zábavný, čitelnost plošin).
+
+### Play test 0.2.17 (2026-11-14 00:36–00:54, host Windows 11 kamaráda – **měl cheaty** (uživatel: „kdyby tam byly nějaké divné pohyby, tak to raději neřeš“), klient A Windows 10 kabel, klient B Windows 11 Wi-Fi, Tailscale; 10 zápasů FFA ve 3: Střechy 6×, Hobitín 2×, Peklo 2×)
+- **Spojení:** A RTT ~19 ms, ztráta → 0 %, 0 ztracených snapshotů, 2 drobné záseky klienta (79/126 ms). B (Wi-Fi) RTT 26–70 ms, rozptyl až 54 ms, 1× výpadek 271 ms, jednou 12 mezer > 100 ms za 5 s; zpoždění interpolace se přizpůsobí (60–190 ms). Host 400 FPS, klienti 144–147 FPS. Host: vstupy klientů nepravidelné (`waited`≈`caught_up` A až 120/300 ticků v prvních zápasech, B 10–90).
+- **Korekce vlastní postavy (jen snapshoty; pozdě zjištěné, ale předpovězené zásahy se nepočítají):** A obvykle 0–45 px za 5 s, občas 55–82 px, > 90 px 5× (vše na Hobitíně). B obvykle 20–60 px, > 100 px 13×, z toho 8× proti hostovi Architektovi (brokovnice zblízka – nepředpověditelné, kulka trefí dřív, než o výstřelu klient ví). Pro srovnání 0.2.15: zásahy brokovnicí 31–79 px, odstřelovačka 140–214 px → zlepšení, ale ne nula; nepředpovídá se dál zásah zblízka, tlaková vlna Vichra a Nazgûl. Z logu nejde oddělit vliv cheatů hostitele.
+- **Balanc (bez hostitele – cheaty, vyhrál 8 z 10):** Stín (A) 38 zabití / 10 min = 3,8/min, nejvíc zabití v 5 ze 7 zápasů (podporuje nerf 2200 → 1900); Krügermann (B) 3,6/min; Balvan (B) 3,4/min; **Jiskra nejslabší: A 3 zabití za 4 min (0,75/min, týž hráč se Stínem 3,8/min), B 8 za 3,8 min (2,1/min)**. Architekt a Vichr hráli hlavně za hostitele → nelze hodnotit.
+- **Hobitín / Nazgûl:** 4 zabití v Hobitíně měli host Stín (2. zápas), B Balvan a host Vichr (3. zápas) → Nazgûl se měl objevit, v logu ale není zapsaný (žádný řádek) → ověřit jen dotazem.
+- **Nezkoušeno v tomto playtestu:** 4–6 hráčů, týmové režimy. Skiny, statistiky v lobby a tabulka výsledků v logu nejsou vidět.
+- **Zvláštnosti:** v 10. zápase 2× „kill by slot1“ bez „fall“ (kód je zapisuje vždy spolu) → upravený hostitel (cheaty), neřešeno. B odešel 00:40:11 během výsledků a hned se vrátil (jako v 0.2.15; jeho log se přepsal), host 1 zápas po 4 s zrušil.
 
 ### Play test 0.2.15 (2026-11-13 22:39–22:48, host Linux PC kamaráda, klient Windows uživatele přes Wi-Fi, Tailscale; 4 zápasy FFA 1 v 1: Peklo 2×, Chrámové schody, Střechy)
 - **Spojení výborné:** Tailscale napřímo, RTT 30–40 ms (na začátku 60–69), ztráta 0–1 %, throttle 32/32. Klient: 296–301 snapshotů / 5 s, **0 mezer > 100 ms**, gap_max 34–48 ms, interp_holds 0–3 (67 jen v prvních 5 s zápasu), zpoždění interpolace 40–49 ms, ping vstupu 43–55 ms. Dřívější shluky paketů z Wi-Fi se tu neprojevily.
@@ -203,6 +211,7 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-14, vyhodnocení playtestu 0.2.17 (Claude, jen PROGRESS, lokální commit):** viz „Play test 0.2.17“.
 - **2026-11-14, 0.2.18 brokovnice nerf (Claude, lokální commit, bez pushe):** `data/weapons/double_barrel.tres` (`knockback` 195, `max_range` 580), `test_weapons.gd`, CSV (`CHANGELOG_SHOTGUN_NERF_0218`), changelog (build 0 → Balanc), EDITING_GUIDE.
 - **2026-11-14, 0.2.18 odstřelovačka 1900 (Claude, lokální commit, bez pushe):** `data/weapons/sniper.tres` (`knockback` 1900), `test_weapons.gd`, `combat_rules.gd` (komentář), CSV (`CHANGELOG_SNIPER_NERF_0218`), changelog (build 0 → Balanc), EDITING_GUIDE.
 - **2026-11-14, 0.2.18 plyn 0,7 s (Claude, lokální commit, bez pushe):** `data/abilities/gas_blast.tres` + výchozí hodnoty v `gas_blast_ability.gd`/`gas_cloud.gd` (`blow_delay` 0,7), `test_abilities.gd` (42 ticků), CSV (popis schopnosti, `CHANGELOG_GAS_0218`), changelog (build 0 → Balanc), EDITING_GUIDE, CLAUDE.md.
