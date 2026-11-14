@@ -7,7 +7,8 @@ extends Node2D
 ## (left of `center_x` -> to the left), then vanishes. Only on arenas that have this node.
 ## The authority (host, practice) decides everything; clients get the events through
 ## MatchNet.send_nazgul and the knockback in snapshots (like a hit). A fall afterwards
-## counts like any other fall (the last shooter keeps the kill).
+## counts like any other fall (the last shooter keeps the kill). Online games write every
+## event to the diagnostic log (`[match] nazgul ...`, user 2026-11-14: it was not visible).
 
 signal alert(text: String)
 
@@ -27,6 +28,8 @@ enum Event { COMING, STRIKE }
 @export var center_x := 1200.0
 
 var _net: Node
+## Online game (host or client): events go to the diagnostic log.
+var _logging := false
 ## The match's live peer_id -> Player dictionary.
 var _players: Dictionary[int, Player] = {}
 ## Authority: peer_id -> tick of the next appearance (only hunted players) and peer_id ->
@@ -37,6 +40,7 @@ var _pending: Dictionary[int, Dictionary] = {}
 
 func setup(net: Node, is_authority: bool, players: Dictionary[int, Player]) -> void:
 	_net = net if is_authority else null
+	_logging = net != null
 	_players = players
 	if net and not is_authority:
 		net.nazgul_event.connect(_on_event)
@@ -74,6 +78,8 @@ func direction_for(x: float) -> int:
 
 func _strike(player: Player, direction: int) -> void:
 	if not player.visible or player.invulnerable:
+		if _logging:
+			DiagLog.event("match", "nazgul missed slot%d" % player.slot)
 		return  # died or respawned meanwhile: the slash misses
 	var weight := player.character.weight if player.character else 1.0
 	player.take_hit(Vector2(direction * strength, -lift) / maxf(weight, 0.1), damage)
@@ -87,6 +93,8 @@ func _emit(event: Event, slot: int, direction: int) -> void:
 
 ## Everyone: the banner, or the wraith next to the player in `slot`.
 func _on_event(event: int, slot: int, direction: int) -> void:
+	if _logging:
+		DiagLog.event("match", describe(event, slot, direction))
 	for player: Player in _players.values():
 		if player.slot != slot:
 			continue
@@ -97,6 +105,13 @@ func _on_event(event: int, slot: int, direction: int) -> void:
 			fx.setup(player, direction)
 			add_child(fx)
 		return
+
+
+## Text of the diagnostic log line, e.g. "nazgul coming slot2", "nazgul strike slot0 to=left".
+static func describe(event: int, slot: int, direction: int) -> String:
+	if event == Event.COMING:
+		return "nazgul coming slot%d" % slot
+	return "nazgul strike slot%d to=%s" % [slot, "left" if direction < 0 else "right"]
 
 
 static func _ticks(seconds: float) -> int:

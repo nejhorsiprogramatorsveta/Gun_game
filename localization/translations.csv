@@ -304,3 +304,5 @@ CHANGELOG_HELL_MAP,"Nová mapa Peklo: jen proskakovací plošiny, nahoře dlouh�
 CHANGELOG_GAS_0218,"Krügermann: plyn odfoukne už po 0,7 s (dřív 1 s)."
 CHANGELOG_SNIPER_NERF_0218,"Stín: odhoz odstřelovačky 2200 → 1900."
 CHANGELOG_SHOTGUN_NERF_0218,"Architekt: slabší brokovnice – odhoz broku 220 → 195, dostřel 650 → 580 px."
+CHANGELOG_SMG_BUFF_0218,"Jiskra: silnější samopal – odhoz 450 → 520, rozptyl 5° → 3,5°."
+CHANGELOG_NAZGUL_LOG,Příchod a útok Nazgûla se zapisují do logu hry.

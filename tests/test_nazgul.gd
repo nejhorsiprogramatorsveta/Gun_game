@@ -108,3 +108,9 @@ func test_the_wraith_animation_ends_by_itself() -> void:
 	check(fx.is_queued_for_deletion(), "gone after vanishing")
 	victim.free()
 	fx.free()
+
+
+func test_events_have_a_log_line() -> void:
+	check_eq(Nazgul.describe(Nazgul.Event.COMING, 2, 0), "nazgul coming slot2", "the banner (user 2026-11-14: log it)")
+	check_eq(Nazgul.describe(Nazgul.Event.STRIKE, 0, -1), "nazgul strike slot0 to=left", "a slash to the left")
+	check_eq(Nazgul.describe(Nazgul.Event.STRIKE, 5, 1), "nazgul strike slot5 to=right", "a slash to the right")

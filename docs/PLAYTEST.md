@@ -45,7 +45,7 @@ takže jdou porovnat logy hostitele a hráčů:
   na síťových rozhraních, ztráta fokusu okna (Alt+Tab),
 - `[conn]` – připojování: druh cílové adresy, zda je ve stejné síti, upozornění na vypnutý Tailscale,
   ověření, odmítnutí (s důvodem), doba připojení, odpojení, ping v lobby každých 10 s, postavy a týmy ve slotech,
-- `[match]` – pády a zabití (podle slotů),
+- `[match]` – pády a zabití (podle slotů), na Hobitíně Nazgûl (`nazgul coming` = nápis, `nazgul strike … to=left/right` = útok, `nazgul missed` = minul),
 - `[net]` – každých 5 s zápasu: ping, ztráta paketů, datový provoz, mezery mezi aktualizacemi od hostitele,
   plynulost vzdálených hráčů, korekce pohybu, FPS, záseky a paměť; u hostitele pro každého hráče, jak plynule
   mu chodí vstupy,

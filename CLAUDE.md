@@ -64,7 +64,7 @@ src/arenas/{arena,platform,lava}.gd + arena_*.tscn, data/arenas/*.tres (ArenaDat
 hell = Peklo: jump-through platforms only, Lava node rises once any player has 3 lives, respawns above its final level;
 hobbiton = Hobitín, big map with src/arenas/moving_platform.gd: position = function of the host tick, InputFrame.tick (local only),
 Arena.prepare carries players inside Player.simulate, MatchClient.tick_for maps own inputs to host ticks for prediction;
-its Nazgul node (src/arenas/nazgul.gd + src/combat/nazgul_fx.gd): from 4 kills a host-decided wraith throws the player outwards), src/net/arena_choice.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
+its Nazgul node (src/arenas/nazgul.gd + src/combat/nazgul_fx.gd): from 4 kills a host-decided wraith throws the player outwards; online games log `[match] nazgul ...`), src/net/arena_choice.gd, src/match/match_controller.gd, src/ui/main_menu.gd, data/*.tres,
 src/autoload/session.gd (autoload Session: host/join, auth handshake, lobby players incl. chosen character),
 src/autoload/settings.gd (autoload Settings: name, last address), src/ui/lobby.gd,
 src/net/connectors/{connector,enet_direct_connector}.gd, src/net/{handshake,net_codec}.gd,

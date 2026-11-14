@@ -83,6 +83,14 @@ func test_client_shot_spread_matches_the_host() -> void:
 	shooter.free()
 
 
+func test_smg_buffed_in_0218() -> void:
+	var smg := ContentDB.get_weapon(&"smg")
+	# Jiskra had the fewest kills in the 0.2.17 play test (user 2026-11-14: buff her).
+	check_eq([smg.knockback, smg.spread_degrees], [520.0, 3.5], "more knockback (450 before), tighter spread (5 before)")
+	check(CombatRules.knockback_per_second(smg) <= CombatRules.MAX_KNOCKBACK_PER_SECOND,
+			"still within the per-second limit (%.0f)" % CombatRules.knockback_per_second(smg))
+
+
 func test_double_barrel_between_0216_and_0217() -> void:
 	var shotgun := ContentDB.get_weapon(&"double_barrel")
 	# 0.2.16: 8 x 170, 500 px; buffed in 0.2.17 to 8 x 220, 650 px; nerfed again in 0.2.18 (user 2026-11-14).
