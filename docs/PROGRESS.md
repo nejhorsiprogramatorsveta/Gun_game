@@ -121,7 +121,7 @@
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
-**Další playtest 0.2.18** (ideálně 4+ hráčů, i týmy a Hobitín): od všech `last_game.log` → vyhodnotit korekce po zásahu, balanc (Jiskra po buffu, Stín 1900, brokovnice 195/580, plyn 0,7 s) a řádky `[match] nazgul`. Ručně se zeptat na dojem: cukání po zásahu, Nazgûl, skiny, statistiky v lobby, tabulka výsledků. Vzhled Hobitína čeká na konkrétní pokyn. Push vždy jen po souhlasu.
+**Ve hře ukazovat jen verzi, ne sestavení** (uživatel 2026-11-14: „přidej, ať se ve hře neukazuje sestavení, ale jen verze … uděláme to pak“): menu vlevo dole (`BUILD_DISPLAY` „{version} (sestavení {build})“), nadpisy v „Co je nového“ („0.2.17 (sestavení 84)“), aktualizace (`UPDATE_BUILD`), texty `CHANGELOG_EMPTY`/`CHANGELOG_HISTORY`; build zůstane interně (version.json, kontrola aktualizace a shody verzí). Před začátkem se zeptat, jestli i poznámky k vydání na GitHubu a vývojový štítek „(vývojová, commit)“. Potom další playtest 0.2.18 (ideálně 4+ hráčů, i týmy a Hobitín) → logy: korekce po zásahu, balanc, řádky `[match] nazgul`. Vzhled Hobitína čeká na konkrétní pokyn. Push vždy jen po souhlasu.
 
 **Testovací hraní 0.2.15 s kamarádem** podle `docs/PLAYTEST.md` (oba aktualizovat, hostovat jednou každý), od obou `last_game.log`: ping, `interp_ms`, korekce, `sys_free` na Windows; ručně: WASD, Q, schopnost po respawnu, panák, Krügermannův plyn (zpoždění 0,2 s, síla 1250, šipky), Balvan za štítem a těžký kulomet (přesnost na zemi vs. ve skoku), mapa Peklo (rychlost lávy 14 px/s, jestli je zápas na mostě zábavný, čitelnost plošin).
 
