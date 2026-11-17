@@ -1,6 +1,20 @@
 # Stav projektu
 
 ## Kde jsme skončili
+**0.2.20 – lokální úpravy Bibiho (Codex, 2026-11-17), BEZ COMMITU/PUSHE dle zadání.**
+Raketa nyní prolétá proskakovatelnými plošinami shora i zdola; o pevný terén dál vybuchuje
+(`HomingRocket.TERRAIN_MASK` 1 místo 1|2). Cílení, zpomalování střelbou, výbuch, AOE i síť beze změny.
+Překreslený obličej podle pixelové předlohy: širší čelo a čelist, stříbrné vlasy, šikmé obočí,
+světle modré oči, delší nos a jemnější ústa. Základ i skin mají zachovaný formát 10 × 32×40 px,
+kotvy, animace a tělo; ostatních 31 PNG postav/zbraní je bitově shodných s HEAD.
+Verze zvýšena jednou 0.2.19 → 0.2.20, protokol zůstává 26. Publikovaná 0.2.19 / build 94 ověřena
+z veřejného manifestu a archivována v changelogu; nový build 0 má oba řádky oprav v „Co je nového“.
+Při zahájení `main == origin/main`, čistý strom (`432dbe7`); **všechny nynější změny jsou necommitnuté**:
+`src/combat/homing_rocket.gd`, `tests/test_homing_rocket.gd`, `tools/art/bibi_character.py`,
+`assets/sprites/characters/bibi{,_skin}.png`, `project.godot`, `data/changelog.tres`,
+`localization/translations.csv`, `CLAUDE.md`, `docs/{ARCHITECTURE,EDITING_GUIDE,PLAN,PLAYTEST,PROGRESS}.md`.
+Předchozí vydání 0.2.19 skutečně dokončeno: commit `432dbe7`, CI run `44128752973` success, build 94.
+
 **0.2.19 – Bibi (Codex, 2026-11-17).** Dokončena sedmá postava se stávajícím samopalem,
 vlastními animacemi podle stylizovaných pixelových předloh a skinem Bordó oblek. Čtyři otázky
 zodpovězeny: raketa průběžně sleduje nejbližšího soupeře, vybuchne o zeď i plošinu, nepřátelská
@@ -134,10 +148,11 @@ Uživatel výslovně požádal o commit/push na GitHub jako součást tohoto úk
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
-**Nejprve ručně zahrát 0.2.19 s Bibim proti kamarádovi**: E/pravé tlačítko odpálí raketu,
-soupeř do ní střílí, sleduje zpomalení a poté výbuch; ověřit i odhoz Bibiho a spojence v týmech,
-více hráčů v AOE a náraz do pohyblivé či proskakovací plošiny. Potom podle výsledku ladit jen
-na pokyn uživatele. Níže uložený starší požadavek na zobrazení pouze verze zůstává odložený.
+**Ručně porovnat Bibiho nový obličej s předlohou v lokální 0.2.20 a vyzkoušet raketu na plošinách**
+(`tools/godot --path .`, Trénink → Bibi, E/pravé tlačítko): proskakovací plošinou má proletět
+z obou stran, o pevnou zeď/plošinu vybuchnout. Vzhled před/po je v `/private/tmp/bibi_face_revision_before_after.png`.
+Změny zatím necommitovat ani nepushovat; další úpravy/publikace až na pokyn uživatele.
+Starší požadavek na zobrazení pouze verze zůstává odložený.
 
 **Ve hře ukazovat jen verzi, ne sestavení** (uživatel 2026-11-14: „přidej, ať se ve hře neukazuje sestavení, ale jen verze … uděláme to pak“): menu vlevo dole (`BUILD_DISPLAY` „{version} (sestavení {build})“), nadpisy v „Co je nového“ („0.2.17 (sestavení 84)“), aktualizace (`UPDATE_BUILD`), texty `CHANGELOG_EMPTY`/`CHANGELOG_HISTORY`; build zůstane interně (version.json, kontrola aktualizace a shody verzí). Před začátkem se zeptat, jestli i poznámky k vydání na GitHubu a vývojový štítek „(vývojová, commit)“. Potom další playtest 0.2.18 (ideálně 4+ hráčů, i týmy a Hobitín) → logy: korekce po zásahu, balanc, řádky `[match] nazgul`. Vzhled Hobitína čeká na konkrétní pokyn. Push vždy jen po souhlasu.
 
@@ -229,6 +244,10 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-17, 0.2.20 lokálně:** maska rakety ignoruje vrstvu 2; regresní test průletu shora/zdola
+  a pevné zdi za proskakovací plošinou. Upravená kresba hlavy v `bibi_character.py` a obou Bibi PNG;
+  původní ostatní PNG i animace zachované. Přidány texty `CHANGELOG_BIBI_FACE`, `CHANGELOG_ROCKET_PLATFORMS`,
+  upřesněn popis schopnosti a návody; changelog 0.2.19/94 archivován, verze 0.2.20. Bez commitu/pushe.
 - **2026-11-17, Bibi 0.2.19:** nové `data/characters/bibi.tres`, `data/abilities/homing_rocket.tres`,
   `src/abilities/homing_rocket_ability.gd`, `src/combat/{homing_rocket,rocket_system}.gd`,
   `src/net/rocket_codec.gd`, `tools/art/bibi_character.py`, `assets/sprites/characters/bibi{,_skin}.png`
@@ -408,6 +427,8 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
+- **0.2.20:** testy neodhalily novou regresi. Nová kresba respektuje stávající rozlišení 32×40 px;
+  finální podobnost s předlohou posoudí uživatel v náhledu. Stávající síťová omezení Bibiho níže se nemění.
 - **Bibi:** odhoz výbuchem je hostem potvrzovaný a nepředpovídá se; přidává 0 % poškození,
   takže nepoužije pomalejší vyhlazení vyhrazené zásahům zvyšujícím procenta. Stejně jako u běžných
   střel může klient krátce předpovědět zásah kulkou, kterou mezitím host zastavil raketou; odstranění
@@ -440,6 +461,15 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-17, 0.2.20 lokálně:** import OK, **212/212 GDScript testů**, lokalizace **317 klíčů /
+  0 chybějících**, `git diff --check` OK. Fyzikální testy ověřují průlet proskakovací plošinou
+  shora i zdola a následný výbuch o pevnou zeď. Okenní trénink na macOS ověřil novou hlavu ve hře
+  i portrétu, aktivaci, let a výbuch s odhozem Bibiho i panáka (oba 0 % poškození).
+  Náhledy `/private/tmp/bibi_face_revision_{before_after,portraits}.png`, herní snímky
+  `/private/tmp/bibi_practice_{flight,explosion}.png`; pomocná data zůstávají mimo repozitář.
+  Generátor ověřil obě 320×40 px tabulky s 10 neprázdnými snímky, zachované tělo a dalších 31 PNG
+  bitově stejných jako HEAD. **Neopakováno:** síťový test (síťový kód/protokol beze změny), exporty,
+  CI a Windows/Linux hraní. Známý úmyslně vadný JSON v updater testu a shutdown warnings stejné jako dosud.
 - **2026-11-17, Bibi 0.2.19:** **211/211 GDScript testů**, lokalizace **315 klíčů / 0 chybějících**,
   **10/10 Python testů vydávání**. Nové testy: navádění a změna cíle, průlet majitelem/spojencem,
   reálné kolize kulek s raketou, dočasné zpomalení/minimum/obnovení/nezničitelnost, AOE a směr,

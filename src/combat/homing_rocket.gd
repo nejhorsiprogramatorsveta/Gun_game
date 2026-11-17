@@ -8,7 +8,8 @@ signal player_hit(attacker_peer_id: int, target: Player)
 signal exploded(rocket: HomingRocket)
 
 const COLLISION_LAYER := 16
-const TERRAIN_MASK := 1 | 2
+## Solid terrain only; rockets pass through jump-through platforms in both directions.
+const TERRAIN_MASK := 1
 const PLAYERS_MASK := 4
 const HIT_RADIUS := 12.0
 var id := 0

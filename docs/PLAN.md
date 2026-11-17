@@ -488,6 +488,9 @@ Do arén postupně přidat aktivní prvky, které mění průběh zápasu. Zatí
 
 
 ### G.0a Rozhodnutí uživatele 2026-11-04 (M5)
+- **2026-11-17, upřesnění Bibiho (0.2.20, lokálně):** raketa prolétá proskakovatelnými plošinami
+  z obou stran a o pevné plošiny/zdi dál vybuchuje; obličej přiblížit dodané pixelové předloze.
+  Uživatel výslovně zakázal push těchto úprav.
 - **2026-11-17: sedmá postava Bibi** – stávající samopal, vzhled podle stylizovaných pixelových předloh,
   naváděná raketa průběžně na nejbližšího soupeře; náraz do zdi/plošiny = AOE. Nepřátelská střelba raketu
   jen dočasně zpomalí. Síla 1100 a dosah 320 px jako Vichr, přidání procent 0; přímo zasažený hráč ve směru

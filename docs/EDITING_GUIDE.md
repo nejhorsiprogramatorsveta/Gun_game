@@ -121,8 +121,8 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | `homing_rocket.tres` (naváděná raketa) | Bibi | `speed` 460 a `minimum_speed` 120 (px/s), `turn_rate` 4 (rad/s), `hit_speed_scale` 0,65 (násobek rychlosti po zásahu), `slow_duration` 0,45 (s bez zrychlování), `recovery_acceleration` 600 (px/s²), `lifetime` 8 (s do samovolného výbuchu), `radius` 320 (px), `strength` 1100, `lift` 0,35, `damage` 0; cooldown 10 s |
 
 Raketa průběžně sleduje nejbližšího živého soupeře. Nepřátelské kulky ji dočasně zpomalují až na
-nenulové minimum; vlastní a spojenecké kulky proletí. Náraz do zdi nebo kterékoli plošiny vyvolá
-výbuch. Výbuch zasáhne všechny v dosahu včetně Bibiho a spoluhráčů; přímo zasažený soupeř letí
+nenulové minimum; vlastní a spojenecké kulky proletí. Od 0.2.20 raketa proskakovatelnými plošinami
+proletí z obou stran; náraz do zdi nebo pevné plošiny vyvolá výbuch. Výbuch zasáhne všechny v dosahu včetně Bibiho a spoluhráčů; přímo zasažený soupeř letí
 ve směru příletu, ostatní od středu výbuchu, s mírným zdvihem jako u Vichra. Váha, štít,
 procenta již utrženého poškození a nezranitelnost po oživení se uplatní stejně jako dosud.
 

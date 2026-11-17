@@ -121,19 +121,42 @@ func test_remote_rocket_never_decides_hits_or_knockback() -> void:
 	world.free()
 
 
-func test_collision_with_solid_and_one_way_platform_detonates() -> void:
-	for one_way in [false, true]:
+func test_one_way_platform_does_not_hide_solid_terrain_behind_it() -> void:
+	var world := _world()
+	var platform := Platform.new()
+	platform.position = Vector2(70, -20)
+	platform.size = Vector2(10, 40)
+	platform.one_way = true
+	world.add_child(platform)
+	var wall := Platform.new()
+	wall.position = Vector2(180, -20)
+	wall.size = Vector2(10, 40)
+	world.add_child(wall)
+	var rocket := _rocket(world)
+	await physics_step()
+	rocket.advance(0.3, [])
+	check(not rocket.detonated and rocket.position.x > 80.0, "rocket flies through jump-through terrain")
+	rocket.advance(0.2, [])
+	check(rocket.detonated, "solid terrain behind the jump-through platform still detonates it")
+	check(absf(rocket.position.x - 180.0) < 0.01, "blast starts at the solid impact point")
+	world.free()
+
+
+func test_one_way_platform_is_passable_from_above_and_below() -> void:
+	for direction: Vector2 in [Vector2.DOWN, Vector2.UP]:
 		var world := _world()
 		var platform := Platform.new()
-		platform.position = Vector2(100, -20)
-		platform.size = Vector2(10, 40)
-		platform.one_way = one_way
+		platform.position = Vector2(-40, 100)
+		platform.size = Vector2(80, 10)
+		platform.one_way = true
 		world.add_child(platform)
 		var rocket := _rocket(world)
+		rocket.position = Vector2(0, 0 if direction == Vector2.DOWN else 200)
+		rocket.direction = direction
 		await physics_step()
 		rocket.advance(0.3, [])
-		check(rocket.detonated, "collision detonates against %s terrain" % ("one-way" if one_way else "solid"))
-		check(absf(rocket.position.x - 100.0) < 0.01, "blast starts at the impact point")
+		check(not rocket.detonated, "jump-through platform does not detonate a rocket from either side")
+		check((rocket.position.y - 100.0) * direction.y > 0.0, "rocket crosses to the other side of the platform")
 		world.free()
 
 

@@ -51,7 +51,7 @@ All verified in M1 on macOS arm64:
   `-- --fake-commit=abc` (debug builds only) simulates a different build for the version-mismatch path.
 - Fake network (debug builds): `tools/godot --path . -- --fake-lag=100 --fake-loss=5` (adds RTT/loss to match traffic of that instance).
 - CI: .github/workflows/build.yml (push main -> update the ONE existing release, title `gun_game vX.Y.Z`).
-- Public version comes ONLY from `application/config/version` in project.godot (source 0.2.19; previous published version 0.2.18 = build 91, 2026-11-14).
+- Public version comes ONLY from `application/config/version` in project.godot (source 0.2.20, local/unpublished; published 0.2.19 = build 94, 2026-11-17).
   Bump it explicitly before each new game release; CI permits only the next patch/minor/major and rejects lower builds.
   A retry of the same version/build is allowed. Docs-only changes still do not publish.
 
@@ -59,9 +59,9 @@ All verified in M1 on macOS arm64:
 New in 0.2.19: seventh character Bibi (`data/characters/bibi.tres`), existing SMG and
 `HomingRocketAbility` (`src/abilities/homing_rocket_ability.gd`, `data/abilities/homing_rocket.tres`).
 `src/combat/{rocket_system,homing_rocket}.gd`: host-owned seeking rockets; enemy shots slow but
-never destroy them; terrain includes one-way platforms; blast pushes owner and allies too.
+never destroy them; since 0.2.20 rockets pass through one-way platforms and explode only on solid terrain/targets; blast pushes owner and allies too.
 `src/net/rocket_codec.gd` bounds complete flight snapshots (20 Hz, max 16); `match_net.gd`
-receives these only from authority and reliable explosion events. Protocol 26, version 0.2.19.
+receives these only from authority and reliable explosion events. Protocol 26 (unchanged in 0.2.20).
 `tools/art/bibi_character.py` draws Bibi and his skin in the existing 10-frame sprite format.
 Existing: src/core/{build_info,content_db}.gd, src/player/{player_motor,input_frame,player,client_prediction}.gd,
 src/player/{player_weapon,remote_view,player_labels}.gd (Player parts: player.gun = fire cooldown/ammo/reload,

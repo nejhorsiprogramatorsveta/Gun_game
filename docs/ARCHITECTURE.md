@@ -83,7 +83,8 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 - `src/abilities/homing_rocket_ability.gd`, `data/abilities/homing_rocket.tres`: bezstavové parametry.
   `RocketSystem.spawn_for` až po hostem přijatém stisku schopnosti; cooldown v `Player` jako dosud.
 - `src/combat/homing_rocket.gd`: `Area2D`, vlastní vrstva 16, nehýbe hráči kolizí. Explicitní
-  `advance` hledá každý tick nejbližšího soupeře; paprsek proti vrstvám 1|2|4 kontroluje náraz.
+  `advance` hledá každý tick nejbližšího soupeře; od 0.2.20 paprsek proti vrstvám 1|4 kontroluje
+  náraz do pevného terénu/hráčů a vrstvu 2 (proskakovací i pohyblivé proskakovací plošiny) ignoruje.
   `Projectile` navíc vidí vrstvu 16: nepřátelská kulka zpomalí raketu a skončí, vlastní/spojenecká proletí.
   Výbuch odhodí i vlastníka a spojence; přímá oběť dle příletu, ostatní radiálně se zdvihem,
   síla 1100 / dosah 320 px jako Vichr, přidané poškození 0 %. `take_hit` zachovává štít/váhu/procenta.

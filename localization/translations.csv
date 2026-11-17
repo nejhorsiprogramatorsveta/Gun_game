@@ -2,7 +2,9 @@ keys,cs
 CHARACTER_BIBI_NAME,Bibi
 CHARACTER_BIBI_DESCRIPTION,"Samopal a naváděná raketa. Výbuch odhodí každého v okolí včetně Bibiho a spoluhráčů."
 ABILITY_HOMING_ROCKET_NAME,Naváděná raketa
-ABILITY_HOMING_ROCKET_DESCRIPTION,"Sleduje nejbližšího soupeře a vybuchne při nárazu. Střelbou ji dočasně zpomalíš. Výbuch zasáhne i Bibiho a spoluhráče."
+ABILITY_HOMING_ROCKET_DESCRIPTION,"Sleduje nejbližšího soupeře. Proskakovatelnými plošinami proletí a o pevný terén vybuchne. Střelbou ji dočasně zpomalíš. Výbuch zasáhne i Bibiho a spoluhráče."
+CHANGELOG_BIBI_FACE,Bibi má upravený obličej podle předlohy.
+CHANGELOG_ROCKET_PLATFORMS,"Bibiho raketa prolétá proskakovatelnými plošinami, o pevný terén dál vybuchuje."
 SKIN_BIBI,Bordó oblek
 CHANGELOG_BIBI,Nová postava Bibi se samopalem a naváděnou raketou.
 CHANGELOG_HOMING_ROCKET,"Raketa sleduje nejbližšího soupeře. Střelbou ji zpomalíš, ale nezničíš."
