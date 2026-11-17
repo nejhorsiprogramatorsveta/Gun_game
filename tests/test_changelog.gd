@@ -219,7 +219,7 @@ func test_sections_group_changes_in_display_order() -> void:
 	for title in titles:
 		check(order.find(title) > last, "sections keep the order balance, new, other")
 		last = order.find(title)
-	var archived := Changelog.history()[1]
+	var archived: Dictionary = Changelog.history().filter(func(entry: Dictionary) -> bool: return entry.build == 84)[0]
 	check_eq(archived.sections.map(func(section: Dictionary) -> String: return section.title), order,
 			"0.2.17 is split into balance, new and other (user 2026-11-14)")
 	var text := Changelog.format_entry(latest)

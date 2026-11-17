@@ -488,6 +488,10 @@ Do arén postupně přidat aktivní prvky, které mění průběh zápasu. Zatí
 
 
 ### G.0a Rozhodnutí uživatele 2026-11-04 (M5)
+- **2026-11-17: sedmá postava Bibi** – stávající samopal, vzhled podle stylizovaných pixelových předloh,
+  naváděná raketa průběžně na nejbližšího soupeře; náraz do zdi/plošiny = AOE. Nepřátelská střelba raketu
+  jen dočasně zpomalí. Síla 1100 a dosah 320 px jako Vichr, přidání procent 0; přímo zasažený hráč ve směru
+  příletu, ostatní od výbuchu, zasažen může být i Bibi a jeho spoluhráči (vše potvrzeno čtyřmi odpověďmi).
 - **ZMĚNA (uživatel 2026-11-04, večer): odstraníme možnost dvou zbraní – každá postava bude mít jen JEDNU zbraň.** Má přednost před bodem „2 vlastní zbraně“ níže i v G.0. Přepínání zbraní (Q / 1 / 2 / kolečko) zmizí. **Hotovo (0.1.12, 2026-11-05):** Architekt – dvouhlavňová brokovnice, Balvan – útočná puška, Jiskra – samopal, Krügermann – lehký kulomet, Stín – odstřelovačka, Vichr – bojová puška. `CharacterData.weapon` (jedna). Nepoužité zbraně (pistole, brokovnice, nýtovačka, revolver, kompaktní samopal, karabina) zůstávají v `data/weapons/` pro případné pozdější použití – uživatel 2026-11-05: zatím je nechat v datech.
 - **Soupiska (zatím, data v `data/characters/`):** Jiskra (róninka, lehká) – samopal + pistole, úskok; Balvan (samuraj, těžký) – brokovnice + útočná puška, štít; Vichr (ninja s kusarigamou) – bojová puška + karabina, tlaková vlna; Stín (ninja se šurikenem, lehký) – odstřelovačka + kompaktní samopal, přesun (teleport ~250 px ke kurzoru, cd 7 s).
 - **Každá postava má 2 vlastní zbraně (8 celkem).** Přepínání: Q, 1 / 2 a kolečko myši; po přepnutí 0,3 s bez střelby.

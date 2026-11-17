@@ -23,6 +23,16 @@ po hraní nám ho každý pošle.
 - Zahrajte aspoň 2–3 zápasy ve **stejném lobby** (po výsledcích se vracíte do lobby, nehostujte znovu).
   Když se něco nepovede (nejde se připojit, vyhodí to), zkuste to znovu a poznamenejte si to.
 
+## Bibi a raketa (0.2.19)
+
+1. Vyberte Bibiho v tréninku i v lobby. Ověřte běh, skok, samopal, Q pro přebití a E/pravé tlačítko pro raketu.
+2. Při letu přesuňte druhého soupeře blíž k raketě: má změnit cíl. Mrtvé hráče a spoluhráče neloví.
+3. Střílejte do ní: zpomalí, ale střelbou nezmizí; bez dalších zásahů opět zrychlí.
+4. Ověřte výbuch o zeď, běžnou i proskakovací plošinu (také na Pekle nebo pohyblivé plošině Hobitína).
+5. Postavte více hráčů blízko zásahu: přímá oběť letí ve směru příletu, ostatní od středu výbuchu.
+   Odhodit může i samotného Bibiho a spoluhráče. Procenta se výbuchem nezvýší; čerstvě oživený hráč je chráněný.
+6. Vyměňte, kdo hostuje. Oba musí vidět stejné zpomalení a výbuch; případné cuknutí si poznamenejte s časem.
+
 ## Po hraní: poslání logu
 1. **Nehostujte ani se znovu nepřipojujte** – nová online hra starý log přepíše.
 2. V menu klikněte na **Nastavení → Složka s logem**. Otevře se složka se souborem **`last_game.log`**.

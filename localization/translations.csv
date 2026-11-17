@@ -1,4 +1,12 @@
 keys,cs
+CHARACTER_BIBI_NAME,Bibi
+CHARACTER_BIBI_DESCRIPTION,"Samopal a naváděná raketa. Výbuch odhodí každého v okolí včetně Bibiho a spoluhráčů."
+ABILITY_HOMING_ROCKET_NAME,Naváděná raketa
+ABILITY_HOMING_ROCKET_DESCRIPTION,"Sleduje nejbližšího soupeře a vybuchne při nárazu. Střelbou ji dočasně zpomalíš. Výbuch zasáhne i Bibiho a spoluhráče."
+SKIN_BIBI,Bordó oblek
+CHANGELOG_BIBI,Nová postava Bibi se samopalem a naváděnou raketou.
+CHANGELOG_HOMING_ROCKET,"Raketa sleduje nejbližšího soupeře. Střelbou ji zpomalíš, ale nezničíš."
+CHANGELOG_ROCKET_BLAST,Výbuch rakety má sílu a dosah Vichrovy vlny a odhodí i Bibiho a spoluhráče.
 GAME_TITLE,Dojo Knockout
 MENU_PRACTICE,Trénink
 MENU_HOST,Hostovat

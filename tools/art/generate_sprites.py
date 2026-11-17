@@ -14,6 +14,7 @@ Weapon sheet: 2 frames of 34x12 px (normal, muzzle flash); the grip/hand is at (
 from pathlib import Path
 from PIL import Image
 from reference_characters import draw_reference_character
+from bibi_character import draw_bibi
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "assets" / "sprites"
@@ -227,6 +228,7 @@ CHARACTERS = {
              "back": stin_back, "head": stin_head, "front": stin_front},
     "krugermann": {"reference": True},
     "architekt": {"reference": True},
+    "bibi": {"bibi": True},
 }
 
 
@@ -247,6 +249,8 @@ CHARACTER_SKINS = {
                    "z": "2f6b34", "Z": "5aa05e"},
     "architekt": {"b": "dcd6ca", "B": "f0ebe0", "c": "c8c0b2", "v": "8e8679", "p": "cfc8bb", "P": "e8e2d6",
                   "T": "a3232c", "U": "d04048", "F": "8a6a4a", "f": "3a2a20"},
+    "bibi": {"b": "642d40", "B": "874258", "c": "a96370", "v": "351b2c", "p": "472536", "P": "63374c",
+             "T": "d7ad58", "U": "ffe2a0", "F": "6b5155", "f": "231b25"},
 }
 
 
@@ -381,7 +385,9 @@ def main() -> None:
             sheet = Image.new("RGBA", (FW * len(FRAMES), FH), (0, 0, 0, 0))
             for i, frame in enumerate(FRAMES):
                 canvas = Canvas(FW, FH)
-                if spec.get("reference"):
+                if spec.get("bibi"):
+                    draw_bibi(canvas, pose(frame), CHARACTER_SKINS[name] if skin else None)
+                elif spec.get("reference"):
                     draw_reference_character(canvas, name, pose(frame), CHARACTER_SKINS[name] if skin else None)
                 else:
                     draw_character(canvas, skin_spec(name) if skin else spec, frame)

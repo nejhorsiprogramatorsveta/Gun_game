@@ -30,10 +30,11 @@ v CSV, bez změny kódu.** Objeví se v menu u Tréninku i v lobby.
    CHARACTER_NOVA_NAME,Nová postava
    CHARACTER_NOVA_DESCRIPTION,"Krátký popis, zbraň a styl hry."
    ```
-5. Spusť kontroly. Pozor: test `test_six_characters_with_one_own_weapon_each` v `tests/test_weapons.gd`
+5. Spusť kontroly. Pozor: test `test_seven_characters_with_one_weapon_each` v `tests/test_weapons.gd`
    hlídá přesný seznam postav a jejich zbraní – při přidání postavy ho doplň.
 
 V jednom zápase může mít každou postavu jen jeden hráč a hraje max. 6 hráčů, takže postav musí být aspoň 6.
+Od 0.2.19 je postav sedm: Bibi (`bibi.tres`) má stávající samopal, naváděnou raketu a skin Bordó oblek.
 
 ### Hodnoty postavy
 
@@ -117,6 +118,13 @@ Společné hodnoty: `id`, `name_key`, `description_key`, `cooldown` (s do dalš�
 | `teleport.tres` (přesun) | Stín | `distance` – vzdálenost ke kurzoru (px, 250); přesun jde vždy co nejdál: proskakovací plošiny a hráče přeskočí, po pevné zemi/zdi sklouzne, zastaví ho jen pevný blok |
 | `gas_blast.tres` (odfukovací plyn) | Krügermann | `length`, `height` (rozměr pásu), `gap` (mezera před postavou), `lifetime` (s), `blow_delay` (kolik sekund musí soupeř v plynu vydržet, než ho odfoukne; 0,7; `lifetime` 5), `blow_speed` (rychlost odfouknutí do strany, px/s, dělí se váhou soupeře; 1250), `blow_lift` (rychlost nahoru; 380) |
 | `platform.tres` (plošina) | Architekt | `width` (px), `lifetime` (s) |
+| `homing_rocket.tres` (naváděná raketa) | Bibi | `speed` 460 a `minimum_speed` 120 (px/s), `turn_rate` 4 (rad/s), `hit_speed_scale` 0,65 (násobek rychlosti po zásahu), `slow_duration` 0,45 (s bez zrychlování), `recovery_acceleration` 600 (px/s²), `lifetime` 8 (s do samovolného výbuchu), `radius` 320 (px), `strength` 1100, `lift` 0,35, `damage` 0; cooldown 10 s |
+
+Raketa průběžně sleduje nejbližšího živého soupeře. Nepřátelské kulky ji dočasně zpomalují až na
+nenulové minimum; vlastní a spojenecké kulky proletí. Náraz do zdi nebo kterékoli plošiny vyvolá
+výbuch. Výbuch zasáhne všechny v dosahu včetně Bibiho a spoluhráčů; přímo zasažený soupeř letí
+ve směru příletu, ostatní od středu výbuchu, s mírným zdvihem jako u Vichra. Váha, štít,
+procenta již utrženého poškození a nezranitelnost po oživení se uplatní stejně jako dosud.
 
 - **Varianta existujícího druhu** (např. silnější štít pro jinou postavu) = zkopírovat `.tres`, změnit `id`
   a hodnoty, přidat texty `ABILITY_..._NAME` a `ABILITY_..._DESCRIPTION` do CSV a odkázat na soubor z postavy.

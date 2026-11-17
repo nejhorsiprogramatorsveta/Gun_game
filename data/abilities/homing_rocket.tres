@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="HomingRocketAbility" format=3]
+
+[ext_resource type="Script" path="res://src/abilities/homing_rocket_ability.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"homing_rocket"
+name_key = "ABILITY_HOMING_ROCKET_NAME"
+description_key = "ABILITY_HOMING_ROCKET_DESCRIPTION"
+cooldown = 10.0
+duration = 0.0
+speed = 460.0
+minimum_speed = 120.0
+turn_rate = 4.0
+hit_speed_scale = 0.65
+slow_duration = 0.45
+recovery_acceleration = 600.0
+lifetime = 8.0
+radius = 320.0
+strength = 1100.0
+lift = 0.35
+damage = 0.0

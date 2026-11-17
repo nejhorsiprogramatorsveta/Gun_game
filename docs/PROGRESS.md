@@ -1,6 +1,19 @@
 # Stav projektu
 
 ## Kde jsme skončili
+**0.2.19 – Bibi (Codex, 2026-11-17).** Dokončena sedmá postava se stávajícím samopalem,
+vlastními animacemi podle stylizovaných pixelových předloh a skinem Bordó oblek. Čtyři otázky
+zodpovězeny: raketa průběžně sleduje nejbližšího soupeře, vybuchne o zeď i plošinu, nepřátelská
+střelba ji dočasně zpomaluje bez zničení; výbuch bez přidání procent odhodí i Bibiho a spojence.
+Přímá oběť letí ve směru příletu, ostatní radiálně; síla 1100, dosah 320 px, zdvih 0,35 jako Vichr.
+Cooldown 10 s, let 460 px/s, minimum 120 px/s, zpomalení 0,45 s a návrat 600 px/s², pojistný výbuch po 8 s.
+Host rozhoduje veškeré zásahy, klient pouze kreslí stav raket; protokol 26. Formát hráčských
+snapshotů, pohyb, ostatní zbraně/postavy a mapy zachovány. Verze zvýšena jednou z 0.2.18 na 0.2.19;
+publikovaný manifest ověřen online (0.2.18 / build 91), tento changelog archivován a nový build 0
+obsahuje tři hráčské novinky o Bibim/raketě/výbuchu. Číslo nového buildu určí CI.
+Při zahájení čistý strom a jeden starší lokální dokumentační commit `1b595b6`; ten je zachován.
+Uživatel výslovně požádal o commit/push na GitHub jako součást tohoto úkolu. Stav publikace níže.
+
 **Verze 0.2.18 (Claude, 2026-11-14), pushnuta na pokyn uživatele („udělej ty 2 věci a pushni to“), CI úspěšné (run 43532366364), vydáno jako 0.2.18 build 91.** Při další herní změně archivovat build-0 záznam changelogu jako 0.2.18 / build 91. „Co je nového“ a poznámky k vydání ukazují **poslední 3 verze**, každou v sekcích **Balanc / Nové / Ostatní** (opravy pod Ostatní, zkrácené jednořádkové texty; `Changelog.RECENT_COUNT`, `recent()`, `format_recent()`, pole `balance_keys`/`new_keys`, 0.2.17 archivována jako build 84). **Balanc 0.2.18:** Krügermannův plyn odfoukne po **0,7 s** (`blow_delay`, 42 ticků); odstřelovačka Stína odhoz **2200 → 1900**; brokovnice Architekta odhoz broku **220 → 195**, dostřel **650 → 580 px**; samopal Jiskry odhoz **450 → 520**, rozptyl **5° → 3,5°** (Jiskra měla v playtestu 0.2.17 nejméně zabití). **Log:** Nazgûl zapisuje v online hře `[match] nazgul coming slotN` / `nazgul strike slotN to=left|right` / `nazgul missed slotN` (host i klienti; `Nazgul.describe`).
 
 **Verze 0.2.17 – předpověď zásahů, silnější brokovnice, slabší odstřelovačka, nápověda map, tabulka výsledků, statistiky v lobby, skiny (Claude, 2026-11-13); pushnuto na pokyn uživatele („pushni to“), CI úspěšné, vydáno jako 0.2.17 build 84.**
@@ -121,6 +134,11 @@
 - **Před publikací:** změny 0.2.6 jsou necommitnuté, viz seznam výše. Codex necommitoval ani nepushoval. Další patch až po publikaci této verze; build stanoví CI podle skutečného commitu.
 
 ## Další krok
+**Nejprve ručně zahrát 0.2.19 s Bibim proti kamarádovi**: E/pravé tlačítko odpálí raketu,
+soupeř do ní střílí, sleduje zpomalení a poté výbuch; ověřit i odhoz Bibiho a spojence v týmech,
+více hráčů v AOE a náraz do pohyblivé či proskakovací plošiny. Potom podle výsledku ladit jen
+na pokyn uživatele. Níže uložený starší požadavek na zobrazení pouze verze zůstává odložený.
+
 **Ve hře ukazovat jen verzi, ne sestavení** (uživatel 2026-11-14: „přidej, ať se ve hře neukazuje sestavení, ale jen verze … uděláme to pak“): menu vlevo dole (`BUILD_DISPLAY` „{version} (sestavení {build})“), nadpisy v „Co je nového“ („0.2.17 (sestavení 84)“), aktualizace (`UPDATE_BUILD`), texty `CHANGELOG_EMPTY`/`CHANGELOG_HISTORY`; build zůstane interně (version.json, kontrola aktualizace a shody verzí). Před začátkem se zeptat, jestli i poznámky k vydání na GitHubu a vývojový štítek „(vývojová, commit)“. Potom další playtest 0.2.18 (ideálně 4+ hráčů, i týmy a Hobitín) → logy: korekce po zásahu, balanc, řádky `[match] nazgul`. Vzhled Hobitína čeká na konkrétní pokyn. Push vždy jen po souhlasu.
 
 **Testovací hraní 0.2.15 s kamarádem** podle `docs/PLAYTEST.md` (oba aktualizovat, hostovat jednou každý), od obou `last_game.log`: ping, `interp_ms`, korekce, `sys_free` na Windows; ručně: WASD, Q, schopnost po respawnu, panák, Krügermannův plyn (zpoždění 0,2 s, síla 1250, šipky), Balvan za štítem a těžký kulomet (přesnost na zemi vs. ve skoku), mapa Peklo (rychlost lávy 14 px/s, jestli je zápas na mostě zábavný, čitelnost plošin).
@@ -211,6 +229,14 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
   - Trénink má nekonečné životy.
 
 ## Poslední změny
+- **2026-11-17, Bibi 0.2.19:** nové `data/characters/bibi.tres`, `data/abilities/homing_rocket.tres`,
+  `src/abilities/homing_rocket_ability.gd`, `src/combat/{homing_rocket,rocket_system}.gd`,
+  `src/net/rocket_codec.gd`, `tools/art/bibi_character.py`, `assets/sprites/characters/bibi{,_skin}.png`
+  (+ UID/import metadata). Napojení `projectile.gd`, `match_controller.gd`, `match_net.gd`, protokol
+  v `build_info.gd`; stávající střely navíc zasahují samostatnou vrstvu rakety, ostatní kolize se nemění.
+  Kompletní bounded snapshot raket 20 Hz jen za letu (max. 16, 453 B), spolehlivý výbuch, ochrana proti
+  pozdnímu obnovení rakety; po odpojení majitele je její let dál viditelný. Aktualizovány testy, CSV,
+  changelog, verze, art generátor, CREDITS, README, CLAUDE, PLAN, PLAYTEST, ARCHITECTURE a EDITING_GUIDE.
 - **2026-11-14, 0.2.18 Jiskra + log Nazgûla:** `data/weapons/smg.tres` (`knockback` 520, `spread_degrees` 3,5), `src/arenas/nazgul.gd` (`_logging`, `describe`, řádky `[match] nazgul …`), testy (`test_weapons.gd`, `test_nazgul.gd`), CSV (`CHANGELOG_SMG_BUFF_0218`, `CHANGELOG_NAZGUL_LOG`), changelog, PLAYTEST, ARCHITECTURE, CLAUDE.md.
 - **2026-11-14, vyhodnocení playtestu 0.2.17 (Claude, jen PROGRESS, lokální commit):** viz „Play test 0.2.17“.
 - **2026-11-14, 0.2.18 brokovnice nerf (Claude, lokální commit, bez pushe):** `data/weapons/double_barrel.tres` (`knockback` 195, `max_range` 580), `test_weapons.gd`, CSV (`CHANGELOG_SHOTGUN_NERF_0218`), changelog (build 0 → Balanc), EDITING_GUIDE.
@@ -382,6 +408,10 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
   - kód hry a bezpečnostní opatření
 
 ## Známé problémy
+- **Bibi:** odhoz výbuchem je hostem potvrzovaný a nepředpovídá se; přidává 0 % poškození,
+  takže nepoužije pomalejší vyhlazení vyhrazené zásahům zvyšujícím procenta. Stejně jako u běžných
+  střel může klient krátce předpovědět zásah kulkou, kterou mezitím host zastavil raketou; odstranění
+  střely a snapshot stav opraví. Nezasahováno do obecné predikce. Balanc vyžaduje skutečné hraní.
 - **6 hráčů na původních mapách** (1280 × 720) je těsno – pro 6 hráčů je velký Hobitín.
 - **Pohyblivé plošiny:** vzdálený hráč stojící na pohyblivé plošině se u klienta kreslí o interpolační zpoždění (~100 ms) pozadu, takže na rychlé plošině vypadá o pár px vedle (vlastní postava sedí přesně).
 - **Peklo:** láva po vystoupání už neklesá; plošina panáka je po zaplavení pryč, panák se oživí na mostě. Spawn hráčů na začátku zápasu je dole (sloty 0–3), nahoře jsou jen záložní/lávové spawny.
@@ -410,6 +440,23 @@ Dále stále platí: **ruční vizuální porovnání obou postav s předlohami:
 - Testovací skripty při ukončení hlásí „resources still in use at exit“. Je to pravděpodobně artefakt testovacích skriptů, ve hře neověřeno.
 
 ## Stav testů
+- **2026-11-17, Bibi 0.2.19:** **211/211 GDScript testů**, lokalizace **315 klíčů / 0 chybějících**,
+  **10/10 Python testů vydávání**. Nové testy: navádění a změna cíle, průlet majitelem/spojencem,
+  reálné kolize kulek s raketou, dočasné zpomalení/minimum/obnovení/nezničitelnost, AOE a směr,
+  štít/váha/procenta/nezranitelnost, terén 1|2, doba života, aktivace/cooldown, klient bez gameplay
+  autority, bounded síťový formát, opožděné stavy po výbuchu a žádná raketová komunikace naprázdno.
+  Lobby při 1280×720: 7 karet, 6 hráčů, 3 týmy a oba skiny se vejdou (Start končí na y=675).
+  Okenní vizuální trénink na macOS: Bibi + samopal, let rakety, oranžový výbuch, odhoz majitele
+  i panáka a 0 % poškození ověřeny; screenshoty a pomocné skripty jen `/private/tmp/bibi_*`.
+  Původní PNG postav/zbraní zůstaly byte-for-byte stejné. Test runner dál hlásí záměrně neplatný
+  JSON v updater testu a dosavadní shutdown resource warnings (stejné počty před/po nových testech).
+  **Síť:** dva skutečné procesy host/klient na localhostu prošly bez přidaného lagu i s RTT 100 ms
+  a 5 % simulovanou ztrátou. Odpálení přes vstup hráče, skutečná obranná střelba klienta, zpomalení
+  na hostu i klientovi, spolehlivý výbuch, dva AOE zásahy na hostu / žádný lokální zásah na klientovi.
+  Náhled release notes obsahuje všechny tři nové řádky a správný archiv 0.2.18/91.
+  **Publikace:** připraven jeden herní commit a jediný push dle zadání; CI se ověřuje až pro jeho
+  skutečný hash po odeslání, výsledek patří do závěrečného hlášení. **Neověřeno:** skutečné hraní
+  přes Tailscale/Wi-Fi, ruční balanc 4–6 hráčů, nativní Windows/Linux (nadále odloženo).
 - **2026-11-14, 0.2.18 (Jiskra + log Nazgûla):** **193/193 GDScript testů** (samopal 520/3,5° a v limitu 7500/s; text řádků Nazgûla), lokalizace 307 klíčů / 0 chybí. Skript: Nazgûl s nastavenou sítí vypíše `nazgul coming slot2` a `nazgul strike slot2 to=left`, v tréninku nic. Náhled `notes.md`: 0.2.18 Balanc 4 řádky, Ostatní 2. **Neověřeno:** skutečná hra (balanc, log Nazgûla v reálném zápase).
 - **2026-11-14, 0.2.18 (brokovnice 195/580 px):** **191/191 GDScript testů**, lokalizace 305 klíčů / 0 chybí; náhled `notes.md`: 0.2.18 Balanc má plyn, odstřelovačku i brokovnici. Ve skutečné hře nevyzkoušeno.
 - **2026-11-14, 0.2.18 (odstřelovačka 1900):** **191/191 GDScript testů**, lokalizace 0 chybí; náhled `notes.md`: 0.2.18 Balanc má plyn i odstřelovačku. Ve skutečné hře nevyzkoušeno.

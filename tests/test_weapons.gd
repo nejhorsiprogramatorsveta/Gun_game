@@ -13,12 +13,12 @@ func test_every_weapon_stays_within_knockback_limits() -> void:
 		check(weapon.recoil >= CombatRules.MIN_RECOIL, "%s: recoil %.0f is noticeable" % [weapon.id, weapon.recoil])
 
 
-func test_six_characters_with_one_own_weapon_each() -> void:
+func test_seven_characters_with_one_weapon_each() -> void:
 	var ids := ContentDB.character_ids()
-	check_eq(ids, [&"architekt", &"balvan", &"jiskra", &"krugermann", &"stin", &"vichr"] as Array[StringName],
-			"the six characters (PLAN.md G.0a)")
+	check_eq(ids, [&"architekt", &"balvan", &"bibi", &"jiskra", &"krugermann", &"stin", &"vichr"] as Array[StringName],
+			"seven characters including Bibi")
 	var expected := {&"architekt": &"double_barrel", &"balvan": &"heavy_machine_gun", &"jiskra": &"smg",
-			&"krugermann": &"light_machine_gun", &"stin": &"sniper", &"vichr": &"battle_rifle"}
+			&"krugermann": &"light_machine_gun", &"stin": &"sniper", &"vichr": &"battle_rifle", &"bibi": &"smg"}
 	for id in ids:
 		var weapon := ContentDB.get_character(id).weapon
 		check(weapon != null and weapon.id == expected[id], "%s has the weapon chosen by the user" % id)

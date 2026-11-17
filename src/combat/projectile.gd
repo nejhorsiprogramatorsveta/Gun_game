@@ -12,6 +12,7 @@ signal finished(projectile: Projectile)
 
 const WORLD_MASK := 1
 const PLAYERS_MASK := 4
+const ROCKETS_MASK := 16
 ## Length of the visible streak behind the bullet (px).
 const TRAIL_LENGTH := 40.0
 
@@ -51,13 +52,15 @@ func advance(delta: float) -> void:
 	if is_queued_for_deletion():
 		return
 	var step := direction * weapon.projectile_speed * delta
-	var mask := WORLD_MASK | (PLAYERS_MASK if authoritative else 0)
+	var mask := WORLD_MASK | (PLAYERS_MASK | ROCKETS_MASK if authoritative else 0)
 	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + step, mask, _exclude)
+	query.collide_with_areas = authoritative
 	# The muzzle can start inside a player standing right next to the shooter; still a hit.
 	query.hit_from_inside = true
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
-	while not hit.is_empty() and hit.collider is Player and Teams.allies(shooter_team, hit.collider.team):
-		_exclude.append(hit.rid)  # fly through teammates (at most 3 of them)
+	while not hit.is_empty() and ((hit.collider is Player and Teams.allies(shooter_team, hit.collider.team)) \
+			or (hit.collider is HomingRocket and not hit.collider.slow_by_shot(shooter_peer_id, shooter_team))):
+		_exclude.append(hit.rid)  # fly through teammates and the shooter's own rockets
 		query.exclude = _exclude
 		hit = get_world_2d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():

@@ -3,7 +3,7 @@ class_name LobbyValidator
 ## Clients only accept these messages from the host, but a buggy or modified host must still
 ## not be able to break the UI with huge or malformed data. Invalid input -> empty result.
 
-## Up to 6 players (user 2026-11-13); there are exactly 6 characters, each once per match.
+## Up to 6 players (user 2026-11-13); each character can be chosen once per match.
 const MAX_PLAYERS := 6
 const MAX_NAME_LENGTH := 16
 const MAX_SCORE := 65535

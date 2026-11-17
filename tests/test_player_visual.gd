@@ -2,7 +2,7 @@ extends TestCase
 
 
 func test_animation_follows_movement_and_shooting() -> void:
-	for id: StringName in [&"balvan", &"krugermann", &"architekt"]:
+	for id: StringName in [&"balvan", &"krugermann", &"architekt", &"bibi"]:
 		var visual := PlayerVisual.new()
 		visual.setup(ContentDB.get_character(id))
 		var body: AnimatedSprite2D = visual._body

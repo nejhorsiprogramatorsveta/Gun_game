@@ -40,7 +40,7 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/match/match_net.gd` | jediné RPC zápasu: vstupy klient → host, snapshoty host → klienti, spolehlivé události střel a kill hlášek, „loaded“, rate-limit |
 | `src/net/net_stats.gd` | jen klient: ping = čas od odeslání vstupu po snapshot s jeho `last_seq` (vyhlazený); žádné nové síťové zprávy |
 | `src/match/input_buffer.gd` | host: fronta vstupů jednoho klienta, 1 vstup za tick; strop 6, dohánění (když fronta za 0,5 s neklesne na 1, přebytek nejstarších se přeskočí a jejich tlačítka se přenesou), čte se i u mrtvého hráče; po 0,25 s bez vstupu neutrální vstup (postava stojí) |
-| `data/weapons/*.tres`, `data/characters/*.tres` | 12 zbraní (`pellets` pro brokovnice), 6 postav, každá **jedna zbraň** (`CharacterData.weapon`, bez přepínání; 6 zbraní zatím nepoužitých); `CombatRules` limity knockbacku a minimum zpětného rázu (hlídá `tests/test_weapons.gd`); protokol 11 |
+| `data/weapons/*.tres`, `data/characters/*.tres` | 7 postav včetně Bibiho, každá **jedna zbraň** (`CharacterData.weapon`, bez přepínání; Bibi a Jiskra sdílejí samopal); `CombatRules` limity knockbacku a minimum zpětného rázu hlídá `tests/test_weapons.gd` |
 | `src/data_types/ability_data.gd`, `src/abilities/*.gd`, `data/abilities/*.tres`, `src/combat/ability_system.gd` | schopnosti: bezstavový resource (cooldown, trvání, `activate`, `knockback_scale`, `allows_firing`), podtřídy `ShieldAbility`, `ShockwaveAbility`, `DashAbility`, `TeleportAbility`; aktivace na stisk, cooldown a účinek na vlastní pohyb (`AbilityData.start`) běží v `Player.tick_ability()` uvnitř `simulate()` → host i predikce klienta počítají stejně; úskok je stav v `PlayerMotor.State` (`dash_time_left`, `dash_direction`); `AbilitySystem` (host) jen účinky na ostatní (`activate`) a připsání zásahů; snapshot: cooldown v tickách (u16), `FLAG_ABILITY_ACTIVE`, `FLAG_DASH_LEFT`, čas úskoku (39 B na hráče, protokol 8); HUD řádek se schopností |
 | `src/combat/{area_effects,gas_cloud,temp_platform}.gd`, `src/abilities/{gas_blast,platform}_ability.gd` | objekty schopností ve světě: `AbilityData.start()` (host i predikce majitele) volá `AreaEffects.spawn` se směrem (1/−1 = strana míření), klíč schopnost/majitel/seq brání zdvojení při replay, host rozešle `send_effect_spawned` (reliable, nese i směr, validace v `match_net.gd`), u majitele vyhraje pozice a směr hostitele. **Krügermannův plyn** (`GasCloud`): `AreaEffects.blow` v `Player.simulate` před pohybem – soupeř, jehož tělo je v pásu `blow_delay` (1 s = 60 ticků v kuse, `Player.gas_ticks`, jde ve snapshotu, takže predikce oběti počítá stejně), dostane rychlost `blow_speed` směrem od Krügermanna a `blow_lift` nahoru (/váha, × štít; nastaví se, nesčítá; majitel, spoluhráči a čerstvě respawnutí imunní); host přes `player_blown` připíše Krügermannovi pád (`MatchScore`); šipky v plynu ukazují směr; `ContentDB.get_ability` |
 | `src/match/hit_prediction.gd`, `src/player/client_prediction.gd` (`replay_from`), `src/match/match_client.gd` | **předpověď zásahů na vlastní postavu** (0.2.17, protokol 25): hostitel posílá u každé střely tick výstřelu (`send_projectile_spawned(..., tick)`; kulka se poprvé posune v dalším ticku, až po pohybu hráčů) a oběti potvrzuje skutečný zásah (`send_hit_confirmed(peer, id, tick, last_input_seq)`). Klient (`HitPrediction.detect`) zkouší každou cizí kulku proti svým nepotvrzeným vstupům (stav po pohybu, host tick vstupu `MatchClient.tick_for` + adaptivní `tick_bias` z potvrzení, tolerance ±1 tick); zásah = `take_hit` hned, u vstupu v minulosti přehrání od něj (`replay_from`). Při každém snímku `apply_after_snapshot(tick, last_seq)`: potvrzené s tickem < tick snímku jsou ve stavu, nepotvrzené o víc než 2 vstupy starší zahodí, ostatní se aplikují po vstupech, za kterými přistály; kulka odebraná bez potvrzení = minula. Zásahy zblízka (kulka trefí dřív, než o ní klient ví) zůstávají korekcí, ale postava do ní doklouže pomaleji (`Player.HIT_SMOOTHING` 8/s místo 20/s). Nepředpovídá se tlaková vlna a Nazgûl ani hráč stojící kulce v cestě |
@@ -75,6 +75,24 @@ Podrobný návrh je v [PLAN.md](PLAN.md), sekce D a F. Tento soubor popisuje, **
 | `src/net/handshake.gd` | `Handshake`: zprávy handshaku (sestavení, dekódování s limitem velikosti, kontrola verze a kódu hry), generování kódu hry |
 | `tests/` | vlastní mini test runner (`run_tests.gd`, `TestCase`; test smí `await physics_step()`, když potřebuje fyzikální svět) |
 | `tools/` | `setup_env.sh` + `godot` (připnutý engine), `check_localization.gd`, `write_build_info.gd` (verze projektu + identita sestavení), `write_release_notes.gd`, `publish_release.sh` (aktualizace jediného vydání) |
+
+## Bibi a naváděná raketa (0.2.19)
+
+- `data/characters/bibi.tres`: sedmá volitelná postava, stávající `smg`, kresba z
+  `tools/art/bibi_character.py` přes `generate_sprites.py`, skin Bordó oblek. Limit hráčů zůstává šest.
+- `src/abilities/homing_rocket_ability.gd`, `data/abilities/homing_rocket.tres`: bezstavové parametry.
+  `RocketSystem.spawn_for` až po hostem přijatém stisku schopnosti; cooldown v `Player` jako dosud.
+- `src/combat/homing_rocket.gd`: `Area2D`, vlastní vrstva 16, nehýbe hráči kolizí. Explicitní
+  `advance` hledá každý tick nejbližšího soupeře; paprsek proti vrstvám 1|2|4 kontroluje náraz.
+  `Projectile` navíc vidí vrstvu 16: nepřátelská kulka zpomalí raketu a skončí, vlastní/spojenecká proletí.
+  Výbuch odhodí i vlastníka a spojence; přímá oběť dle příletu, ostatní radiálně se zdvihem,
+  síla 1100 / dosah 320 px jako Vichr, přidané poškození 0 %. `take_hit` zachovává štít/váhu/procenta.
+- `src/combat/rocket_system.gd`: autorita postupuje rakety po pohybu hráčů před snapshotem,
+  připisuje zásahy přes `MatchScore`, kreslí oranžový stávající efekt vlny. Klient pouze zobrazuje let.
+- `src/net/rocket_codec.gd`: úplný stav aktivních raket (5 B hlavička + 28 B/raketa, max. 16),
+  kontrola velikosti, unikátních ID, konečných pozic/jednotkových směrů a mezí rychlosti.
+  `MatchNet` má autoritativní stavový RPC 20 Hz na kanálu 1 a spolehlivé výbuchy. Staré stavy ani
+  stav doručený po výbuchu raketu neoživí. Nové RPC vyžadují protokol 26; formát pohybových snapshotů se nemění.
 
 ## Changelog a vydávání
 

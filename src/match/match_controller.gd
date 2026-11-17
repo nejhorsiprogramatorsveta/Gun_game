@@ -26,6 +26,7 @@ var _arena: Arena
 var _weapons := WeaponSystem.new()
 var _abilities := AbilitySystem.new()
 var _effects := AreaEffects.new()
+var _rockets := RocketSystem.new()
 var _score := MatchScore.new()
 var _rules: MatchRules = ContentDB.match_rules()
 var _networked := false
@@ -71,6 +72,9 @@ func _ready() -> void:
 	_abilities.player_hit.connect(_on_player_hit)
 	_effects.player_blown.connect(_on_player_hit)  # a fall after Krügermann's gas counts for him
 	_is_authority = not _networked or multiplayer.is_server()
+	add_child(_rockets)
+	_rockets.setup(_net if _networked else null, _is_authority, _players)
+	_rockets.player_hit.connect(_on_player_hit)
 	_effects.setup(_net if _networked else null, _is_authority)
 	_nazgul = _arena.nazgul()
 	if _nazgul:
@@ -196,6 +200,7 @@ func _simulate_tick(delta: float) -> void:
 			player.simulate(input, delta)
 			_weapons.spawn_shot(player, input, inputs.size() - 1 - i)
 			_abilities.tick(player, _players.values())
+			_rockets.spawn_for(player)
 		if not inputs.is_empty() and player.remote_view:
 			player.record_for_display()
 		player.invulnerable_time = maxf(player.invulnerable_time - delta, 0.0)
@@ -208,6 +213,8 @@ func _simulate_tick(delta: float) -> void:
 				_on_player_fell(player)
 		else:
 			player.out_of_bounds_time = 0.0
+	if not frozen and not _match_over:
+		_rockets.tick(delta, _tick)
 	if _networked:
 		_check_match_end()
 		if _tick % SNAPSHOT_EVERY_TICKS == 0:

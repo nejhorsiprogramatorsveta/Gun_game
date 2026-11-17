@@ -14,6 +14,8 @@ signal projectile_removed(id: int)
 signal kill_announced(killer_slot: int, streak: int)
 signal effect_spawned(ability_id: StringName, owner_peer_id: int, seq: int, position: Vector2, direction: int)
 signal nazgul_event(event: int, slot: int, direction: int)
+signal rocket_state_received(snapshot: Dictionary)
+signal rocket_exploded(id: int, position: Vector2)
 
 ## A legit client sends 60/s; anything far above is dropped.
 const MAX_INPUT_PACKETS_PER_SECOND := 150
@@ -91,6 +93,18 @@ func send_nazgul(event: int, slot: int, direction: int) -> void:
 	_send(func() -> void:
 		for peer_id in _loaded_peers:
 			_receive_nazgul.rpc_id(peer_id, event, slot, direction), true)
+
+
+func send_rocket_state(data: PackedByteArray) -> void:
+	_send(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_rocket_state.rpc_id(peer_id, data))
+
+
+func send_rocket_exploded(id: int, at: Vector2) -> void:
+	_send(func() -> void:
+		for peer_id in _loaded_peers:
+			_receive_rocket_exploded.rpc_id(peer_id, id, at), true)
 
 
 ## Sends only while the match runs: once it has ended the other side may already have
@@ -176,6 +190,22 @@ func _receive_nazgul(event: int, slot: int, direction: int) -> void:
 			or slot >= Session.MAX_PLAYERS or direction < -1 or direction > 1:
 		return
 	lag.run(nazgul_event.emit.bind(event, slot, direction), true)
+
+
+@rpc("authority", "call_remote", "unreliable_ordered", 1)
+func _receive_rocket_state(data: PackedByteArray) -> void:
+	if Session.phase != Session.Phase.IN_MATCH:
+		return
+	var snapshot := RocketCodec.decode(data)
+	if not snapshot.is_empty():
+		lag.run(rocket_state_received.emit.bind(snapshot))
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_rocket_exploded(id: int, at: Vector2) -> void:
+	if Session.phase != Session.Phase.IN_MATCH or id <= 0 or id > RocketCodec.MAX_U32 or not at.is_finite():
+		return
+	lag.run(rocket_exploded.emit.bind(id, at), true)
 
 
 func _rate_exceeded(peer_id: int) -> bool:
